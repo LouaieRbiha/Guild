@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -11,6 +11,8 @@ import {
   Calendar,
   Map,
   Dices,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 import {
@@ -127,6 +129,7 @@ export function HomeClient({
   featured5StarWeapons,
 }: HomeClientProps) {
   const [uid, setUid] = useState("");
+  const [activeBannerIdx, setActiveBannerIdx] = useState(0);
   const router = useRouter();
 
   const go = () => {
@@ -137,6 +140,18 @@ export function HomeClient({
   const weaponBanner = banners.weapon;
   const bannerEndDate = charBanner ? parseBannerDate(charBanner.end) : null;
   const abyssResetDate = getNextAbyssReset();
+  const bannerCount = (charBanner ? 1 : 0) + (weaponBanner ? 1 : 0);
+
+  // Auto-rotate banners on mobile every 6 seconds
+  const nextBanner = useCallback(() => {
+    if (bannerCount > 1) setActiveBannerIdx((i) => (i + 1) % bannerCount);
+  }, [bannerCount]);
+
+  useEffect(() => {
+    if (bannerCount <= 1) return;
+    const timer = setInterval(nextBanner, 6000);
+    return () => clearInterval(timer);
+  }, [bannerCount, nextBanner]);
 
   // Hero splash art from first featured 5-star character
   const hero5Star = featured5StarChars[0];
@@ -148,7 +163,7 @@ export function HomeClient({
       <section className="pt-16 pb-12 px-6">
         <div className="max-w-6xl mx-auto text-center space-y-8">
           <h1 className="text-7xl font-bold tracking-tight">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-guild-accent to-guild-accent-2">
+            <span className="bg-clip-text text-transparent bg-linear-to-r from-guild-accent to-guild-accent-2">
               GUILD
             </span>
           </h1>
@@ -160,7 +175,7 @@ export function HomeClient({
           {/* UID Lookup */}
           <div className="max-w-md mx-auto">
             <div className="relative">
-              <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-guild-accent/30 via-guild-accent-2/20 to-guild-accent/30 blur-lg animate-pulse-glow" />
+              <div className="absolute -inset-1 rounded-2xl bg-linear-to-r from-guild-accent/30 via-guild-accent-2/20 to-guild-accent/30 blur-lg animate-pulse-glow" />
               <Card className="relative border-white/10 p-0 gap-0">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
@@ -205,10 +220,13 @@ export function HomeClient({
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Desktop: side by side. Mobile: carousel with rotation */}
+          <div className="relative">
+            {/* Desktop layout - both visible */}
+            <div className="hidden md:grid md:grid-cols-2 gap-4">
             {/* Character Banner Card */}
             {charBanner ? (
-              <Card className="overflow-hidden relative min-h-[320px] border-white/5 p-0 gap-0">
+              <Card className="overflow-hidden relative min-h-80 border-white/5 p-0 gap-0">
                 {/* Background splash art */}
                 {heroSplashUrl && (
                   <>
@@ -221,11 +239,11 @@ export function HomeClient({
                       sizes="(max-width: 768px) 100vw, 50vw"
                       priority={true}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-card via-card/80 to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-t from-card via-card/80 to-transparent" />
                   </>
                 )}
 
-                <div className="relative z-10 p-6 flex flex-col justify-between h-full min-h-[320px]">
+                <div className="relative z-10 p-6 flex flex-col justify-between h-full min-h-80">
                   {/* Top label + version */}
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-guild-muted">
@@ -242,13 +260,14 @@ export function HomeClient({
                   <div className="space-y-2 my-auto py-6">
                     {featured5StarChars.length > 0
                       ? featured5StarChars.map((char) => (
-                          <div
+                          <Link
                             key={char.id}
-                            className="flex items-center gap-3"
+                            href={`/database/${char.id}`}
+                            className="flex items-center gap-3 group/name"
                           >
-                            <h3 className="text-2xl font-bold">{char.name}</h3>
+                            <h3 className="text-2xl font-bold group-hover/name:text-guild-accent transition-colors">{char.name}</h3>
                             <ElementBadge element={char.element} />
-                          </div>
+                          </Link>
                         ))
                       : charBanner.featured5Star.map((name) => (
                           <h3 key={name} className="text-2xl font-bold">
@@ -261,9 +280,10 @@ export function HomeClient({
                   <div className="flex items-end justify-between gap-4">
                     <div className="flex items-center gap-2 flex-wrap">
                       {featured4StarChars.map((char) => (
-                        <div
+                        <Link
                           key={char.id}
-                          className="flex items-center gap-1.5"
+                          href={`/database/${char.id}`}
+                          className="flex items-center gap-1.5 group/four hover:opacity-90 transition-opacity"
                         >
                           <div className="w-8 h-8 rounded-full overflow-hidden border border-white/20 relative shrink-0">
                             <Image
@@ -274,10 +294,10 @@ export function HomeClient({
                               sizes="32px"
                             />
                           </div>
-                          <span className="text-xs text-guild-muted hidden sm:inline">
+                          <span className="text-xs text-guild-muted hidden sm:inline group-hover/four:text-white transition-colors">
                             {char.name}
                           </span>
-                        </div>
+                        </Link>
                       ))}
                     </div>
 
@@ -288,9 +308,9 @@ export function HomeClient({
                 </div>
               </Card>
             ) : (
-              <Card className="overflow-hidden relative min-h-[320px] border-white/5 p-0 gap-0">
-                <div className="absolute inset-0 bg-gradient-to-br from-guild-accent/10 via-card to-guild-accent-2/10" />
-                <div className="relative z-10 flex flex-col items-center justify-center h-full min-h-[320px] gap-3">
+              <Card className="overflow-hidden relative min-h-80 border-white/5 p-0 gap-0">
+                <div className="absolute inset-0 bg-linear-to-br from-guild-accent/10 via-card to-guild-accent-2/10" />
+                <div className="relative z-10 flex flex-col items-center justify-center h-full min-h-80 gap-3">
                   <PrimogemIcon className="text-guild-muted" size={40} />
                   <p className="text-guild-muted font-medium">
                     No Active Character Banner
@@ -304,9 +324,9 @@ export function HomeClient({
 
             {/* Weapon Banner Card */}
             {weaponBanner ? (
-              <Card className="overflow-hidden relative min-h-[320px] border-white/5 p-0 gap-0">
+              <Card className="overflow-hidden relative min-h-80 border-white/5 p-0 gap-0">
                 {/* Gradient background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-guild-accent/10 via-card to-guild-accent-2/10" />
+                <div className="absolute inset-0 bg-linear-to-br from-guild-accent/10 via-card to-guild-accent-2/10" />
 
                 {/* Background weapon icons */}
                 {featured5StarWeapons.length > 0 && (
@@ -326,7 +346,7 @@ export function HomeClient({
                   </div>
                 )}
 
-                <div className="relative z-10 p-6 flex flex-col justify-between h-full min-h-[320px]">
+                <div className="relative z-10 p-6 flex flex-col justify-between h-full min-h-80">
                   {/* Top label + version */}
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-guild-muted">
@@ -343,9 +363,10 @@ export function HomeClient({
                   <div className="space-y-3 my-auto py-6">
                     {featured5StarWeapons.length > 0
                       ? featured5StarWeapons.map((weapon) => (
-                          <div
+                          <Link
                             key={weapon.id}
-                            className="flex items-center gap-3"
+                            href={`/weapons/${weapon.id}`}
+                            className="flex items-center gap-3 group/wname hover:opacity-90 transition-opacity"
                           >
                             <Image
                               src={weaponIconUrl(weapon.id)}
@@ -356,12 +377,12 @@ export function HomeClient({
                               sizes="40px"
                             />
                             <div>
-                              <h3 className="text-lg font-bold">
+                              <h3 className="text-lg font-bold group-hover/wname:text-guild-accent transition-colors">
                                 {weapon.name}
                               </h3>
                               <RarityStars rarity={weapon.rarity} size="xs" />
                             </div>
-                          </div>
+                          </Link>
                         ))
                       : weaponBanner.featured5Star.map((name) => (
                           <h3 key={name} className="text-lg font-bold">
@@ -383,9 +404,9 @@ export function HomeClient({
                 </div>
               </Card>
             ) : (
-              <Card className="overflow-hidden relative min-h-[320px] border-white/5 p-0 gap-0">
-                <div className="absolute inset-0 bg-gradient-to-br from-guild-accent-2/10 via-card to-guild-accent/10" />
-                <div className="relative z-10 flex flex-col items-center justify-center h-full min-h-[320px] gap-3">
+              <Card className="overflow-hidden relative min-h-80 border-white/5 p-0 gap-0">
+                <div className="absolute inset-0 bg-linear-to-br from-guild-accent-2/10 via-card to-guild-accent/10" />
+                <div className="relative z-10 flex flex-col items-center justify-center h-full min-h-80 gap-3">
                   <Swords className="text-guild-muted" size={40} />
                   <p className="text-guild-muted font-medium">
                     No Active Weapon Banner
@@ -396,6 +417,109 @@ export function HomeClient({
                 </div>
               </Card>
             )}
+          </div>
+
+            {/* Mobile layout - carousel with rotation */}
+            <div className="md:hidden relative">
+              <div className="overflow-hidden rounded-xl">
+                {activeBannerIdx === 0 && charBanner ? (
+                  <Card className="overflow-hidden relative min-h-80 border-white/5 p-0 gap-0">
+                    {heroSplashUrl && (
+                      <>
+                        <Image
+                          src={heroSplashUrl}
+                          alt={hero5Star?.name || "Featured character"}
+                          fill
+                          quality={95}
+                          className="object-cover object-top opacity-40"
+                          sizes="100vw"
+                        />
+                        <div className="absolute inset-0 bg-linear-to-t from-card via-card/80 to-transparent" />
+                      </>
+                    )}
+                    <div className="relative z-10 p-6 flex flex-col justify-between h-full min-h-80">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-guild-muted">Character Event Wish</span>
+                        {charBanner.version && (
+                          <Badge className="bg-guild-accent/20 text-guild-accent border-guild-accent/30">v{charBanner.version}</Badge>
+                        )}
+                      </div>
+                      <div className="space-y-2 my-auto py-6">
+                        {featured5StarChars.map((char) => (
+                          <Link key={char.id} href={`/database/${char.id}`} className="flex items-center gap-3">
+                            <h3 className="text-2xl font-bold">{char.name}</h3>
+                            <ElementBadge element={char.element} />
+                          </Link>
+                        ))}
+                      </div>
+                      <div className="flex items-end justify-between gap-4">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {featured4StarChars.map((char) => (
+                            <Link key={char.id} href={`/database/${char.id}`} className="flex items-center gap-1.5">
+                              <div className="w-8 h-8 rounded-full overflow-hidden border border-white/20 relative shrink-0">
+                                <Image src={charIconUrl(char.id)} alt={char.name} fill className="object-cover" sizes="32px" />
+                              </div>
+                            </Link>
+                          ))}
+                        </div>
+                        {bannerEndDate && <Countdown target={bannerEndDate} label="Ends in" />}
+                      </div>
+                    </div>
+                  </Card>
+                ) : weaponBanner ? (
+                  <Card className="overflow-hidden relative min-h-80 border-white/5 p-0 gap-0">
+                    <div className="absolute inset-0 bg-linear-to-br from-guild-accent/10 via-card to-guild-accent-2/10" />
+                    {featured5StarWeapons.length > 0 && (
+                      <div className="absolute inset-0 flex items-center justify-center gap-8 opacity-20">
+                        {featured5StarWeapons.map((weapon) => (
+                          <Image key={weapon.id} src={weaponIconUrl(weapon.id)} alt={weapon.name} width={160} height={160} className="object-contain" sizes="160px" />
+                        ))}
+                      </div>
+                    )}
+                    <div className="relative z-10 p-6 flex flex-col justify-between h-full min-h-80">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-guild-muted">Epitome Invocation</span>
+                        {weaponBanner.version && (
+                          <Badge className="bg-guild-accent-2/20 text-guild-accent-2 border-guild-accent-2/30">v{weaponBanner.version}</Badge>
+                        )}
+                      </div>
+                      <div className="space-y-3 my-auto py-6">
+                        {featured5StarWeapons.map((weapon) => (
+                          <Link key={weapon.id} href={`/weapons/${weapon.id}`} className="flex items-center gap-3">
+                            <Image src={weaponIconUrl(weapon.id)} alt={weapon.name} width={40} height={40} className="object-contain" sizes="40px" />
+                            <div>
+                              <h3 className="text-lg font-bold">{weapon.name}</h3>
+                              <RarityStars rarity={weapon.rarity} size="xs" />
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                      <div className="flex items-end justify-between">
+                        <span className="text-sm text-guild-muted">Weapon Event Wish</span>
+                        <Countdown target={parseBannerDate(weaponBanner.end)} label="Ends in" />
+                      </div>
+                    </div>
+                  </Card>
+                ) : null}
+              </div>
+
+              {/* Carousel dots + arrows */}
+              {bannerCount > 1 && (
+                <div className="flex items-center justify-center gap-3 mt-3">
+                  <button onClick={() => setActiveBannerIdx((i) => (i - 1 + bannerCount) % bannerCount)} className="p-1.5 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
+                    <ChevronLeft className="h-4 w-4 text-guild-muted" />
+                  </button>
+                  <div className="flex gap-1.5">
+                    {Array.from({ length: bannerCount }).map((_, i) => (
+                      <button key={i} onClick={() => setActiveBannerIdx(i)} className={cn("w-2 h-2 rounded-full transition-all", activeBannerIdx === i ? "bg-guild-accent w-6" : "bg-white/20 hover:bg-white/40")} />
+                    ))}
+                  </div>
+                  <button onClick={nextBanner} className="p-1.5 rounded-full bg-white/5 hover:bg-white/10 transition-colors">
+                    <ChevronRight className="h-4 w-4 text-guild-muted" />
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>
@@ -448,7 +572,7 @@ export function HomeClient({
                 >
                   <Card
                     className={cn(
-                      "relative aspect-[3/4] overflow-hidden p-0 gap-0 border-white/5",
+                      "relative aspect-3/4 overflow-hidden p-0 gap-0 border-white/5",
                       "transition-all duration-300 hover:scale-105 hover:shadow-lg",
                       ELEMENT_GLOW[char.element] ||
                         "hover:border-guild-accent/50"
@@ -470,7 +594,7 @@ export function HomeClient({
                     />
 
                     {/* Bottom gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#1a1b2e] via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-t from-[#1a1b2e] via-transparent to-transparent" />
 
                     {/* Element icon (top-right) */}
                     {Icon && (

@@ -427,7 +427,7 @@ function CharacterCard({ char }: { char: CharacterEntry }) {
         )}
         style={{ "--element-glow": glow } as React.CSSProperties}
       >
-        <div className="relative aspect-[3/5] bg-black/60 group-hover:[box-shadow:var(--element-glow)]">
+        <div className="relative aspect-3/5 bg-black/60 group-hover:[box-shadow:var(--element-glow)]">
           {/* Image with zoom on hover */}
           <Image
             src={useFallback ? charIconUrl(char.id) : gachaArtUrl(char.id)}
@@ -440,7 +440,7 @@ function CharacterCard({ char }: { char: CharacterEntry }) {
           />
 
           {/* Name + element + weapon + rarity -- always visible, fades out on hover */}
-          <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-100 group-hover:opacity-0 transition-opacity duration-200 pointer-events-none">
+          <div className="absolute inset-x-0 bottom-0 p-2 bg-linear-to-t from-black/90 via-black/40 to-transparent opacity-100 group-hover:opacity-0 transition-opacity duration-200 pointer-events-none">
             <p className="text-sm font-semibold text-white truncate drop-shadow-lg">{char.name}</p>
             <div className="flex items-center gap-1.5 mt-0.5">
               {EI && <EI size={16} />}

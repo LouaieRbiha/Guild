@@ -251,7 +251,7 @@ export function CharacterDetailClient({ detail, entry }: Props) {
 				<div className='relative flex flex-col md:flex-row'>
 					{/* Character art */}
 					<div
-						className={`relative w-full md:w-80 h-80 md:h-auto ${colors.bg} flex-shrink-0`}
+						className={`relative w-full md:w-80 h-80 md:h-auto ${colors.bg} shrink-0`}
 					>
 						<Image
 							src={gachaUrl}
@@ -268,8 +268,8 @@ export function CharacterDetailClient({ detail, entry }: Props) {
 								(e.target as HTMLImageElement).src = charIconUrl(entry.id);
 							}}
 						/>
-						<div className='absolute inset-0 bg-gradient-to-r from-transparent to-[#111827] hidden md:block' />
-						<div className='absolute inset-0 bg-gradient-to-t from-[#111827] to-transparent md:hidden' />
+						<div className='absolute inset-0 bg-linear-to-r from-transparent to-[#111827] hidden md:block' />
+						<div className='absolute inset-0 bg-linear-to-t from-[#111827] to-transparent md:hidden' />
 					</div>
 
 					{/* Info */}
@@ -416,7 +416,7 @@ export function CharacterDetailClient({ detail, entry }: Props) {
 					<MaterialsTab detail={detail} colors={colors} />
 				</TabsContent>
 				<TabsContent value='guides'>
-					<GuidesTab detail={detail} entry={entry} colors={colors} />
+					<GuidesTab detail={detail} colors={colors} />
 				</TabsContent>
 				<TabsContent value='lore'>
 					<LoreTab detail={detail} />
@@ -597,7 +597,7 @@ function ConstellationsTab({
 							<CardContent className='p-5'>
 								<div className='flex gap-5'>
 									{/* Left: C# number + icon */}
-									<div className='flex flex-col items-center gap-2 flex-shrink-0'>
+									<div className='flex flex-col items-center gap-2 shrink-0'>
 										<span className={`text-2xl font-black ${colors.text}`}>
 											C{c.index}
 										</span>
@@ -1133,11 +1133,9 @@ function LoreTab({
 
 function GuidesTab({
 	detail,
-	entry,
 	colors,
 }: {
 	detail: CharacterDetail;
-	entry: CharacterEntry;
 	colors: ElementColors;
 }) {
 	const guide = CHARACTER_GUIDES[detail.name];
@@ -1187,7 +1185,7 @@ function GuidesTab({
 					<div className='space-y-3'>
 						{guide.bestWeapons.map((w, i) => (
 							<div key={i} className='flex items-center gap-4 p-3 rounded-lg bg-black/20'>
-								<div className='relative w-12 h-12 flex-shrink-0'>
+								<div className='relative w-12 h-12 shrink-0'>
 									<Image
 										src={weaponIconUrl(w.weaponId)}
 										alt={w.name}
@@ -1202,7 +1200,7 @@ function GuidesTab({
 									<p className='text-sm text-gray-400'>{w.note}</p>
 								</div>
 								{i === 0 && (
-									<Badge className='bg-amber-500/20 text-amber-400 border-amber-500/30 flex-shrink-0'>
+									<Badge className='bg-amber-500/20 text-amber-400 border-amber-500/30 shrink-0'>
 										BiS
 									</Badge>
 								)}
@@ -1220,7 +1218,7 @@ function GuidesTab({
 						{guide.bestArtifacts.map((a, i) => (
 							<div key={i} className='flex items-center gap-4 p-3 rounded-lg bg-black/20'>
 								<div className={cn(
-									'w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0',
+									'w-12 h-12 rounded-lg flex items-center justify-center shrink-0',
 									colors.bg,
 								)}>
 									<span className={`text-lg font-bold ${colors.text}`}>{a.pieces}pc</span>
@@ -1230,7 +1228,7 @@ function GuidesTab({
 									<p className='text-sm text-gray-400'>{a.note}</p>
 								</div>
 								{i === 0 && (
-									<Badge className='bg-amber-500/20 text-amber-400 border-amber-500/30 flex-shrink-0'>
+									<Badge className='bg-amber-500/20 text-amber-400 border-amber-500/30 shrink-0'>
 										Best
 									</Badge>
 								)}
@@ -1273,7 +1271,7 @@ function GuidesTab({
 														</div>
 													)}
 												</div>
-												<span className='text-xs text-gray-400 text-center max-w-[64px] truncate'>
+												<span className='text-xs text-gray-400 text-center max-w-16 truncate'>
 													{member.split(' ').pop()}
 												</span>
 											</div>
@@ -1293,7 +1291,7 @@ function GuidesTab({
 					<ul className='space-y-3'>
 						{guide.tips.map((tip, i) => (
 							<li key={i} className='flex gap-3'>
-								<span className={`${colors.text} font-bold text-lg flex-shrink-0`}>&bull;</span>
+								<span className={`${colors.text} font-bold text-lg shrink-0`}>&bull;</span>
 								<p className='text-base text-gray-300 leading-relaxed'>{tip}</p>
 							</li>
 						))}

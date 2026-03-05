@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Shield, AlertTriangle, Swords, Trophy, Info, ChevronRight } from "lucide-react";
+import { Shield, AlertTriangle, Swords, Trophy, Info, ChevronRight, Flame, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,10 +15,14 @@ import {
   ABYSS_VERSION,
   ABYSS_CYCLE,
   RECOMMENDED_TEAMS,
+  STYGIAN_STAGES,
+  STYGIAN_VERSION,
+  STYGIAN_CYCLE,
   type AbyssFloor,
   type AbyssBoss,
   type AbyssEnemy,
   type TeamComp,
+  type StygianStage,
 } from "@/data/abyss";
 
 // ── Helpers ──────────────────────────────────────────────────────────────
@@ -42,18 +46,21 @@ const ARCHETYPE_COLORS: Record<string, { text: string; bg: string; border: strin
   Vaporize: { text: "text-orange-400", bg: "bg-orange-500/20", border: "border-orange-500/30" },
   "Overloaded/Vape": { text: "text-red-400", bg: "bg-red-500/20", border: "border-red-500/30" },
   "Hydro Hypercarry": { text: "text-blue-400", bg: "bg-blue-500/20", border: "border-blue-500/30" },
+  "Pyro Hypercarry": { text: "text-red-400", bg: "bg-red-500/20", border: "border-red-500/30" },
   Spread: { text: "text-green-400", bg: "bg-green-500/20", border: "border-green-500/30" },
   Freeze: { text: "text-cyan-300", bg: "bg-cyan-500/20", border: "border-cyan-500/30" },
   "Anemo DPS": { text: "text-teal-300", bg: "bg-teal-500/20", border: "border-teal-500/30" },
   "Electro Hypercarry": { text: "text-purple-400", bg: "bg-purple-500/20", border: "border-purple-500/30" },
   "Geo Resonance": { text: "text-yellow-400", bg: "bg-yellow-500/20", border: "border-yellow-500/30" },
+  "Burgeon/Burning": { text: "text-amber-400", bg: "bg-amber-500/20", border: "border-amber-500/30" },
+  Aggravate: { text: "text-violet-400", bg: "bg-violet-500/20", border: "border-violet-500/30" },
 };
 
 // ── Enemy Row ────────────────────────────────────────────────────────────
 
 function EnemyRow({ enemy }: { enemy: AbyssEnemy }) {
   return (
-    <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] transition-colors">
+    <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-white/3 hover:bg-white/6 transition-colors">
       <div className="flex items-center gap-2 min-w-0">
         <ChevronRight className="h-3 w-3 text-guild-dim shrink-0" />
         <span className="text-sm text-foreground truncate">{enemy.name}</span>
@@ -323,53 +330,190 @@ function TeamCard({ team }: { team: TeamComp }) {
   );
 }
 
+// ── Stygian Stage Card ──────────────────────────────────────────────────
+
+const MODIFIER_COLORS = {
+  buff: { text: "text-green-400", bg: "bg-green-500/10", border: "border-green-500/20", icon: "text-green-400" },
+  debuff: { text: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/20", icon: "text-red-400" },
+  mechanic: { text: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20", icon: "text-yellow-400" },
+} as const;
+
+function StygianStageCard({ stage }: { stage: StygianStage }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <Card className="bg-guild-card border-guild-border hover:border-red-500/20 transition-all">
+      <CardHeader
+        className="cursor-pointer select-none"
+        onClick={() => setExpanded(!expanded)}
+      >
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-500/20 text-red-400 text-sm font-bold">
+              {stage.stage}
+            </div>
+            <span>{stage.name}</span>
+          </div>
+          <ChevronRight className={cn("h-5 w-5 text-guild-muted transition-transform", expanded && "rotate-90")} />
+        </CardTitle>
+      </CardHeader>
+
+      {expanded && (
+        <CardContent className="space-y-5 pt-0">
+          {/* Modifiers */}
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium text-guild-muted flex items-center gap-1.5">
+              <Zap className="h-3.5 w-3.5" />
+              Active Modifiers
+            </h4>
+            <div className="space-y-2">
+              {stage.modifiers.map((mod) => {
+                const colors = MODIFIER_COLORS[mod.type];
+                return (
+                  <div key={mod.name} className={cn("p-3 rounded-lg border", colors.bg, colors.border)}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge variant="outline" className={cn("text-[10px] uppercase", colors.text, colors.border)}>
+                        {mod.type}
+                      </Badge>
+                      <span className={cn("text-sm font-semibold", colors.text)}>{mod.name}</span>
+                    </div>
+                    <p className="text-xs text-foreground/70 leading-relaxed">{mod.description}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Enemies */}
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium text-guild-muted">Enemies</h4>
+            <div className="space-y-1">
+              {stage.enemies.map((enemy, i) => (
+                <EnemyRow key={i} enemy={enemy} />
+              ))}
+            </div>
+          </div>
+
+          {/* Boss Mechanics */}
+          {stage.boss && <BossCard boss={stage.boss} />}
+
+          {/* Tips */}
+          {stage.tips && (
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+              <AlertTriangle className="h-4 w-4 text-yellow-400 mt-0.5 shrink-0" />
+              <p className="text-xs text-yellow-300/90">{stage.tips}</p>
+            </div>
+          )}
+        </CardContent>
+      )}
+    </Card>
+  );
+}
+
 // ── Main Page ────────────────────────────────────────────────────────────
 
 export default function AbyssPage() {
   const sortedTeams = [...RECOMMENDED_TEAMS].sort((a, b) => b.usage - a.usage);
+  const [mode, setMode] = useState<"abyss" | "stygian">("abyss");
 
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-3 flex-wrap">
-          <h1 className="text-3xl font-bold">Spiral Abyss Guide</h1>
-          <Badge className="bg-guild-accent/20 text-guild-accent border border-guild-accent/30">
-            {ABYSS_VERSION}
-          </Badge>
-        </div>
-        <p className="text-guild-muted">{ABYSS_CYCLE}</p>
-      </div>
+      <div className="space-y-3">
+        <h1 className="text-3xl font-bold">Endgame Guide</h1>
 
-      {/* Floor Tabs */}
-      <Tabs defaultValue="12">
-        <TabsList className="w-full md:w-auto">
-          {ABYSS_FLOORS.map((f) => (
-            <TabsTrigger key={f.floor} value={String(f.floor)} className="flex-1 md:flex-initial">
-              Floor {f.floor}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-
-        {ABYSS_FLOORS.map((f) => (
-          <TabsContent key={f.floor} value={String(f.floor)} className="mt-6">
-            <FloorContent floor={f} />
-          </TabsContent>
-        ))}
-      </Tabs>
-
-      {/* Recommended Teams */}
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold flex items-center gap-2">
-          <Trophy className="h-5 w-5 text-guild-gold" />
-          Top Teams
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {sortedTeams.map((team) => (
-            <TeamCard key={team.name} team={team} />
-          ))}
+        {/* Mode toggle */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => setMode("abyss")}
+            className={cn(
+              "px-4 py-2 rounded-lg text-sm font-semibold transition-all border",
+              mode === "abyss"
+                ? "bg-guild-accent/20 text-guild-accent border-guild-accent/30"
+                : "bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 border-transparent"
+            )}
+          >
+            <Shield className="inline h-4 w-4 mr-1.5 -mt-0.5" />
+            Spiral Abyss
+          </button>
+          <button
+            onClick={() => setMode("stygian")}
+            className={cn(
+              "px-4 py-2 rounded-lg text-sm font-semibold transition-all border",
+              mode === "stygian"
+                ? "bg-red-500/20 text-red-400 border-red-500/30"
+                : "bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 border-transparent"
+            )}
+          >
+            <Flame className="inline h-4 w-4 mr-1.5 -mt-0.5" />
+            Stygian Onslaught
+          </button>
         </div>
       </div>
+
+      {mode === "abyss" ? (
+        <>
+          {/* Abyss version info */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <Badge className="bg-guild-accent/20 text-guild-accent border border-guild-accent/30">
+              {ABYSS_VERSION}
+            </Badge>
+            <span className="text-guild-muted text-sm">{ABYSS_CYCLE}</span>
+          </div>
+
+          {/* Floor Tabs */}
+          <Tabs defaultValue="12">
+            <TabsList className="w-full md:w-auto">
+              {ABYSS_FLOORS.map((f) => (
+                <TabsTrigger key={f.floor} value={String(f.floor)} className="flex-1 md:flex-initial">
+                  Floor {f.floor}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            {ABYSS_FLOORS.map((f) => (
+              <TabsContent key={f.floor} value={String(f.floor)} className="mt-6">
+                <FloorContent floor={f} />
+              </TabsContent>
+            ))}
+          </Tabs>
+
+          {/* Recommended Teams */}
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-guild-gold" />
+              Top Teams
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {sortedTeams.map((team) => (
+                <TeamCard key={team.name} team={team} />
+              ))}
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          {/* Stygian version info */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <Badge className="bg-red-500/20 text-red-400 border border-red-500/30">
+              v{STYGIAN_VERSION}
+            </Badge>
+            <span className="text-guild-muted text-sm">{STYGIAN_CYCLE}</span>
+          </div>
+
+          <p className="text-sm text-guild-muted leading-relaxed max-w-2xl">
+            Stygian Onslaught is a roguelike endgame mode with unique modifiers per stage.
+            Plan your team around the active buffs and debuffs for maximum efficiency.
+          </p>
+
+          {/* Stygian Stages */}
+          <div className="space-y-4">
+            {STYGIAN_STAGES.map((stage) => (
+              <StygianStageCard key={stage.stage} stage={stage} />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

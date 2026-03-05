@@ -85,7 +85,7 @@ export function ProfileClient({ profile }: { profile: EnkaProfile }) {
             key={c.id}
             onClick={() => setSelectedIdx(i)}
             className={cn(
-              "flex flex-col items-center p-3 rounded-lg border transition-all min-w-[80px] cursor-pointer",
+              "flex flex-col items-center p-3 rounded-lg border transition-all min-w-20 cursor-pointer",
               selectedIdx === i
                 ? "bg-guild-accent/20 border-guild-accent/50 guild-glow"
                 : "bg-guild-card border-white/5 hover:border-white/10"
@@ -111,9 +111,9 @@ export function ProfileClient({ profile }: { profile: EnkaProfile }) {
 
       {/* Character + Artifacts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className={cn("guild-card p-5 space-y-4 bg-gradient-to-br to-transparent", elBg[selected.element] || elBg.Unknown)}>
+        <div className={cn("guild-card p-5 space-y-4 bg-linear-to-br to-transparent", elBg[selected.element] || elBg.Unknown)}>
           <div className="flex items-center gap-4">
-            <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 border border-white/10">
+            <div className="w-20 h-20 rounded-lg overflow-hidden shrink-0 border border-white/10">
               <CharImg
                 src={`${ENKA_UI}/${selected.icon}.png`}
                 alt={selected.name}
@@ -135,7 +135,7 @@ export function ProfileClient({ profile }: { profile: EnkaProfile }) {
             <h3 className="text-sm font-medium text-guild-muted mb-2">Weapon</h3>
             <div className="flex items-center gap-3">
               {selected.weapon.icon && (
-                <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10 flex-shrink-0 bg-guild-elevated">
+                <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10 shrink-0 bg-guild-elevated">
                   <CharImg
                     src={`${ENKA_UI}/${selected.weapon.icon}.png`}
                     alt={selected.weapon.name}

@@ -3,12 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Search, X, RotateCcw, ChevronDown } from "lucide-react";
 import { DISPLAYABLE_WEAPONS, WEAPON_TYPES, type WeaponEntry } from "@/lib/weapons";
 import { RARITY_COLORS, SUBSTAT_COLORS, weaponIconUrl } from "@/lib/constants";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RarityStars } from "@/components/shared";
@@ -17,6 +18,24 @@ const RARITY_BORDER = {
   5: "border-amber-500/25 hover:border-amber-400/50",
   4: "border-purple-500/20 hover:border-purple-400/40",
   3: "border-blue-500/20 hover:border-blue-400/40",
+} as const;
+
+const RARITY_GRADIENT = {
+  5: "from-amber-900/60 via-amber-950/40 to-black/80",
+  4: "from-purple-900/50 via-purple-950/40 to-black/80",
+  3: "from-blue-900/40 via-blue-950/30 to-black/80",
+} as const;
+
+const RARITY_GLOW: Record<number, string> = {
+  5: "0 0 24px rgba(245, 158, 11, 0.4)",
+  4: "0 0 20px rgba(168, 85, 247, 0.35)",
+  3: "0 0 16px rgba(59, 130, 246, 0.3)",
+};
+
+const RARITY_SHIMMER = {
+  5: "from-amber-400/0 via-amber-300/10 to-amber-400/0",
+  4: "from-purple-400/0 via-purple-300/8 to-purple-400/0",
+  3: "from-blue-400/0 via-blue-300/6 to-blue-400/0",
 } as const;
 
 type SortOption = "newest" | "name-az" | "name-za" | "rarity" | "type";
@@ -38,9 +57,13 @@ export default function WeaponsPage() {
   const [rarity, setRarity] = useState<number>(0);
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedIdx, setSelectedIdx] = useState(-1);
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
   const sortRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   // Debounce search input
   useEffect(() => {
@@ -59,6 +82,12 @@ export default function WeaponsPage() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
+  // Suggestions use searchInput for immediate matching
+  const suggestions = searchInput.length >= 1
+    ? DISPLAYABLE_WEAPONS.filter((w) => w.name.toLowerCase().includes(searchInput.toLowerCase())).slice(0, 8)
+    : [];
+
+  // Filtering uses debouncedSearch
   const filtered = DISPLAYABLE_WEAPONS.filter((w) => {
     if (type !== "All" && w.type !== type) return false;
     if (rarity && w.rarity !== rarity) return false;
@@ -106,13 +135,23 @@ export default function WeaponsPage() {
 
       {/* Sticky Filter Bar */}
       <Card className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border p-4 gap-3">
-        {/* Search */}
+        {/* Search with autocomplete */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
           <Input
+            ref={searchRef}
             type="text"
             value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
+            onChange={(e) => { setSearchInput(e.target.value); setShowSuggestions(true); setSelectedIdx(-1); }}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+            onKeyDown={(e) => {
+              if (!showSuggestions || suggestions.length === 0) return;
+              if (e.key === "ArrowDown") { e.preventDefault(); setSelectedIdx((i) => Math.min(i + 1, suggestions.length - 1)); }
+              else if (e.key === "ArrowUp") { e.preventDefault(); setSelectedIdx((i) => Math.max(i - 1, 0)); }
+              else if (e.key === "Enter" && selectedIdx >= 0) { e.preventDefault(); router.push(`/weapons/${suggestions[selectedIdx].id}`); setShowSuggestions(false); }
+              else if (e.key === "Escape") { setShowSuggestions(false); }
+            }}
             placeholder="Search weapons..."
             className="pl-10"
           />
@@ -123,6 +162,44 @@ export default function WeaponsPage() {
             >
               <X className="h-4 w-4" />
             </button>
+          )}
+          {showSuggestions && suggestions.length > 0 && (
+            <div className="absolute z-50 top-full left-0 right-0 mt-1 rounded-lg bg-guild-elevated border border-white/10 shadow-2xl shadow-black/60 overflow-hidden">
+              {suggestions.map((w, i) => (
+                <Link
+                  key={w.id}
+                  href={`/weapons/${w.id}`}
+                  onClick={() => setShowSuggestions(false)}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2 transition-colors",
+                    i === selectedIdx ? "bg-guild-accent/20" : "hover:bg-white/5"
+                  )}
+                >
+                  <Image
+                    src={weaponIconUrl(w.id)}
+                    alt={w.name}
+                    width={32}
+                    height={32}
+                    className="rounded"
+                    sizes="32px"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-white truncate">{w.name}</p>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs text-guild-muted">{w.type}</span>
+                      <span className="text-xs text-guild-muted">&middot;</span>
+                      <span className={cn("text-xs", RARITY_COLORS[w.rarity]?.text)}>{w.rarity}&#9733;</span>
+                      {w.substat !== "None" && (
+                        <>
+                          <span className="text-xs text-guild-muted">&middot;</span>
+                          <span className={cn("text-xs", SUBSTAT_COLORS[w.substat])}>{w.substat}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
           )}
         </div>
 
@@ -226,7 +303,7 @@ export default function WeaponsPage() {
                     : "bg-blue-500/20 text-blue-400 border-blue-500/30"
                 )}
               >
-                {rarity}\u2605
+                {rarity}&#9733;
                 <X className="h-3 w-3 ml-0.5" />
               </Badge>
             )}
@@ -277,45 +354,95 @@ export default function WeaponsPage() {
 
 function WeaponCard({ weapon }: { weapon: WeaponEntry }) {
   const [imgErr, setImgErr] = useState(false);
+  const glow = RARITY_GLOW[weapon.rarity];
+  const gradient = RARITY_GRADIENT[weapon.rarity] || RARITY_GRADIENT[3];
+  const shimmer = RARITY_SHIMMER[weapon.rarity] || RARITY_SHIMMER[3];
 
   return (
     <Link href={`/weapons/${weapon.id}`}>
-      <Card className={cn(
-        "overflow-hidden transition-all hover:scale-105 hover:shadow-lg cursor-pointer group p-0",
-        RARITY_BORDER[weapon.rarity]
-      )}>
-        <div className={cn(
-          "relative aspect-square flex items-center justify-center p-4",
-          RARITY_COLORS[weapon.rarity]?.bg || "bg-muted"
-        )}>
-          {!imgErr && weapon.icon ? (
-            <Image
-              src={weaponIconUrl(weapon.id)}
-              alt={weapon.name}
-              fill
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
-              className="object-contain p-3 group-hover:brightness-110 transition-all"
-              onError={() => setImgErr(true)}
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-muted-foreground text-lg font-bold">
-              {weapon.type[0]}
+      <Card
+        className={cn(
+          "relative overflow-hidden cursor-pointer group p-0 transition-shadow duration-300",
+          RARITY_BORDER[weapon.rarity]
+        )}
+        style={{ "--rarity-glow": glow } as React.CSSProperties}
+      >
+        <div className="relative aspect-3/5 group-hover:[box-shadow:var(--rarity-glow)]">
+          {/* Rarity gradient background */}
+          <div className={cn("absolute inset-0 bg-linear-to-t", gradient)} />
+
+          {/* Subtle shimmer sweep on hover */}
+          <div
+            className={cn(
+              "absolute inset-0 bg-linear-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-500",
+              shimmer
+            )}
+          />
+
+          {/* Weapon type label - top left */}
+          <div className="absolute top-2 left-2 z-10">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-white/60 bg-black/40 backdrop-blur-sm px-1.5 py-0.5 rounded">
+              {weapon.type}
+            </span>
+          </div>
+
+          {/* Rarity stars - top right */}
+          <div className="absolute top-2 right-2 z-10">
+            <RarityStars rarity={weapon.rarity} size="xs" />
+          </div>
+
+          {/* Weapon icon - centered, large, with hover animation */}
+          <div className="absolute inset-0 flex items-center justify-center p-6">
+            {!imgErr && weapon.icon ? (
+              <Image
+                src={weaponIconUrl(weapon.id)}
+                alt={weapon.name}
+                fill
+                quality={95}
+                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16vw"
+                className="object-contain p-5 drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3"
+                onError={() => setImgErr(true)}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground text-2xl font-bold opacity-40">
+                {weapon.type[0]}
+              </div>
+            )}
+          </div>
+
+          {/* Bottom info overlay - always visible, fades out on hover */}
+          <div className="absolute inset-x-0 bottom-0 p-2.5 bg-linear-to-t from-black/90 via-black/50 to-transparent opacity-100 group-hover:opacity-0 transition-opacity duration-200 pointer-events-none">
+            <p className="text-sm font-semibold text-white truncate drop-shadow-lg">
+              {weapon.name}
+            </p>
+            {weapon.substat !== "None" && (
+              <span className={cn("text-xs font-medium drop-shadow", SUBSTAT_COLORS[weapon.substat])}>
+                {weapon.substat}
+              </span>
+            )}
+          </div>
+
+          {/* Hover stats panel - fades in at bottom */}
+          <div className="absolute inset-x-0 bottom-0 bg-black/75 backdrop-blur-sm px-3 py-2.5 space-y-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+            <p className="text-sm font-bold text-white truncate">{weapon.name}</p>
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="text-xs text-gray-300">{weapon.type}</span>
             </div>
-          )}
-          <Badge variant="secondary" className="absolute top-2 right-2 text-[10px]">
-            {weapon.type}
-          </Badge>
+            <RarityStars rarity={weapon.rarity} size="xs" />
+            <WeaponStatRow label="Substat" value={weapon.substat} color={SUBSTAT_COLORS[weapon.substat]} />
+          </div>
         </div>
-        <CardContent className="p-3 text-center space-y-1">
-          <p className="text-sm font-medium truncate">{weapon.name}</p>
-          <RarityStars rarity={weapon.rarity} size="xs" className="justify-center" />
-          {weapon.substat !== "None" && (
-            <Badge variant="outline" className={cn("text-[10px]", SUBSTAT_COLORS[weapon.substat])}>
-              {weapon.substat}
-            </Badge>
-          )}
-        </CardContent>
       </Card>
     </Link>
+  );
+}
+
+function WeaponStatRow({ label, value, color }: { label: string; value: string; color?: string }) {
+  if (value === "None") return null;
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-xs text-gray-400">{label}</span>
+      <span className={cn("text-sm font-semibold", color || "text-white")}>{value}</span>
+    </div>
   );
 }

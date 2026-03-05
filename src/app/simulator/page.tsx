@@ -1,40 +1,69 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Dices, RotateCcw } from "lucide-react";
+import { useState, useMemo, useCallback } from "react";
+import {
+  Dices,
+  RotateCcw,
+  Sparkles,
+  Star,
+  History,
+  ChevronDown,
+  Gem,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
-const sets = ["Emblem of Severed Fate", "Marechaussee Hunter", "Golden Troupe", "Viridescent Venerer", "Crimson Witch of Flames"];
-const mains: Record<string, string[]> = {
-  Flower: ["HP"], Plume: ["ATK"],
+// ── Artifact Roller Constants ─────────────────────────────────────────
+
+const ARTIFACT_SETS = [
+  "Emblem of Severed Fate",
+  "Marechaussee Hunter",
+  "Golden Troupe",
+  "Viridescent Venerer",
+  "Crimson Witch of Flames",
+];
+
+const MAIN_STATS: Record<string, string[]> = {
+  Flower: ["HP"],
+  Plume: ["ATK"],
   Sands: ["HP%", "ATK%", "DEF%", "Energy Recharge", "Elemental Mastery"],
-  Goblet: ["HP%", "ATK%", "DEF%", "Pyro DMG%", "Hydro DMG%", "Electro DMG%", "Cryo DMG%", "Anemo DMG%", "Geo DMG%", "Dendro DMG%"],
-  Circlet: ["HP%", "ATK%", "DEF%", "CRIT Rate", "CRIT DMG", "Healing Bonus"],
+  Goblet: [
+    "HP%",
+    "ATK%",
+    "DEF%",
+    "Pyro DMG%",
+    "Hydro DMG%",
+    "Electro DMG%",
+    "Cryo DMG%",
+    "Anemo DMG%",
+    "Geo DMG%",
+    "Dendro DMG%",
+  ],
+  Circlet: [
+    "HP%",
+    "ATK%",
+    "DEF%",
+    "CRIT Rate",
+    "CRIT DMG",
+    "Healing Bonus",
+  ],
 };
-const subs = ["HP", "ATK", "DEF", "HP%", "ATK%", "DEF%", "Energy Recharge", "Elemental Mastery", "CRIT Rate", "CRIT DMG"];
 
-interface Art { set: string; slot: string; rarity: number; mainStat: string; substats: { name: string; value: string }[] }
+const SUB_STATS = [
+  "HP",
+  "ATK",
+  "DEF",
+  "HP%",
+  "ATK%",
+  "DEF%",
+  "Energy Recharge",
+  "Elemental Mastery",
+  "CRIT Rate",
+  "CRIT DMG",
+];
 
-function roll(set: string): Art {
-  const slots = Object.keys(mains);
-  const slot = slots[Math.floor(Math.random() * slots.length)];
-  const ms = mains[slot];
-  const main = ms[Math.floor(Math.random() * ms.length)];
-  const pool = subs.filter((s) => s !== main && !main.startsWith(s));
-  const n = Math.random() > 0.66 ? 4 : 3;
-  const picked: { name: string; value: string }[] = [];
-  for (let i = 0; i < n; i++) {
-    const idx = Math.floor(Math.random() * pool.length);
-    const s = pool.splice(idx, 1)[0];
-    if (!s) break;
-    const v = s.includes("%") || ["CRIT Rate", "CRIT DMG", "Energy Recharge"].includes(s)
-      ? `${(Math.random() * 6 + 2.7).toFixed(1)}%` : `${Math.floor(Math.random() * 200 + 16)}`;
-    picked.push({ name: s, value: v });
-  }
-  return { set, slot, rarity: Math.random() > 0.15 ? 5 : 4, mainStat: main, substats: picked };
-}
-
-const quips = [
+const ARTIFACT_QUIPS = [
   "Another day, another trash artifact. Welcome to Genshin.",
   "DEF% sends its regards.",
   "You could farm for a year and not see a good goblet.",
@@ -42,73 +71,951 @@ const quips = [
   "The domain heard you wanted CRIT and chose violence.",
 ];
 
+// ── Artifact Types & Logic ────────────────────────────────────────────
+
+interface Artifact {
+  set: string;
+  slot: string;
+  rarity: number;
+  mainStat: string;
+  substats: { name: string; value: string }[];
+}
+
+function rollArtifact(set: string): Artifact {
+  const slots = Object.keys(MAIN_STATS);
+  const slot = slots[Math.floor(Math.random() * slots.length)];
+  const possibleMains = MAIN_STATS[slot];
+  const main = possibleMains[Math.floor(Math.random() * possibleMains.length)];
+  const pool = SUB_STATS.filter((s) => s !== main && !main.startsWith(s));
+  const subCount = Math.random() > 0.66 ? 4 : 3;
+  const picked: { name: string; value: string }[] = [];
+  for (let i = 0; i < subCount; i++) {
+    const idx = Math.floor(Math.random() * pool.length);
+    const stat = pool.splice(idx, 1)[0];
+    if (!stat) break;
+    const value =
+      stat.includes("%") ||
+      ["CRIT Rate", "CRIT DMG", "Energy Recharge"].includes(stat)
+        ? `${(Math.random() * 6 + 2.7).toFixed(1)}%`
+        : `${Math.floor(Math.random() * 200 + 16)}`;
+    picked.push({ name: stat, value });
+  }
+  return {
+    set,
+    slot,
+    rarity: Math.random() > 0.15 ? 5 : 4,
+    mainStat: main,
+    substats: picked,
+  };
+}
+
+// ── Wish Simulator Constants ──────────────────────────────────────────
+
+type BannerType = "character" | "weapon" | "standard";
+
+interface WishResult {
+  rarity: 3 | 4 | 5;
+  itemType: "character" | "weapon";
+  name: string;
+  isFeatured: boolean;
+  pullNumber: number;
+  pityCount: number;
+  banner: BannerType;
+  fiftyFiftyOutcome?: "won" | "lost" | "guaranteed";
+}
+
+interface BannerPity {
+  pity5: number;
+  pity4: number;
+  guaranteed: boolean;
+}
+
+const BANNER_CONFIG: Record<
+  BannerType,
+  {
+    hardPity: number;
+    softPityStart: number;
+    softPityIncrease: number;
+    label: string;
+    description: string;
+  }
+> = {
+  character: {
+    hardPity: 90,
+    softPityStart: 73,
+    softPityIncrease: 0.06,
+    label: "Character Event Wish",
+    description: "Boosted drop rate for the featured 5\u2605 character",
+  },
+  weapon: {
+    hardPity: 80,
+    softPityStart: 62,
+    softPityIncrease: 0.07,
+    label: "Weapon Event Wish",
+    description: "Boosted drop rate for featured 5\u2605 weapons",
+  },
+  standard: {
+    hardPity: 90,
+    softPityStart: 73,
+    softPityIncrease: 0.06,
+    label: "Standard Wish",
+    description: "Standard wish pool with no rate-up items",
+  },
+};
+
+const BASE_5_RATE = 0.006;
+const BASE_4_RATE = 0.051;
+const GUARANTEED_4_PITY = 10;
+const WISH_COST = 160;
+const STARTING_PRIMOGEMS = 28800;
+
+function get5StarRate(pity: number, banner: BannerType): number {
+  const config = BANNER_CONFIG[banner];
+  if (pity + 1 >= config.hardPity) return 1.0;
+  if (pity >= config.softPityStart) {
+    const softPulls = pity - config.softPityStart;
+    return Math.min(
+      BASE_5_RATE + config.softPityIncrease * (softPulls + 1),
+      1.0
+    );
+  }
+  return BASE_5_RATE;
+}
+
+function performSingleWish(
+  banner: BannerType,
+  pity: BannerPity,
+  pullNumber: number
+): { result: WishResult; newPity: BannerPity } {
+  const newPity: BannerPity = { ...pity };
+  const rate5 = get5StarRate(newPity.pity5, banner);
+  const is4Guaranteed = newPity.pity4 >= GUARANTEED_4_PITY - 1;
+  const roll = Math.random();
+
+  let rarity: 3 | 4 | 5;
+  let itemType: "character" | "weapon";
+  let name: string;
+  let isFeatured = false;
+  let fiftyFiftyOutcome: WishResult["fiftyFiftyOutcome"];
+
+  if (roll < rate5) {
+    // ── 5-star ──
+    rarity = 5;
+    const pityHit = newPity.pity5 + 1;
+    newPity.pity5 = 0;
+    newPity.pity4 = 0;
+
+    if (banner === "character") {
+      itemType = "character";
+      if (newPity.guaranteed) {
+        name = "Featured Character";
+        isFeatured = true;
+        fiftyFiftyOutcome = "guaranteed";
+        newPity.guaranteed = false;
+      } else if (Math.random() < 0.5) {
+        name = "Featured Character";
+        isFeatured = true;
+        fiftyFiftyOutcome = "won";
+      } else {
+        name = "Standard Character";
+        isFeatured = false;
+        fiftyFiftyOutcome = "lost";
+        newPity.guaranteed = true;
+      }
+    } else if (banner === "weapon") {
+      itemType = "weapon";
+      if (newPity.guaranteed) {
+        name = "Featured Weapon";
+        isFeatured = true;
+        fiftyFiftyOutcome = "guaranteed";
+        newPity.guaranteed = false;
+      } else if (Math.random() < 0.5) {
+        name = "Featured Weapon";
+        isFeatured = true;
+        fiftyFiftyOutcome = "won";
+      } else {
+        name = "Standard Weapon";
+        isFeatured = false;
+        fiftyFiftyOutcome = "lost";
+        newPity.guaranteed = true;
+      }
+    } else {
+      // Standard banner: no rate-up, no 50/50
+      if (Math.random() < 0.5) {
+        name = "Standard Character";
+        itemType = "character";
+      } else {
+        name = "Standard Weapon";
+        itemType = "weapon";
+      }
+      isFeatured = false;
+      fiftyFiftyOutcome = undefined;
+    }
+
+    return {
+      result: {
+        rarity,
+        itemType,
+        name,
+        isFeatured,
+        pullNumber,
+        pityCount: pityHit,
+        banner,
+        fiftyFiftyOutcome,
+      },
+      newPity,
+    };
+  }
+
+  if (roll < rate5 + BASE_4_RATE || is4Guaranteed) {
+    // ── 4-star ──
+    rarity = 4;
+    newPity.pity5 += 1;
+    newPity.pity4 = 0;
+
+    if (Math.random() < 0.5) {
+      name = "Character";
+      itemType = "character";
+    } else {
+      name = "Weapon";
+      itemType = "weapon";
+    }
+  } else {
+    // ── 3-star ──
+    rarity = 3;
+    newPity.pity5 += 1;
+    newPity.pity4 += 1;
+    name = "Weapon";
+    itemType = "weapon";
+  }
+
+  return {
+    result: {
+      rarity,
+      itemType,
+      name,
+      isFeatured: false,
+      pullNumber,
+      pityCount:
+        rarity === 4 ? pity.pity4 + 1 : 0,
+      banner,
+      fiftyFiftyOutcome: undefined,
+    },
+    newPity,
+  };
+}
+
+// ── Rarity helpers ────────────────────────────────────────────────────
+
+const RARITY_COLORS = {
+  text: { 5: "text-amber-400", 4: "text-purple-400", 3: "text-blue-400" },
+  bg: {
+    5: "bg-amber-500/10",
+    4: "bg-purple-500/10",
+    3: "bg-blue-500/10",
+  },
+  border: {
+    5: "border-amber-500/20",
+    4: "border-purple-500/20",
+    3: "border-blue-500/20",
+  },
+  borderStrong: {
+    5: "border-amber-500/30",
+    4: "border-purple-500/30",
+    3: "border-blue-500/30",
+  },
+} as const;
+
+function RarityStarsRow({
+  count,
+  rarity,
+  size = "h-3 w-3",
+}: {
+  count: number;
+  rarity: 3 | 4 | 5;
+  size?: string;
+}) {
+  return (
+    <span className="inline-flex gap-0.5">
+      {Array.from({ length: count }, (_, i) => (
+        <Star
+          key={i}
+          className={cn(size, "fill-current", RARITY_COLORS.text[rarity])}
+        />
+      ))}
+    </span>
+  );
+}
+
+// ── Main Component ────────────────────────────────────────────────────
+
 export default function SimulatorPage() {
-  const [set, setSet] = useState(sets[0]);
-  const [arts, setArts] = useState<Art[]>([]);
+  const [mode, setMode] = useState<"wish" | "artifact">("wish");
+
+  // ── Wish Simulator State ──────────────────────────────────────────
+  const [bannerType, setBannerType] = useState<BannerType>("character");
+  const [pityStates, setPityStates] = useState<
+    Record<BannerType, BannerPity>
+  >({
+    character: { pity5: 0, pity4: 0, guaranteed: false },
+    weapon: { pity5: 0, pity4: 0, guaranteed: false },
+    standard: { pity5: 0, pity4: 0, guaranteed: false },
+  });
+  const [primogems, setPrimogems] = useState(STARTING_PRIMOGEMS);
+  const [wishResults, setWishResults] = useState<WishResult[]>([]);
+  const [lastPull, setLastPull] = useState<WishResult[]>([]);
+  const [totalWishes, setTotalWishes] = useState(0);
+  const [showHistory, setShowHistory] = useState(false);
+
+  // ── Artifact Roller State ─────────────────────────────────────────
+  const [artSet, setArtSet] = useState(ARTIFACT_SETS[0]);
+  const [artifacts, setArtifacts] = useState<Artifact[]>([]);
   const [resin, setResin] = useState(0);
 
-  const doRoll = () => { setArts((p) => [roll(set), ...p]); setResin((p) => p + 20); };
-  const reset = () => { setArts([]); setResin(0); };
+  // ── Wish Logic ────────────────────────────────────────────────────
+  const doWish = useCallback(
+    (count: 1 | 10) => {
+      const cost = WISH_COST * count;
+      if (primogems < cost) return;
 
-  const good = arts.filter((a) => a.substats.some((s) => s.name === "CRIT Rate" || s.name === "CRIT DMG")).length;
+      setPrimogems((p) => p - cost);
 
-  const quipIndex = useMemo(
-    () => Math.floor(Math.random() * quips.length),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [arts.length],
+      const results: WishResult[] = [];
+      let currentPity = { ...pityStates[bannerType] };
+
+      for (let i = 0; i < count; i++) {
+        const { result, newPity } = performSingleWish(
+          bannerType,
+          currentPity,
+          totalWishes + i + 1
+        );
+        results.push(result);
+        currentPity = newPity;
+      }
+
+      setPityStates((prev) => ({ ...prev, [bannerType]: currentPity }));
+      setLastPull(results);
+      setWishResults((prev) => [...[...results].reverse(), ...prev]);
+      setTotalWishes((prev) => prev + count);
+    },
+    [bannerType, pityStates, primogems, totalWishes]
   );
 
-  return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold">Artifact Simulator</h1>
+  const resetWish = useCallback(() => {
+    setPityStates({
+      character: { pity5: 0, pity4: 0, guaranteed: false },
+      weapon: { pity5: 0, pity4: 0, guaranteed: false },
+      standard: { pity5: 0, pity4: 0, guaranteed: false },
+    });
+    setPrimogems(STARTING_PRIMOGEMS);
+    setWishResults([]);
+    setLastPull([]);
+    setTotalWishes(0);
+    setShowHistory(false);
+  }, []);
 
-      <div className="guild-card p-5 flex flex-wrap items-center gap-4">
-        <div>
-          <label className="text-xs text-guild-muted block mb-1">Domain</label>
-          <select value={set} onChange={(e) => setSet(e.target.value)} className="h-9 px-3 rounded-md bg-guild-elevated border border-white/5 text-sm">
-            {sets.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
-        </div>
-        <button onClick={doRoll} className="h-9 px-5 rounded-md bg-guild-accent hover:bg-guild-accent/80 text-sm font-medium flex items-center gap-2 transition-colors cursor-pointer">
-          <Dices className="h-4 w-4" /> Roll (20 Resin)
-        </button>
-        <button onClick={reset} className="h-9 px-4 rounded-md bg-guild-elevated hover:bg-white/10 text-sm flex items-center gap-2 transition-colors cursor-pointer">
-          <RotateCcw className="h-4 w-4" /> Reset
-        </button>
-        <div className="ml-auto flex gap-6 text-sm">
-          <span className="text-guild-muted">Resin: <span className="font-mono text-guild-gold">{resin}</span></span>
-          <span className="text-guild-muted">Rolled: <span className="font-mono">{arts.length}</span></span>
-          <span className="text-guild-muted">Good: <span className="font-mono text-guild-success">{good} ({arts.length ? ((good / arts.length) * 100).toFixed(1) : 0}%)</span></span>
-        </div>
+  // ── Wish Statistics ───────────────────────────────────────────────
+  const wishStats = useMemo(() => {
+    const fiveStars = wishResults.filter((r) => r.rarity === 5);
+    const fourStars = wishResults.filter((r) => r.rarity === 4);
+    const avgPity =
+      fiveStars.length > 0
+        ? fiveStars.reduce((sum, r) => sum + r.pityCount, 0) /
+          fiveStars.length
+        : 0;
+
+    const eventFiveStars = fiveStars.filter(
+      (r) => r.banner === "character" || r.banner === "weapon"
+    );
+    const won5050 = eventFiveStars.filter(
+      (r) => r.fiftyFiftyOutcome === "won"
+    ).length;
+    const lost5050 = eventFiveStars.filter(
+      (r) => r.fiftyFiftyOutcome === "lost"
+    ).length;
+
+    return {
+      total: totalWishes,
+      primogemsSpent: totalWishes * WISH_COST,
+      fiveStarCount: fiveStars.length,
+      fourStarCount: fourStars.length,
+      fiveStars,
+      avgPity: avgPity.toFixed(1),
+      won5050,
+      lost5050,
+    };
+  }, [wishResults, totalWishes]);
+
+  // ── Artifact Logic ────────────────────────────────────────────────
+  const doArtRoll = useCallback(() => {
+    setArtifacts((p) => [rollArtifact(artSet), ...p]);
+    setResin((p) => p + 20);
+  }, [artSet]);
+
+  const resetArtifacts = useCallback(() => {
+    setArtifacts([]);
+    setResin(0);
+  }, []);
+
+  const goodArtCount = useMemo(
+    () =>
+      artifacts.filter((a) =>
+        a.substats.some((s) => s.name === "CRIT Rate" || s.name === "CRIT DMG")
+      ).length,
+    [artifacts]
+  );
+
+  const quipIndex = useMemo(
+    () => Math.floor(Math.random() * ARTIFACT_QUIPS.length),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [artifacts.length]
+  );
+
+  // ── Derived values ────────────────────────────────────────────────
+  const currentPity = pityStates[bannerType];
+  const currentConfig = BANNER_CONFIG[bannerType];
+  const currentRate = get5StarRate(currentPity.pity5, bannerType);
+  const inSoftPity = currentPity.pity5 >= currentConfig.softPityStart;
+  const isEventBanner = bannerType !== "standard";
+
+  // ── Render ────────────────────────────────────────────────────────
+  return (
+    <div className="max-w-6xl mx-auto space-y-6">
+      {/* ═══ Page Header ═══ */}
+      <div className="flex items-center gap-3">
+        <Dices className="h-6 w-6 text-guild-accent" />
+        <h1 className="text-2xl font-bold">Simulator</h1>
       </div>
 
-      {arts.length > 0 && arts.length % 5 === 0 && (
-        <div className="guild-card p-4" style={{ borderColor: "rgba(249,115,22,0.2)" }}>
-          <p className="text-sm italic text-orange-400">&#128172; &quot;{quips[quipIndex]}&quot;</p>
+      {/* ═══ Mode Toggle ═══ */}
+      <div className="flex gap-1 p-1 rounded-lg bg-guild-card border border-white/5 w-fit">
+        <button
+          onClick={() => setMode("wish")}
+          className={cn(
+            "px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 cursor-pointer",
+            mode === "wish"
+              ? "bg-guild-accent text-white"
+              : "text-guild-muted hover:text-white hover:bg-white/5"
+          )}
+        >
+          <Sparkles className="h-4 w-4" />
+          Wish Simulator
+        </button>
+        <button
+          onClick={() => setMode("artifact")}
+          className={cn(
+            "px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 cursor-pointer",
+            mode === "artifact"
+              ? "bg-guild-accent text-white"
+              : "text-guild-muted hover:text-white hover:bg-white/5"
+          )}
+        >
+          <Dices className="h-4 w-4" />
+          Artifact Roller
+        </button>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════════
+           WISH SIMULATOR
+         ═══════════════════════════════════════════════════════════════ */}
+      {mode === "wish" && (
+        <div className="space-y-5">
+          {/* ── Banner Selection + Primogem Display ── */}
+          <Card className="bg-guild-card border-white/5 py-0">
+            <CardContent className="flex flex-wrap items-center gap-4 py-4">
+              <div className="flex gap-1 p-1 rounded-lg bg-guild-elevated">
+                {(["character", "weapon", "standard"] as BannerType[]).map(
+                  (bt) => (
+                    <button
+                      key={bt}
+                      onClick={() => setBannerType(bt)}
+                      className={cn(
+                        "px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer whitespace-nowrap",
+                        bannerType === bt
+                          ? "bg-guild-accent text-white"
+                          : "text-guild-muted hover:text-white"
+                      )}
+                    >
+                      {BANNER_CONFIG[bt].label}
+                    </button>
+                  )
+                )}
+              </div>
+
+              <div className="ml-auto flex items-center gap-2">
+                <Gem className="h-4 w-4 text-blue-400" />
+                <span className="font-mono text-sm text-guild-gold">
+                  {primogems.toLocaleString()}
+                </span>
+                <span className="text-xs text-guild-dim">Primogems</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* ── Banner Info + Stats (side by side) ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Banner panel */}
+            <Card
+              className={cn(
+                "lg:col-span-2 border-white/5 overflow-hidden py-0",
+                bannerType === "character"
+                  ? "bg-linear-to-br from-amber-500/5 to-guild-card"
+                  : bannerType === "weapon"
+                    ? "bg-linear-to-br from-purple-500/5 to-guild-card"
+                    : "bg-linear-to-br from-blue-500/5 to-guild-card"
+              )}
+            >
+              <CardContent className="space-y-4 py-5">
+                {/* Banner header */}
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h2 className="text-lg font-bold">
+                      {currentConfig.label}
+                    </h2>
+                    <p className="text-sm text-guild-muted mt-1">
+                      {currentConfig.description}
+                    </p>
+                  </div>
+                  <Badge
+                    className={cn(
+                      "text-xs shrink-0",
+                      isEventBanner
+                        ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                        : "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+                    )}
+                  >
+                    {isEventBanner ? "Limited" : "Permanent"}
+                  </Badge>
+                </div>
+
+                {/* Rate info cards */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="rounded-lg bg-guild-elevated p-3 border border-white/5">
+                    <div className="text-[10px] text-guild-dim uppercase tracking-wider">
+                      Base 5&#9733; Rate
+                    </div>
+                    <div className="text-sm font-mono text-amber-400 mt-1">
+                      0.6%
+                    </div>
+                  </div>
+                  <div className="rounded-lg bg-guild-elevated p-3 border border-white/5">
+                    <div className="text-[10px] text-guild-dim uppercase tracking-wider">
+                      Current Rate
+                    </div>
+                    <div
+                      className={cn(
+                        "text-sm font-mono mt-1",
+                        inSoftPity ? "text-amber-400" : "text-guild-muted"
+                      )}
+                    >
+                      {(currentRate * 100).toFixed(1)}%
+                    </div>
+                  </div>
+                  <div className="rounded-lg bg-guild-elevated p-3 border border-white/5">
+                    <div className="text-[10px] text-guild-dim uppercase tracking-wider">
+                      Soft Pity At
+                    </div>
+                    <div className="text-sm font-mono text-guild-muted mt-1">
+                      {currentConfig.softPityStart + 1}+
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pull buttons */}
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => doWish(1)}
+                    disabled={primogems < WISH_COST}
+                    className={cn(
+                      "h-11 px-6 rounded-lg text-sm font-medium flex items-center gap-2 transition-all cursor-pointer",
+                      primogems >= WISH_COST
+                        ? "bg-guild-accent hover:bg-guild-accent/80 text-white guild-glow"
+                        : "bg-guild-elevated text-guild-dim cursor-not-allowed"
+                    )}
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    Wish x1
+                    <span className="text-xs opacity-70 ml-1">160</span>
+                    <Gem className="h-3 w-3 opacity-70" />
+                  </button>
+                  <button
+                    onClick={() => doWish(10)}
+                    disabled={primogems < WISH_COST * 10}
+                    className={cn(
+                      "h-11 px-6 rounded-lg text-sm font-medium flex items-center gap-2 transition-all cursor-pointer",
+                      primogems >= WISH_COST * 10
+                        ? "bg-linear-to-r from-guild-accent to-guild-accent-2 hover:opacity-90 text-white guild-glow"
+                        : "bg-guild-elevated text-guild-dim cursor-not-allowed"
+                    )}
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    Wish x10
+                    <span className="text-xs opacity-70 ml-1">1,600</span>
+                    <Gem className="h-3 w-3 opacity-70" />
+                  </button>
+                  <button
+                    onClick={resetWish}
+                    className="h-11 px-4 rounded-lg bg-guild-elevated hover:bg-white/10 text-sm text-guild-muted flex items-center gap-2 transition-colors cursor-pointer ml-auto"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    Reset
+                  </button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Statistics panel */}
+            <Card className="bg-guild-card border-white/5 py-0">
+              <CardContent className="space-y-3 py-5">
+                <h3 className="text-sm font-semibold flex items-center gap-2">
+                  <Star className="h-4 w-4 text-guild-gold fill-guild-gold" />
+                  Statistics
+                </h3>
+
+                <div className="space-y-2">
+                  <StatRow label="Total Wishes" value={wishStats.total} />
+                  <StatRow
+                    label="Primogems Spent"
+                    value={wishStats.primogemsSpent.toLocaleString()}
+                    valueClass="text-blue-400"
+                  />
+
+                  <div className="h-px bg-white/5" />
+
+                  <StatRow
+                    label="5\u2605 Obtained"
+                    value={wishStats.fiveStarCount}
+                    labelClass="text-amber-400"
+                    valueClass="text-amber-400"
+                  />
+                  <StatRow
+                    label="4\u2605 Obtained"
+                    value={wishStats.fourStarCount}
+                    labelClass="text-purple-400"
+                    valueClass="text-purple-400"
+                  />
+                  <StatRow
+                    label="Avg 5\u2605 Pity"
+                    value={
+                      wishStats.fiveStarCount > 0
+                        ? wishStats.avgPity
+                        : "\u2014"
+                    }
+                  />
+
+                  <div className="h-px bg-white/5" />
+
+                  {/* Pity counter */}
+                  <StatRow
+                    label="Current Pity"
+                    value={`${currentPity.pity5} / ${currentConfig.hardPity}`}
+                    valueClass={inSoftPity ? "text-amber-400" : ""}
+                  />
+
+                  {/* Pity bar */}
+                  <div className="w-full h-2 rounded-full bg-guild-elevated overflow-hidden">
+                    <div
+                      className={cn(
+                        "h-full rounded-full transition-all duration-300",
+                        inSoftPity
+                          ? "bg-linear-to-r from-amber-500 to-amber-300"
+                          : "bg-guild-accent"
+                      )}
+                      style={{
+                        width: `${(currentPity.pity5 / currentConfig.hardPity) * 100}%`,
+                      }}
+                    />
+                  </div>
+
+                  {/* 50/50 status (event banners only) */}
+                  {isEventBanner && (
+                    <>
+                      <StatRow
+                        label="50/50 Status"
+                        value={
+                          currentPity.guaranteed ? "Guaranteed" : "50/50"
+                        }
+                        valueClass={
+                          currentPity.guaranteed
+                            ? "text-guild-success"
+                            : "text-guild-muted"
+                        }
+                      />
+                      {(wishStats.won5050 > 0 ||
+                        wishStats.lost5050 > 0) && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-guild-muted">Won / Lost</span>
+                          <span className="font-mono text-xs">
+                            <span className="text-guild-success">
+                              {wishStats.won5050}W
+                            </span>
+                            {" / "}
+                            <span className="text-guild-danger">
+                              {wishStats.lost5050}L
+                            </span>
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* ── Latest Pull Results ── */}
+          {lastPull.length > 0 && (
+            <Card className="bg-guild-card border-white/5 py-0">
+              <CardContent className="space-y-3 py-5">
+                <h3 className="text-sm font-semibold flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-guild-accent" />
+                  Latest Results
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {lastPull.map((r, i) => (
+                    <div
+                      key={i}
+                      className={cn(
+                        "rounded-lg p-3 border text-center min-w-[100px] transition-all",
+                        RARITY_COLORS.bg[r.rarity],
+                        RARITY_COLORS.border[r.rarity],
+                        r.rarity === 5 && "gold-glow"
+                      )}
+                    >
+                      <div className="flex justify-center mb-1">
+                        <RarityStarsRow count={r.rarity} rarity={r.rarity} />
+                      </div>
+                      <div
+                        className={cn(
+                          "text-xs font-medium",
+                          RARITY_COLORS.text[r.rarity]
+                        )}
+                      >
+                        {r.name}
+                        {r.rarity === 5 && r.isFeatured && "!"}
+                      </div>
+                      {r.rarity === 5 && (
+                        <div className="text-[10px] text-guild-dim mt-1">
+                          Pity: {r.pityCount}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* ── Pull History ── */}
+          {wishResults.length > 0 && (
+            <Card className="bg-guild-card border-white/5 py-0">
+              <CardContent className="space-y-3 py-5">
+                <button
+                  onClick={() => setShowHistory((h) => !h)}
+                  className="w-full flex items-center justify-between text-sm font-semibold cursor-pointer"
+                >
+                  <span className="flex items-center gap-2">
+                    <History className="h-4 w-4 text-guild-muted" />
+                    Pull History ({wishResults.length} total)
+                  </span>
+                  <ChevronDown
+                    className={cn(
+                      "h-4 w-4 text-guild-muted transition-transform",
+                      showHistory && "rotate-180"
+                    )}
+                  />
+                </button>
+
+                {showHistory && (
+                  <>
+                    {/* Compact grid of last 30 */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {wishResults.slice(0, 30).map((r, i) => (
+                        <div
+                          key={i}
+                          className={cn(
+                            "w-8 h-8 rounded border flex items-center justify-center text-[10px] font-mono shrink-0",
+                            RARITY_COLORS.bg[r.rarity],
+                            RARITY_COLORS.borderStrong[r.rarity],
+                            RARITY_COLORS.text[r.rarity]
+                          )}
+                          title={`#${r.pullNumber}: ${r.name} (${r.rarity}\u2605)`}
+                        >
+                          {r.rarity}\u2605
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* 5-star log */}
+                    {wishStats.fiveStarCount > 0 && (
+                      <div className="space-y-1.5 pt-2">
+                        <div className="text-xs text-guild-dim font-medium uppercase tracking-wider">
+                          5&#9733; Log
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {wishStats.fiveStars.map((r, i) => (
+                            <Badge
+                              key={i}
+                              className="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs"
+                            >
+                              #{r.pullNumber} &ndash; {r.name} (Pity{" "}
+                              {r.pityCount})
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-        {arts.slice(0, 20).map((a, i) => (
-          <div key={i} className={cn("guild-card p-3 space-y-2", a.rarity === 5 ? "border-guild-gold/20" : "border-guild-accent-2/20")} style={{ borderWidth: 1 }}>
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-guild-muted">{a.slot}</span>
-              <span className={cn("text-xs", a.rarity === 5 ? "text-guild-gold" : "text-guild-accent-2")}>{"★".repeat(a.rarity)}</span>
-            </div>
-            <div className="text-xs font-medium text-guild-gold">{a.mainStat}</div>
-            <div className="space-y-0.5">
-              {a.substats.map((s) => (
-                <div key={s.name} className="text-[10px] text-guild-muted flex justify-between">
-                  <span>{s.name}</span><span className="font-mono">{s.value}</span>
-                </div>
-              ))}
-            </div>
-            <div className="text-[9px] text-guild-dim truncate">{a.set}</div>
-          </div>
-        ))}
-      </div>
+      {/* ═══════════════════════════════════════════════════════════════
+           ARTIFACT ROLLER
+         ═══════════════════════════════════════════════════════════════ */}
+      {mode === "artifact" && (
+        <div className="space-y-5">
+          {/* Controls */}
+          <Card className="bg-guild-card border-white/5 py-0">
+            <CardContent className="flex flex-wrap items-center gap-4 py-4">
+              <div>
+                <label className="text-xs text-guild-muted block mb-1">
+                  Domain
+                </label>
+                <select
+                  value={artSet}
+                  onChange={(e) => setArtSet(e.target.value)}
+                  className="h-9 px-3 rounded-md bg-guild-elevated border border-white/5 text-sm"
+                >
+                  {ARTIFACT_SETS.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button
+                onClick={doArtRoll}
+                className="h-9 px-5 rounded-md bg-guild-accent hover:bg-guild-accent/80 text-sm font-medium flex items-center gap-2 transition-colors cursor-pointer"
+              >
+                <Dices className="h-4 w-4" /> Roll (20 Resin)
+              </button>
+              <button
+                onClick={resetArtifacts}
+                className="h-9 px-4 rounded-md bg-guild-elevated hover:bg-white/10 text-sm flex items-center gap-2 transition-colors cursor-pointer"
+              >
+                <RotateCcw className="h-4 w-4" /> Reset
+              </button>
+              <div className="ml-auto flex gap-6 text-sm">
+                <span className="text-guild-muted">
+                  Resin:{" "}
+                  <span className="font-mono text-guild-gold">{resin}</span>
+                </span>
+                <span className="text-guild-muted">
+                  Rolled: <span className="font-mono">{artifacts.length}</span>
+                </span>
+                <span className="text-guild-muted">
+                  Good:{" "}
+                  <span className="font-mono text-guild-success">
+                    {goodArtCount} (
+                    {artifacts.length
+                      ? ((goodArtCount / artifacts.length) * 100).toFixed(1)
+                      : 0}
+                    %)
+                  </span>
+                </span>
+              </div>
+            </CardContent>
+          </Card>
 
-      {arts.length > 20 && <p className="text-sm text-guild-muted text-center">Showing last 20 of {arts.length}</p>}
+          {/* Quip */}
+          {artifacts.length > 0 && artifacts.length % 5 === 0 && (
+            <Card className="bg-guild-card border-orange-500/20 py-0">
+              <CardContent className="py-4">
+                <p className="text-sm italic text-orange-400">
+                  &quot;{ARTIFACT_QUIPS[quipIndex]}&quot;
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Artifact grid */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            {artifacts.slice(0, 20).map((a, i) => (
+              <Card
+                key={i}
+                className={cn(
+                  "bg-guild-card py-0",
+                  a.rarity === 5
+                    ? "border-amber-500/20"
+                    : "border-purple-500/20"
+                )}
+              >
+                <CardContent className="space-y-2 p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-guild-muted">{a.slot}</span>
+                    <span
+                      className={cn(
+                        "text-xs",
+                        a.rarity === 5 ? "text-amber-400" : "text-purple-400"
+                      )}
+                    >
+                      {"\u2605".repeat(a.rarity)}
+                    </span>
+                  </div>
+                  <div className="text-xs font-medium text-guild-gold">
+                    {a.mainStat}
+                  </div>
+                  <div className="space-y-0.5">
+                    {a.substats.map((s) => (
+                      <div
+                        key={s.name}
+                        className="text-[10px] text-guild-muted flex justify-between"
+                      >
+                        <span>{s.name}</span>
+                        <span className="font-mono">{s.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="text-[9px] text-guild-dim truncate">
+                    {a.set}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {artifacts.length > 20 && (
+            <p className="text-sm text-guild-muted text-center">
+              Showing last 20 of {artifacts.length}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Stat Row helper ───────────────────────────────────────────────────
+
+function StatRow({
+  label,
+  value,
+  labelClass,
+  valueClass,
+}: {
+  label: string;
+  value: string | number;
+  labelClass?: string;
+  valueClass?: string;
+}) {
+  return (
+    <div className="flex justify-between text-sm">
+      <span className={cn("text-guild-muted", labelClass)}>{label}</span>
+      <span className={cn("font-mono", valueClass)}>{value}</span>
     </div>
   );
 }

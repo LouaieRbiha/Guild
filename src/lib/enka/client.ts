@@ -210,7 +210,7 @@ export interface EnkaProfile {
 
 export async function fetchEnkaProfile(uid: string): Promise<EnkaProfile> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 5000);
+  const timeout = setTimeout(() => controller.abort(), 15000);
 
   let res: Response;
   try {
@@ -245,7 +245,7 @@ export async function fetchEnkaProfile(uid: string): Promise<EnkaProfile> {
   } catch (err) {
     clearTimeout(timeout);
     if (err instanceof Error && err.name === "AbortError") {
-      throw new Error("Request timed out. Enka.Network may be slow — please try again.");
+      throw new Error("Request timed out after 15 seconds. Enka.Network may be experiencing issues — please try again later.");
     }
     if (err instanceof TypeError && err.message.includes("fetch")) {
       throw new Error("Could not reach Enka.Network. Please check your connection and try again.");

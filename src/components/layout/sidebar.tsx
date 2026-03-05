@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Calendar, Shield } from "lucide-react";
@@ -12,26 +13,62 @@ import {
   CompassIcon,
   FateIcon,
   KameraIcon,
-  HourglassIcon,
   LeakIcon,
+  FlowerIcon,
 } from "@/components/icons/genshin-icons";
 
-const navItems = [
+interface NavItem {
+  href: string;
+  icon: React.FC<{ className?: string; size?: number }>;
+  label: string;
+  requiresSetting?: string;
+}
+
+const navItems: NavItem[] = [
   { href: "/", icon: PrimogemIcon, label: "Home" },
   { href: "/profile", icon: BuildIcon, label: "Builds" },
   { href: "/database", icon: VisionIcon, label: "Characters" },
   { href: "/weapons", icon: WeaponIcon, label: "Weapons" },
+  { href: "/artifacts", icon: FlowerIcon, label: "Artifacts" },
   { href: "/calendar", icon: Calendar, label: "Calendar" },
   { href: "/abyss", icon: Shield, label: "Abyss" },
   { href: "/map", icon: CompassIcon, label: "Map" },
   { href: "/simulator", icon: FateIcon, label: "Simulator" },
   { href: "/streamers", icon: KameraIcon, label: "Live" },
-  { href: "/timeline", icon: HourglassIcon, label: "Timeline" },
-  { href: "/leaks", icon: LeakIcon, label: "Leaks" },
+  { href: "/leaks", icon: LeakIcon, label: "Leaks", requiresSetting: "showLeaks" },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
+  const [showLeaks, setShowLeaks] = useState(false);
+
+  useEffect(() => {
+    // Load initial setting
+    try {
+      const stored = localStorage.getItem("guild-settings");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setShowLeaks(parsed.showLeaks ?? false);
+      }
+    } catch {
+      // ignore
+    }
+
+    // Listen for settings changes
+    function handleSettingsChange(e: Event) {
+      const detail = (e as CustomEvent).detail;
+      if (detail && typeof detail.showLeaks === "boolean") {
+        setShowLeaks(detail.showLeaks);
+      }
+    }
+    window.addEventListener("guild-settings-change", handleSettingsChange);
+    return () => window.removeEventListener("guild-settings-change", handleSettingsChange);
+  }, []);
+
+  const visibleItems = navItems.filter((item) => {
+    if (item.requiresSetting === "showLeaks" && !showLeaks) return false;
+    return true;
+  });
 
   return (
     <aside className="hidden md:flex w-16 hover:w-48 transition-all duration-300 flex-col bg-guild-card/50 border-r border-white/5 group overflow-hidden">
@@ -43,7 +80,7 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 py-4 space-y-1">
-        {navItems.map((item) => {
+        {visibleItems.map((item) => {
           const isActive =
             pathname === item.href ||
             (item.href !== "/" && pathname.startsWith(item.href));

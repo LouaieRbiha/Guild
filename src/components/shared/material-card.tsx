@@ -17,7 +17,7 @@ export function MaterialCard({ item, className }: MaterialCardProps) {
   return (
     <div className={cn("group relative flex flex-col items-center", className)} title={item.name}>
       <div className={cn(
-        "relative w-[96px] h-[96px] rounded-xl border-2 overflow-hidden transition-transform group-hover:scale-105",
+        "relative w-24 h-24 rounded-xl border-2 overflow-hidden transition-transform group-hover:scale-105",
         MAT_RARITY_BORDER[item.rarity] || "border-gray-600",
         MAT_RARITY_BG[item.rarity] || "bg-black/30"
       )}>
@@ -37,7 +37,7 @@ export function MaterialCard({ item, className }: MaterialCardProps) {
           <span className="text-sm font-bold text-white">{item.count.toLocaleString()}</span>
         </div>
       </div>
-      <p className="text-xs text-gray-400 mt-1 text-center leading-tight max-w-[96px] truncate">
+      <p className="text-xs text-gray-400 mt-1 text-center leading-tight max-w-24 truncate">
         {item.name}
       </p>
     </div>
