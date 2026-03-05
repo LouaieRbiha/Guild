@@ -13,15 +13,41 @@ import {
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { WishAnimation } from "@/components/simulator/wish-animation";
 
 // ── Artifact Roller Constants ─────────────────────────────────────────
 
 const ARTIFACT_SETS = [
+  // Momiji-Dyed Court
   "Emblem of Severed Fate",
+  "Shimenawa's Reminiscence",
+  // Ridge Watch
+  "Husk of Opulent Dreams",
+  "Ocean-Hued Clam",
+  // Valley of Remembrance
+  "Viridescent Venerer",
+  "Maiden Beloved",
+  // Hidden Palace of Zhou Formula
+  "Crimson Witch of Flames",
+  "Lavawalker",
+  // Midsummer Courtyard
+  "Thundering Fury",
+  "Thundersoother",
+  // Domain of Guyun
+  "Archaic Petra",
+  "Retracing Bolide",
+  // Clear Pool and Mountain Cavern
+  "Noblesse Oblige",
+  "Bloodstained Chivalry",
+  // Peak of Vindagnyr
+  "Blizzard Strayer",
+  "Heart of Depth",
+  // Equitable Judgment
   "Marechaussee Hunter",
   "Golden Troupe",
-  "Viridescent Venerer",
-  "Crimson Witch of Flames",
+  // Denouement of Sin
+  "Fragment of Harmonic Whimsy",
+  "Unfinished Reverie",
 ];
 
 const MAIN_STATS: Record<string, string[]> = {
@@ -110,6 +136,29 @@ function rollArtifact(set: string): Artifact {
 }
 
 // ── Wish Simulator Constants ──────────────────────────────────────────
+
+// ── Crit Value Calculation ───────────────────────────────────────────
+
+function calculateCV(substats: { name: string; value: string }[]): number {
+  let cv = 0;
+  for (const sub of substats) {
+    const numericValue = parseFloat(sub.value);
+    if (Number.isNaN(numericValue)) continue;
+
+    if (sub.name === "CRIT Rate") {
+      cv += numericValue * 2;
+    } else if (sub.name === "CRIT DMG") {
+      cv += numericValue;
+    }
+  }
+  return cv;
+}
+
+function getCVColorClass(cv: number): string {
+  if (cv >= 30) return "text-green-400";
+  if (cv >= 20) return "text-yellow-400";
+  return "text-guild-dim";
+}
 
 type BannerType = "character" | "weapon" | "standard";
 
@@ -366,6 +415,7 @@ export default function SimulatorPage() {
   const [lastPull, setLastPull] = useState<WishResult[]>([]);
   const [totalWishes, setTotalWishes] = useState(0);
   const [showHistory, setShowHistory] = useState(false);
+  const [animState, setAnimState] = useState<"idle" | "animating">("idle");
 
   // ── Artifact Roller State ─────────────────────────────────────────
   const [artSet, setArtSet] = useState(ARTIFACT_SETS[0]);
@@ -397,6 +447,7 @@ export default function SimulatorPage() {
       setLastPull(results);
       setWishResults((prev) => [...[...results].reverse(), ...prev]);
       setTotalWishes((prev) => prev + count);
+      setAnimState("animating");
     },
     [bannerType, pityStates, primogems, totalWishes]
   );
@@ -481,6 +532,13 @@ export default function SimulatorPage() {
   // ── Render ────────────────────────────────────────────────────────
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+      {/* ═══ Wish Animation Overlay ═══ */}
+      {animState === "animating" && lastPull.length > 0 && (
+        <WishAnimation
+          results={lastPull}
+          onComplete={() => setAnimState("idle")}
+        />
+      )}
       {/* ═══ Page Header ═══ */}
       <div className="flex items-center gap-3">
         <Dices className="h-6 w-6 text-guild-accent" />
@@ -944,48 +1002,70 @@ export default function SimulatorPage() {
 
           {/* Artifact grid */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-            {artifacts.slice(0, 20).map((a, i) => (
-              <Card
-                key={i}
-                className={cn(
-                  "bg-guild-card py-0",
-                  a.rarity === 5
-                    ? "border-amber-500/20"
-                    : "border-purple-500/20"
-                )}
-              >
-                <CardContent className="space-y-2 p-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-guild-muted">{a.slot}</span>
-                    <span
-                      className={cn(
-                        "text-xs",
-                        a.rarity === 5 ? "text-amber-400" : "text-purple-400"
-                      )}
-                    >
-                      {"\u2605".repeat(a.rarity)}
-                    </span>
-                  </div>
-                  <div className="text-xs font-medium text-guild-gold">
-                    {a.mainStat}
-                  </div>
-                  <div className="space-y-0.5">
-                    {a.substats.map((s) => (
-                      <div
-                        key={s.name}
-                        className="text-[10px] text-guild-muted flex justify-between"
+            {artifacts.slice(0, 20).map((a, i) => {
+              const cv = calculateCV(a.substats);
+              const cvColor = getCVColorClass(cv);
+              return (
+                <Card
+                  key={i}
+                  className={cn(
+                    "bg-guild-card py-0",
+                    a.rarity === 5
+                      ? "border-amber-500/20"
+                      : "border-purple-500/20"
+                  )}
+                >
+                  <CardContent className="space-y-2 p-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-guild-muted">{a.slot}</span>
+                      <span
+                        className={cn(
+                          "text-xs",
+                          a.rarity === 5 ? "text-amber-400" : "text-purple-400"
+                        )}
                       >
-                        <span>{s.name}</span>
-                        <span className="font-mono">{s.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="text-[9px] text-guild-dim truncate">
-                    {a.set}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                        {"\u2605".repeat(a.rarity)}
+                      </span>
+                    </div>
+                    <div className="text-xs font-medium text-guild-gold">
+                      {a.mainStat}
+                    </div>
+                    <div className="space-y-0.5">
+                      {a.substats.map((s) => (
+                        <div
+                          key={s.name}
+                          className={cn(
+                            "text-[10px] flex justify-between",
+                            s.name === "CRIT Rate" || s.name === "CRIT DMG"
+                              ? "text-white/80"
+                              : "text-guild-muted"
+                          )}
+                        >
+                          <span>{s.name}</span>
+                          <span className="font-mono">{s.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex items-center justify-between pt-0.5">
+                      <span className="text-[9px] text-guild-dim truncate mr-2">
+                        {a.set}
+                      </span>
+                      {cv > 0 && (
+                        <span
+                          className={cn(
+                            "text-[10px] font-mono font-medium shrink-0",
+                            cvColor
+                          )}
+                          title="Crit Value = (CRIT Rate x 2) + CRIT DMG"
+                        >
+                          CV {cv.toFixed(1)}
+                        </span>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
 
           {artifacts.length > 20 && (

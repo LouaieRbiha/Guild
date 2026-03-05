@@ -128,9 +128,25 @@ function ChamberCard({ chamber }: { chamber: { chamber: number; firstHalf: Abyss
 
 function BossCard({ boss }: { boss: AbyssBoss }) {
   const maxResistance = Math.max(...boss.resistances.map((r) => r.value));
+  const [imgError, setImgError] = useState(false);
 
   return (
-    <Card className="bg-guild-card border-guild-border">
+    <Card className="bg-guild-card border-guild-border overflow-hidden">
+      {/* Boss Image Banner */}
+      {boss.image && !imgError && (
+        <div className="relative aspect-[2/1] w-full bg-black/20">
+          <Image
+            src={boss.image}
+            alt={boss.name}
+            fill
+            sizes="(max-width: 768px) 100vw, 50vw"
+            className="object-cover"
+            onError={() => setImgError(true)}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-guild-card via-guild-card/40 to-transparent" />
+        </div>
+      )}
+
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -139,6 +155,9 @@ function BossCard({ boss }: { boss: AbyssBoss }) {
           </div>
           <Badge variant="outline" className="text-guild-muted font-mono">{boss.hp} HP</Badge>
         </CardTitle>
+        {boss.description && (
+          <p className="text-sm text-guild-muted leading-relaxed mt-1">{boss.description}</p>
+        )}
       </CardHeader>
       <CardContent className="space-y-5">
         {/* Resistance Chart */}

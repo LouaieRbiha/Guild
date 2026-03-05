@@ -2,14 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { YATTA_ASSETS, RARITY_COLORS } from "@/lib/constants";
+import { YATTA_ASSETS } from "@/lib/constants";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RarityStars } from "@/components/shared";
-import { Search, X, RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
+import { Search, X, RotateCcw, ChevronDown } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────────────────
 
@@ -110,7 +111,6 @@ export default function ArtifactsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [showSortMenu, setShowSortMenu] = useState(false);
-  const [expandedId, setExpandedId] = useState<number | null>(null);
   const sortRef = useRef<HTMLDivElement>(null);
 
   // Fetch data
@@ -342,12 +342,7 @@ export default function ArtifactsPage() {
       {!loading && !error && sorted.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {sorted.map((set) => (
-            <ArtifactSetCard
-              key={set.id}
-              set={set}
-              expanded={expandedId === set.id}
-              onToggle={() => setExpandedId(expandedId === set.id ? null : set.id)}
-            />
+            <ArtifactSetCard key={set.id} set={set} />
           ))}
         </div>
       )}
@@ -372,27 +367,22 @@ export default function ArtifactsPage() {
 
 interface ArtifactSetCardProps {
   set: ArtifactSet;
-  expanded: boolean;
-  onToggle: () => void;
 }
 
-function ArtifactSetCard({ set, expanded, onToggle }: ArtifactSetCardProps) {
+function ArtifactSetCard({ set }: ArtifactSetCardProps) {
   const [imgErr, setImgErr] = useState(false);
   const glow = RARITY_GLOW[set.maxRarity] || RARITY_GLOW[3];
   const gradient = RARITY_GRADIENT[set.maxRarity] || RARITY_GRADIENT[3];
   const shimmer = RARITY_SHIMMER[set.maxRarity] || RARITY_SHIMMER[3];
   const border = RARITY_BORDER[set.maxRarity] || RARITY_BORDER[3];
   const twoPcBonus = set.bonuses.find((b) => b.label === "2-Piece" || b.label === "1-Piece");
-  const fourPcBonus = set.bonuses.find((b) => b.label === "4-Piece");
 
   return (
-    <div className="flex flex-col">
+    <Link href={`/artifacts/${set.id}`}>
       <Card
-        onClick={onToggle}
         className={cn(
           "relative overflow-hidden cursor-pointer group p-0 transition-shadow duration-300",
           border,
-          expanded && "rounded-b-none"
         )}
         style={{ "--rarity-glow": glow } as React.CSSProperties}
       >
@@ -413,13 +403,6 @@ function ArtifactSetCard({ set, expanded, onToggle }: ArtifactSetCardProps) {
             <RarityStars rarity={set.maxRarity} size="xs" />
           </div>
 
-          {/* Expand/collapse indicator - top left */}
-          <div className="absolute top-2 left-2 z-10">
-            <span className="text-white/40 group-hover:text-white/70 transition-colors">
-              {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            </span>
-          </div>
-
           {/* Artifact icon - centered */}
           <div className="absolute inset-0 flex items-center justify-center p-8">
             {!imgErr ? (
@@ -438,7 +421,7 @@ function ArtifactSetCard({ set, expanded, onToggle }: ArtifactSetCardProps) {
             )}
           </div>
 
-          {/* Bottom info overlay - visible by default */}
+          {/* Bottom info overlay */}
           <div className="absolute inset-x-0 bottom-0 p-3 bg-linear-to-t from-black/90 via-black/60 to-transparent">
             <p className="text-sm font-semibold text-white truncate drop-shadow-lg">
               {set.name}
@@ -452,88 +435,6 @@ function ArtifactSetCard({ set, expanded, onToggle }: ArtifactSetCardProps) {
           </div>
         </div>
       </Card>
-
-      {/* Expanded detail panel */}
-      {expanded && (
-        <ExpandedDetail set={set} twoPcBonus={twoPcBonus} fourPcBonus={fourPcBonus} />
-      )}
-    </div>
+    </Link>
   );
 }
-
-// ── Expanded Detail Panel ──────────────────────────────────────────────
-
-interface ExpandedDetailProps {
-  set: ArtifactSet;
-  twoPcBonus: { label: string; description: string } | undefined;
-  fourPcBonus: { label: string; description: string } | undefined;
-}
-
-const RARITY_PANEL_BORDER: Record<number, string> = {
-  5: "border-amber-500/25",
-  4: "border-purple-500/20",
-  3: "border-blue-500/20",
-};
-
-function ExpandedDetail({ set, twoPcBonus, fourPcBonus }: ExpandedDetailProps) {
-  const colors = RARITY_COLORS[set.maxRarity] || RARITY_COLORS[4];
-  const panelBorder = RARITY_PANEL_BORDER[set.maxRarity] || RARITY_PANEL_BORDER[3];
-
-  return (
-    <div
-      className={cn(
-        "border border-t-0 rounded-b-xl p-4 space-y-3 bg-guild-card/90 backdrop-blur-sm",
-        panelBorder
-      )}
-    >
-      {/* Set bonuses */}
-      {twoPcBonus && (
-        <div className="space-y-1">
-          <span className={cn("text-xs font-bold uppercase tracking-wide", colors.text)}>
-            {twoPcBonus.label} Bonus
-          </span>
-          <p className="text-sm text-gray-300 leading-relaxed">
-            {twoPcBonus.description}
-          </p>
-        </div>
-      )}
-
-      {fourPcBonus && (
-        <div className="space-y-1">
-          <span className={cn("text-xs font-bold uppercase tracking-wide", colors.text)}>
-            {fourPcBonus.label} Bonus
-          </span>
-          <p className="text-sm text-gray-300 leading-relaxed">
-            {fourPcBonus.description}
-          </p>
-        </div>
-      )}
-
-      {/* Piece names */}
-      <div className="pt-2 border-t border-white/5">
-        <span className="text-xs text-guild-muted uppercase tracking-wide font-medium">Pieces</span>
-        <div className="grid grid-cols-5 gap-1.5 mt-2">
-          {ARTIFACT_PIECES.map((piece) => (
-            <div
-              key={piece.slot}
-              className="flex flex-col items-center gap-1 text-center"
-            >
-              <div className="w-6 h-6 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
-                <span className="text-[10px] font-bold text-guild-muted">{piece.abbr}</span>
-              </div>
-              <span className="text-[10px] text-guild-muted leading-tight">{piece.slot}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-const ARTIFACT_PIECES = [
-  { slot: "Flower", abbr: "FL" },
-  { slot: "Plume", abbr: "PL" },
-  { slot: "Sands", abbr: "SA" },
-  { slot: "Goblet", abbr: "GO" },
-  { slot: "Circlet", abbr: "CI" },
-] as const;

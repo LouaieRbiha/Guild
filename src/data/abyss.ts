@@ -13,6 +13,9 @@ export interface EnemyResistance {
 export interface AbyssBoss {
   name: string;
   hp: string;
+  icon?: string;
+  image?: string;
+  description?: string;
   resistances: EnemyResistance[];
   weaknesses: string[];
   tips: string[];
@@ -216,6 +219,9 @@ export const ABYSS_FLOORS: AbyssFloor[] = [
       {
         name: "Incandescent Remembrance of Burning Steel",
         hp: "1,800,000",
+        icon: "UI_MonsterIcon_Automaton_IncandBurn",
+        image: "https://gi.yatta.moe/assets/UI/monster/UI_MonsterIcon_Automaton_IncandBurn.png",
+        description: "A formidable Snezhnayan machine that coats itself in blazing Pyro armor. Extinguish its flames with Hydro to create a vulnerability window, then unleash your strongest attacks.",
         resistances: [
           { element: "Pyro", value: 70 },
           { element: "Hydro", value: -20 },
@@ -236,6 +242,9 @@ export const ABYSS_FLOORS: AbyssFloor[] = [
       {
         name: "Hydro Tulpa",
         hp: "1,500,000",
+        icon: "UI_MonsterIcon_HydroTulpa",
+        image: "https://gi.yatta.moe/assets/UI/monster/UI_MonsterIcon_HydroTulpa.png",
+        description: "An ancient Hydro entity that creates mirages of itself. Freeze the real body to interrupt devastating attacks. Destroy mirages quickly before they explode.",
         resistances: [
           { element: "Pyro", value: 10 },
           { element: "Hydro", value: 70 },
@@ -321,6 +330,9 @@ export const STYGIAN_STAGES: StygianStage[] = [
     boss: {
       name: "Electro Regisvine",
       hp: "800,000",
+      icon: "UI_MonsterIcon_Regisvine_Electric",
+      image: "https://gi.yatta.moe/assets/UI/monster/UI_MonsterIcon_Regisvine_Electric.png",
+      description: "A massive Electro-infused plant with a vulnerable corolla and root system. Strike weak points when exposed for massive damage. Use Pyro reactions for the Overloaded bonus.",
       resistances: [
         { element: "Pyro", value: 10 },
         { element: "Hydro", value: 10 },
@@ -363,6 +375,9 @@ export const STYGIAN_STAGES: StygianStage[] = [
     boss: {
       name: "All-Devouring Narwhal",
       hp: "2,000,000",
+      icon: "UI_MonsterIcon_Narwhal",
+      image: "https://gi.yatta.moe/assets/UI/monster/UI_MonsterIcon_Narwhal.png",
+      description: "The terrifying creature from beyond. Periodically pulls characters into a pocket dimension. Deal enough damage to escape, and unleash everything below 30% HP when the CRIT buff activates.",
       resistances: [
         { element: "Pyro", value: 10 },
         { element: "Hydro", value: 70 },
