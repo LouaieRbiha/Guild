@@ -4,32 +4,32 @@ import {
 	ConstellationIcon,
 	ELEMENT_ICONS,
 } from '@/components/icons/genshin-icons';
-import { ElementBadge, RarityStars, MaterialCard } from '@/components/shared';
+import { ElementBadge, MaterialCard, RarityStars } from '@/components/shared';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CHARACTER_GUIDES } from '@/data/character-guides';
+import { getDomainDays, isDomainOpenToday } from '@/data/farming-schedule';
 import {
-	Tabs,
-	TabsList,
-	TabsTrigger,
-	TabsContent,
-} from '@/components/ui/tabs';
-import { CharacterEntry, charIconUrl, charGachaUrl, ALL_CHARACTERS } from '@/lib/characters';
+	ALL_CHARACTERS,
+	CharacterEntry,
+	charGachaUrl,
+	charIconUrl,
+} from '@/lib/characters';
 import { ELEMENT_COLORS, weaponIconUrl } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import {
 	CharacterDetail,
+	cleanDescription,
 	MaterialGroup,
 	MaterialItem,
 	yattaIconUrl,
-	cleanDescription,
 } from '@/lib/yatta/client';
-import { getDomainDays, isDomainOpenToday } from '@/data/farming-schedule';
-import { CHARACTER_GUIDES } from '@/data/character-guides';
 import * as SliderPrimitive from '@radix-ui/react-slider';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 // Simpler version: highlight ALL numbers in text
 function HighlightNumbers({ text, color }: { text: string; color: string }) {
@@ -463,8 +463,8 @@ function TalentsTab({
 				</h2>
 				<div className={`h-0.5 rounded-full ${colors.bg}`} />
 				<p className='text-base text-gray-400'>
-					Recommended priority: Level all to 8+, then focus on the most impactful
-					talent first
+					Recommended priority: Level all to 8+, then focus on the most
+					impactful talent first
 				</p>
 			</div>
 
@@ -473,7 +473,9 @@ function TalentsTab({
 					const isExpanded = expanded === `talent-${i}`;
 					const priorityLabel = TALENT_PRIORITY[talent.type] || talent.type;
 					const borderColor = TALENT_COLORS[talent.type] || 'border-gray-600';
-					const badgeStyle = TALENT_BADGE_STYLES[talent.type] || `${colors.bg} ${colors.text} ${colors.border}`;
+					const badgeStyle =
+						TALENT_BADGE_STYLES[talent.type] ||
+						`${colors.bg} ${colors.text} ${colors.border}`;
 
 					return (
 						<div
@@ -498,13 +500,13 @@ function TalentsTab({
 										<span className='text-white font-semibold text-xl'>
 											{talent.name}
 										</span>
-										<Badge className={badgeStyle}>
-											{priorityLabel}
-										</Badge>
+										<Badge className={badgeStyle}>{priorityLabel}</Badge>
 									</div>
 									<p className='text-base text-gray-400'>{talent.type}</p>
 								</div>
-								<span className='text-gray-500 text-lg'>{isExpanded ? '\u25B2' : '\u25BC'}</span>
+								<span className='text-gray-500 text-lg'>
+									{isExpanded ? '\u25B2' : '\u25BC'}
+								</span>
 							</div>
 							{isExpanded && (
 								<div className='mt-4 pt-4 border-t border-white/10'>
@@ -592,7 +594,8 @@ function ConstellationsTab({
 	detail: CharacterDetail;
 	colors: ElementColors;
 }) {
-	const glowShadow = ELEMENT_GLOW_SHADOW[detail.element] || '0 0 12px rgba(168, 85, 247, 0.5)';
+	const glowShadow =
+		ELEMENT_GLOW_SHADOW[detail.element] || '0 0 12px rgba(168, 85, 247, 0.5)';
 
 	return (
 		<div className='space-y-6'>
@@ -647,9 +650,7 @@ function ConstellationsTab({
 									{/* Middle: Name + description */}
 									<div className='flex-1 min-w-0'>
 										<div className='flex items-center gap-3 flex-wrap mb-2'>
-											<h3 className='text-lg font-bold text-white'>
-												{c.name}
-											</h3>
+											<h3 className='text-lg font-bold text-white'>{c.name}</h3>
 											<Badge
 												variant='outline'
 												className={cn(
@@ -677,9 +678,7 @@ function ConstellationsTab({
 											<span className='text-base font-semibold text-white'>
 												Impact:
 											</span>
-											<span
-												className={`text-base font-bold ${impact.color}`}
-											>
+											<span className={`text-base font-bold ${impact.color}`}>
 												{impact.label}
 											</span>
 											<span className='text-base text-gray-400'>
@@ -892,13 +891,21 @@ function MaterialsTab({
 	const talentBookSchedule: { materialName: string; days: string[] }[] = [];
 	for (const mat of talentMaterials) {
 		const days = getDomainDays(mat.name);
-		if (days && !talentBookSchedule.some(s => s.materialName === mat.name)) {
+		if (days && !talentBookSchedule.some((s) => s.materialName === mat.name)) {
 			talentBookSchedule.push({ materialName: mat.name, days });
 		}
 	}
 
 	const today = new Date();
-	const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+	const dayNames = [
+		'Sunday',
+		'Monday',
+		'Tuesday',
+		'Wednesday',
+		'Thursday',
+		'Friday',
+		'Saturday',
+	];
 	const todayName = dayNames[today.getDay()];
 
 	return (
@@ -955,7 +962,8 @@ function MaterialsTab({
 			<div className='space-y-4'>
 				<div className='space-y-2'>
 					<h2 className='text-2xl font-bold text-white flex items-center gap-3'>
-						<span className={colors.text}>&#128214;</span> Talent Level-Up Materials
+						<span className={colors.text}>&#128214;</span> Talent Level-Up
+						Materials
 					</h2>
 					<div className={`h-0.5 rounded-full ${colors.bg}`} />
 				</div>
@@ -1025,7 +1033,15 @@ function MaterialsTab({
 										)}
 									</div>
 									<div className='flex gap-2 flex-wrap'>
-										{["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => {
+										{[
+											'Monday',
+											'Tuesday',
+											'Wednesday',
+											'Thursday',
+											'Friday',
+											'Saturday',
+											'Sunday',
+										].map((day) => {
 											const isScheduled = schedule.days.includes(day);
 											const isToday = day === todayName;
 											return (
@@ -1037,8 +1053,8 @@ function MaterialsTab({
 														isScheduled && isToday
 															? 'bg-green-500/20 text-green-400 border-green-500/40 font-bold'
 															: isScheduled
-															? `${colors.bg} ${colors.text} ${colors.border}`
-															: 'bg-black/20 text-gray-600 border-white/5',
+																? `${colors.bg} ${colors.text} ${colors.border}`
+																: 'bg-black/20 text-gray-600 border-white/5',
 													)}
 												>
 													{day.substring(0, 3)}
@@ -1056,11 +1072,7 @@ function MaterialsTab({
 	);
 }
 
-function LoreTab({
-	detail,
-}: {
-	detail: CharacterDetail;
-}) {
+function LoreTab({ detail }: { detail: CharacterDetail }) {
 	return (
 		<div className='space-y-6'>
 			{/* Story */}
@@ -1079,14 +1091,15 @@ function LoreTab({
 
 			{/* Character info card */}
 			<div className='guild-card p-6'>
-				<h2 className='text-2xl font-bold text-white mb-4'>
-					Character Info
-				</h2>
+				<h2 className='text-2xl font-bold text-white mb-4'>Character Info</h2>
 				<div className='grid grid-cols-2 md:grid-cols-3 gap-4'>
 					<DetailCard label='Real Name' value={detail.name} />
 					<DetailCard label='Title' value={detail.title || '\u2014'} />
 					<DetailCard label='Region' value={detail.region} />
-					<DetailCard label='Affiliation' value={detail.affiliation || '\u2014'} />
+					<DetailCard
+						label='Affiliation'
+						value={detail.affiliation || '\u2014'}
+					/>
 					<DetailCard label='Birthday' value={detail.birthday} />
 					<DetailCard
 						label='Constellation'
@@ -1101,32 +1114,38 @@ function LoreTab({
 			{/* Voice actors -- more prominent */}
 			{detail.cv.EN && (
 				<div className='guild-card p-6'>
-					<h2 className='text-2xl font-bold text-white mb-4'>
-						Voice Actors
-					</h2>
+					<h2 className='text-2xl font-bold text-white mb-4'>Voice Actors</h2>
 					<div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
 						<Card className='bg-black/20 border-white/5'>
 							<CardContent className='p-4'>
 								<p className='text-sm text-gray-500 mb-1'>English (EN)</p>
-								<p className='text-lg font-semibold text-white'>{detail.cv.EN}</p>
+								<p className='text-lg font-semibold text-white'>
+									{detail.cv.EN}
+								</p>
 							</CardContent>
 						</Card>
 						<Card className='bg-black/20 border-white/5'>
 							<CardContent className='p-4'>
 								<p className='text-sm text-gray-500 mb-1'>Japanese (JP)</p>
-								<p className='text-lg font-semibold text-white'>{detail.cv.JP || '\u2014'}</p>
+								<p className='text-lg font-semibold text-white'>
+									{detail.cv.JP || '\u2014'}
+								</p>
 							</CardContent>
 						</Card>
 						<Card className='bg-black/20 border-white/5'>
 							<CardContent className='p-4'>
 								<p className='text-sm text-gray-500 mb-1'>Chinese (CN)</p>
-								<p className='text-lg font-semibold text-white'>{detail.cv.CHS || '\u2014'}</p>
+								<p className='text-lg font-semibold text-white'>
+									{detail.cv.CHS || '\u2014'}
+								</p>
 							</CardContent>
 						</Card>
 						<Card className='bg-black/20 border-white/5'>
 							<CardContent className='p-4'>
 								<p className='text-sm text-gray-500 mb-1'>Korean (KR)</p>
-								<p className='text-lg font-semibold text-white'>{detail.cv.KR || '\u2014'}</p>
+								<p className='text-lg font-semibold text-white'>
+									{detail.cv.KR || '\u2014'}
+								</p>
 							</CardContent>
 						</Card>
 					</div>
@@ -1136,9 +1155,7 @@ function LoreTab({
 			{/* Character Quote */}
 			{detail.description && (
 				<div className='guild-card p-6'>
-					<h2 className='text-2xl font-bold text-white mb-4'>
-						Introduction
-					</h2>
+					<h2 className='text-2xl font-bold text-white mb-4'>Introduction</h2>
 					<blockquote className='border-l-4 border-white/20 pl-4 italic text-base text-gray-400 leading-relaxed'>
 						{detail.description}
 					</blockquote>
@@ -1181,13 +1198,35 @@ function GuidesTab({
 
 	// Resolve team member entries for icons
 	const findCharEntry = (name: string): CharacterEntry | undefined =>
-		ALL_CHARACTERS.find(c => c.name === name);
+		ALL_CHARACTERS.find((c) => c.name === name);
 
 	if (!guide && !kqmGuide) {
 		return (
-			<div className='guild-card p-8 text-center'>
-				<h2 className='text-xl font-semibold text-white mb-2'>Guide Coming Soon</h2>
-				<p className='text-gray-400'>Community guide for {detail.name} is being prepared.</p>
+			<div className='guild-card p-8 text-center space-y-4'>
+				<h2 className='text-xl font-semibold text-white mb-2'>
+					No Guide Available Yet
+				</h2>
+				<p className='text-gray-400'>
+					Community guide for {detail.name} hasn&apos;t been added yet.
+				</p>
+				<div className='flex items-center justify-center gap-3'>
+					<a
+						href={`https://keqingmains.com/${detail.name.toLowerCase().replace(/\s+/g, '-')}/`}
+						target='_blank'
+						rel='noopener noreferrer'
+						className='px-4 py-2 rounded-lg bg-guild-accent/20 text-guild-accent hover:bg-guild-accent/30 transition-colors text-sm'
+					>
+						Check KQM Guide
+					</a>
+					<a
+						href={`https://genshin-impact.fandom.com/wiki/${detail.name.replace(/\s+/g, '_')}`}
+						target='_blank'
+						rel='noopener noreferrer'
+						className='px-4 py-2 rounded-lg bg-white/5 text-guild-muted hover:bg-white/10 transition-colors text-sm'
+					>
+						Genshin Wiki
+					</a>
+				</div>
 			</div>
 		);
 	}
@@ -1200,9 +1239,12 @@ function GuidesTab({
 					<CardContent className='p-6'>
 						<div className='flex items-center justify-between flex-wrap gap-3'>
 							<div>
-								<h2 className='text-xl font-semibold text-white mb-1'>KQM Guide Data</h2>
+								<h2 className='text-xl font-semibold text-white mb-1'>
+									KQM Guide Data
+								</h2>
 								<p className='text-sm text-gray-400'>
-									Scraped from KeqingMains -- Last updated: {new Date(kqmGuide.lastUpdated).toLocaleDateString()}
+									Scraped from KeqingMains -- Last updated:{' '}
+									{new Date(kqmGuide.lastUpdated).toLocaleDateString()}
 								</p>
 							</div>
 							<a
@@ -1223,7 +1265,9 @@ function GuidesTab({
 				<Card className='border-white/5'>
 					<CardContent className='p-6'>
 						<h2 className='text-xl font-semibold text-white mb-3'>Playstyle</h2>
-						<p className='text-base text-gray-300 leading-relaxed'>{guide.playstyle}</p>
+						<p className='text-base text-gray-300 leading-relaxed'>
+							{guide.playstyle}
+						</p>
 					</CardContent>
 				</Card>
 			)}
@@ -1231,13 +1275,17 @@ function GuidesTab({
 			{/* Talent Priority */}
 			<Card className='border-white/5'>
 				<CardContent className='p-6'>
-					<h2 className='text-xl font-semibold text-white mb-3'>Talent Priority</h2>
+					<h2 className='text-xl font-semibold text-white mb-3'>
+						Talent Priority
+					</h2>
 					{guide ? (
 						<p className='text-lg font-bold text-white'>
 							{guide.talentPriority.split(' > ').map((part, i, arr) => (
 								<span key={i}>
 									<span className={colors.text}>{part.trim()}</span>
-									{i < arr.length - 1 && <span className='text-gray-500'> &gt; </span>}
+									{i < arr.length - 1 && (
+										<span className='text-gray-500'> &gt; </span>
+									)}
 								</span>
 							))}
 						</p>
@@ -1245,7 +1293,9 @@ function GuidesTab({
 						<div className='space-y-2'>
 							{kqmGuide.talentPriority.map((talent, i) => (
 								<div key={i} className='flex items-center gap-3'>
-									<span className={`text-sm font-bold ${colors.text} w-6`}>{i + 1}.</span>
+									<span className={`text-sm font-bold ${colors.text} w-6`}>
+										{i + 1}.
+									</span>
 									<span className='text-base text-gray-300'>{talent}</span>
 								</div>
 							))}
@@ -1257,53 +1307,71 @@ function GuidesTab({
 			{/* Best Weapons */}
 			<Card className='border-white/5'>
 				<CardContent className='p-6'>
-					<h2 className='text-xl font-semibold text-white mb-4'>Best Weapons</h2>
+					<h2 className='text-xl font-semibold text-white mb-4'>
+						Best Weapons
+					</h2>
 					<div className='space-y-3'>
-						{guide ? (
-							guide.bestWeapons.map((w, i) => (
-								<div key={i} className='flex items-center gap-4 p-3 rounded-lg bg-black/20'>
-									<div className='relative w-12 h-12 shrink-0'>
-										<Image
-											src={weaponIconUrl(w.weaponId)}
-											alt={w.name}
-											width={48}
-											height={48}
-											className='object-contain'
-											sizes='48px'
-										/>
+						{guide
+							? guide.bestWeapons.map((w, i) => (
+									<div
+										key={i}
+										className='flex items-center gap-4 p-3 rounded-lg bg-black/20'
+									>
+										<div className='relative w-12 h-12 shrink-0'>
+											<Image
+												src={weaponIconUrl(w.weaponId)}
+												alt={w.name}
+												width={48}
+												height={48}
+												className='object-contain'
+												sizes='48px'
+											/>
+										</div>
+										<div className='flex-1 min-w-0'>
+											<p className='font-semibold text-white text-base'>
+												{w.name}
+											</p>
+											<p className='text-sm text-gray-400'>{w.note}</p>
+										</div>
+										{i === 0 && (
+											<Badge className='bg-amber-500/20 text-amber-400 border-amber-500/30 shrink-0'>
+												BiS
+											</Badge>
+										)}
 									</div>
-									<div className='flex-1 min-w-0'>
-										<p className='font-semibold text-white text-base'>{w.name}</p>
-										<p className='text-sm text-gray-400'>{w.note}</p>
-									</div>
-									{i === 0 && (
-										<Badge className='bg-amber-500/20 text-amber-400 border-amber-500/30 shrink-0'>
-											BiS
-										</Badge>
-									)}
-								</div>
-							))
-						) : kqmGuide ? (
-							kqmGuide.weapons.map((w, i) => (
-								<div key={i} className='flex items-center gap-4 p-3 rounded-lg bg-black/20'>
-									<div className={cn(
-										'w-12 h-12 rounded-lg flex items-center justify-center shrink-0',
-										colors.bg,
-									)}>
-										<span className={`text-lg font-bold ${colors.text}`}>{i + 1}</span>
-									</div>
-									<div className='flex-1 min-w-0'>
-										<p className='font-semibold text-white text-base'>{w.name}</p>
-										{w.notes && <p className='text-sm text-gray-400'>{w.notes}</p>}
-									</div>
-									{i === 0 && (
-										<Badge className='bg-amber-500/20 text-amber-400 border-amber-500/30 shrink-0'>
-											BiS
-										</Badge>
-									)}
-								</div>
-							))
-						) : null}
+								))
+							: kqmGuide
+								? kqmGuide.weapons.map((w, i) => (
+										<div
+											key={i}
+											className='flex items-center gap-4 p-3 rounded-lg bg-black/20'
+										>
+											<div
+												className={cn(
+													'w-12 h-12 rounded-lg flex items-center justify-center shrink-0',
+													colors.bg,
+												)}
+											>
+												<span className={`text-lg font-bold ${colors.text}`}>
+													{i + 1}
+												</span>
+											</div>
+											<div className='flex-1 min-w-0'>
+												<p className='font-semibold text-white text-base'>
+													{w.name}
+												</p>
+												{w.notes && (
+													<p className='text-sm text-gray-400'>{w.notes}</p>
+												)}
+											</div>
+											{i === 0 && (
+												<Badge className='bg-amber-500/20 text-amber-400 border-amber-500/30 shrink-0'>
+													BiS
+												</Badge>
+											)}
+										</div>
+									))
+								: null}
 					</div>
 				</CardContent>
 			</Card>
@@ -1311,49 +1379,71 @@ function GuidesTab({
 			{/* Best Artifacts */}
 			<Card className='border-white/5'>
 				<CardContent className='p-6'>
-					<h2 className='text-xl font-semibold text-white mb-4'>Best Artifacts</h2>
+					<h2 className='text-xl font-semibold text-white mb-4'>
+						Best Artifacts
+					</h2>
 					<div className='space-y-3'>
-						{guide ? (
-							guide.bestArtifacts.map((a, i) => (
-								<div key={i} className='flex items-center gap-4 p-3 rounded-lg bg-black/20'>
-									<div className={cn(
-										'w-12 h-12 rounded-lg flex items-center justify-center shrink-0',
-										colors.bg,
-									)}>
-										<span className={`text-lg font-bold ${colors.text}`}>{a.pieces}pc</span>
+						{guide
+							? guide.bestArtifacts.map((a, i) => (
+									<div
+										key={i}
+										className='flex items-center gap-4 p-3 rounded-lg bg-black/20'
+									>
+										<div
+											className={cn(
+												'w-12 h-12 rounded-lg flex items-center justify-center shrink-0',
+												colors.bg,
+											)}
+										>
+											<span className={`text-lg font-bold ${colors.text}`}>
+												{a.pieces}pc
+											</span>
+										</div>
+										<div className='flex-1 min-w-0'>
+											<p className='font-semibold text-white text-base'>
+												{a.setName}
+											</p>
+											<p className='text-sm text-gray-400'>{a.note}</p>
+										</div>
+										{i === 0 && (
+											<Badge className='bg-amber-500/20 text-amber-400 border-amber-500/30 shrink-0'>
+												Best
+											</Badge>
+										)}
 									</div>
-									<div className='flex-1 min-w-0'>
-										<p className='font-semibold text-white text-base'>{a.setName}</p>
-										<p className='text-sm text-gray-400'>{a.note}</p>
-									</div>
-									{i === 0 && (
-										<Badge className='bg-amber-500/20 text-amber-400 border-amber-500/30 shrink-0'>
-											Best
-										</Badge>
-									)}
-								</div>
-							))
-						) : kqmGuide ? (
-							kqmGuide.artifacts.map((a, i) => (
-								<div key={i} className='flex items-center gap-4 p-3 rounded-lg bg-black/20'>
-									<div className={cn(
-										'w-12 h-12 rounded-lg flex items-center justify-center shrink-0',
-										colors.bg,
-									)}>
-										<span className={`text-lg font-bold ${colors.text}`}>{a.pieces}</span>
-									</div>
-									<div className='flex-1 min-w-0'>
-										<p className='font-semibold text-white text-base'>{a.set}</p>
-										{a.notes && <p className='text-sm text-gray-400'>{a.notes}</p>}
-									</div>
-									{i === 0 && (
-										<Badge className='bg-amber-500/20 text-amber-400 border-amber-500/30 shrink-0'>
-											Best
-										</Badge>
-									)}
-								</div>
-							))
-						) : null}
+								))
+							: kqmGuide
+								? kqmGuide.artifacts.map((a, i) => (
+										<div
+											key={i}
+											className='flex items-center gap-4 p-3 rounded-lg bg-black/20'
+										>
+											<div
+												className={cn(
+													'w-12 h-12 rounded-lg flex items-center justify-center shrink-0',
+													colors.bg,
+												)}
+											>
+												<span className={`text-lg font-bold ${colors.text}`}>
+													{a.pieces}
+												</span>
+											</div>
+											<div className='flex-1 min-w-0'>
+												<p className='font-semibold text-white text-base'>
+													{a.set}
+												</p>
+												{a.notes && (
+													<p className='text-sm text-gray-400'>{a.notes}</p>
+												)}
+											</div>
+											{i === 0 && (
+												<Badge className='bg-amber-500/20 text-amber-400 border-amber-500/30 shrink-0'>
+													Best
+												</Badge>
+											)}
+										</div>
+									))
+								: null}
 					</div>
 				</CardContent>
 			</Card>
@@ -1361,56 +1451,32 @@ function GuidesTab({
 			{/* Teams */}
 			<Card className='border-white/5'>
 				<CardContent className='p-6'>
-					<h2 className='text-xl font-semibold text-white mb-4'>Recommended Teams</h2>
+					<h2 className='text-xl font-semibold text-white mb-4'>
+						Recommended Teams
+					</h2>
 					<div className='space-y-4'>
-						{guide ? (
-							guide.teams.map((team, i) => (
-								<div key={i} className='p-4 rounded-lg bg-black/20 space-y-3'>
-									<div className='flex items-center justify-between flex-wrap gap-2'>
-										<h3 className='text-lg font-semibold text-white'>{team.name}</h3>
-										<Badge variant='outline' className={cn(colors.bg, colors.text, colors.border)}>
-											{team.archetype}
-										</Badge>
-									</div>
-									<div className='flex gap-3 flex-wrap'>
-										{team.members.map((member) => {
-											const memberEntry = findCharEntry(member);
-											return (
-												<div key={member} className='flex flex-col items-center gap-1.5'>
-													<div className='w-14 h-14 rounded-full overflow-hidden border-2 border-white/10 relative bg-black/30'>
-														{memberEntry ? (
-															<Image
-																src={charIconUrl(memberEntry.id)}
-																alt={member}
-																fill
-																className='object-cover'
-																sizes='56px'
-															/>
-														) : (
-															<div className='w-full h-full flex items-center justify-center text-xs text-gray-500'>
-																{member.charAt(0)}
-															</div>
-														)}
-													</div>
-													<span className='text-xs text-gray-400 text-center max-w-16 truncate'>
-														{member.split(' ').pop()}
-													</span>
-												</div>
-											);
-										})}
-									</div>
-								</div>
-							))
-						) : kqmGuide ? (
-							kqmGuide.teams.map((team, i) => (
-								<div key={i} className='p-4 rounded-lg bg-black/20 space-y-3'>
-									<h3 className='text-lg font-semibold text-white'>{team.name}</h3>
-									{team.members.length > 0 && (
+						{guide
+							? guide.teams.map((team, i) => (
+									<div key={i} className='p-4 rounded-lg bg-black/20 space-y-3'>
+										<div className='flex items-center justify-between flex-wrap gap-2'>
+											<h3 className='text-lg font-semibold text-white'>
+												{team.name}
+											</h3>
+											<Badge
+												variant='outline'
+												className={cn(colors.bg, colors.text, colors.border)}
+											>
+												{team.archetype}
+											</Badge>
+										</div>
 										<div className='flex gap-3 flex-wrap'>
 											{team.members.map((member) => {
 												const memberEntry = findCharEntry(member);
 												return (
-													<div key={member} className='flex flex-col items-center gap-1.5'>
+													<div
+														key={member}
+														className='flex flex-col items-center gap-1.5'
+													>
 														<div className='w-14 h-14 rounded-full overflow-hidden border-2 border-white/10 relative bg-black/30'>
 															{memberEntry ? (
 																<Image
@@ -1433,10 +1499,52 @@ function GuidesTab({
 												);
 											})}
 										</div>
-									)}
-								</div>
-							))
-						) : null}
+									</div>
+								))
+							: kqmGuide
+								? kqmGuide.teams.map((team, i) => (
+										<div
+											key={i}
+											className='p-4 rounded-lg bg-black/20 space-y-3'
+										>
+											<h3 className='text-lg font-semibold text-white'>
+												{team.name}
+											</h3>
+											{team.members.length > 0 && (
+												<div className='flex gap-3 flex-wrap'>
+													{team.members.map((member) => {
+														const memberEntry = findCharEntry(member);
+														return (
+															<div
+																key={member}
+																className='flex flex-col items-center gap-1.5'
+															>
+																<div className='w-14 h-14 rounded-full overflow-hidden border-2 border-white/10 relative bg-black/30'>
+																	{memberEntry ? (
+																		<Image
+																			src={charIconUrl(memberEntry.id)}
+																			alt={member}
+																			fill
+																			className='object-cover'
+																			sizes='56px'
+																		/>
+																	) : (
+																		<div className='w-full h-full flex items-center justify-center text-xs text-gray-500'>
+																			{member.charAt(0)}
+																		</div>
+																	)}
+																</div>
+																<span className='text-xs text-gray-400 text-center max-w-16 truncate'>
+																	{member.split(' ').pop()}
+																</span>
+															</div>
+														);
+													})}
+												</div>
+											)}
+										</div>
+									))
+								: null}
 					</div>
 				</CardContent>
 			</Card>
@@ -1445,12 +1553,18 @@ function GuidesTab({
 			{guide && (
 				<Card className='border-white/5'>
 					<CardContent className='p-6'>
-						<h2 className='text-xl font-semibold text-white mb-4'>Tips &amp; Tricks</h2>
+						<h2 className='text-xl font-semibold text-white mb-4'>
+							Tips &amp; Tricks
+						</h2>
 						<ul className='space-y-3'>
 							{guide.tips.map((tip, i) => (
 								<li key={i} className='flex gap-3'>
-									<span className={`${colors.text} font-bold text-lg shrink-0`}>&bull;</span>
-									<p className='text-base text-gray-300 leading-relaxed'>{tip}</p>
+									<span className={`${colors.text} font-bold text-lg shrink-0`}>
+										&bull;
+									</span>
+									<p className='text-base text-gray-300 leading-relaxed'>
+										{tip}
+									</p>
 								</li>
 							))}
 						</ul>
