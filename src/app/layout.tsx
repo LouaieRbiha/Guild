@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Sidebar } from "@/components/layout/sidebar";
 import { TopBar } from "@/components/layout/top-bar";
+import { MobileNav } from "@/components/layout/mobile-nav";
 
 export const metadata: Metadata = {
   title: "Guild — Your Genshin Impact Command Center",
@@ -21,8 +22,9 @@ export default function RootLayout({
           <Sidebar />
           <div className="flex flex-1 flex-col overflow-hidden">
             <TopBar />
-            <main className="flex-1 overflow-y-auto p-6">{children}</main>
+            <main className="flex-1 overflow-y-auto p-6 pb-24 md:pb-6">{children}</main>
           </div>
+          <MobileNav />
         </div>
       </body>
     </html>
