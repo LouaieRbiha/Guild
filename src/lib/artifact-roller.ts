@@ -15,7 +15,8 @@ export interface RolledArtifact {
 	slot: string;
 	rarity: number;
 	mainStat: string;
-	substats: { name: string; value: string }[];
+	baseSubCount: number; // 3 or 4 starting substats
+	substats: { name: string; value: string; rolls: number }[];
 }
 
 // ── Domain Data ───────────────────────────────────────────────────────
@@ -231,9 +232,29 @@ export function weightedPick(weights: Record<string, number>): string {
 
 // ── Roll Logic ────────────────────────────────────────────────────────
 
+function rollSubValue(stat: string): number {
+	const tiers = SUB_ROLL_VALUES[stat];
+	if (!tiers) return 0;
+	return tiers[Math.floor(Math.random() * 4)];
+}
+
+function isPercentStat(stat: string): boolean {
+	return (
+		stat.includes('%') ||
+		['CRIT Rate', 'CRIT DMG', 'Energy Recharge'].includes(stat)
+	);
+}
+
+function formatSubValue(stat: string, raw: number): string {
+	return isPercentStat(stat)
+		? `${raw.toFixed(1)}%`
+		: `${Math.round(raw)}`;
+}
+
 export function rollArtifact(set: string): RolledArtifact {
 	const slots = Object.keys(MAIN_STATS);
 	const slot = slots[Math.floor(Math.random() * slots.length)];
+	const rarity = Math.random() > 0.15 ? 5 : 4;
 
 	const weights = MAIN_STAT_WEIGHTS[slot] || {};
 	const main = weightedPick(weights);
@@ -247,37 +268,59 @@ export function rollArtifact(set: string): RolledArtifact {
 	}
 
 	// 20% chance for 4 starting substats (wiki-accurate)
-	const subCount = Math.random() < 0.2 ? 4 : 3;
-	const picked: { name: string; value: string }[] = [];
+	const baseSubCount = Math.random() < 0.2 ? 4 : 3;
+
+	// Pick initial substats
+	const subRawValues: Record<string, number> = {};
+	const subRolls: Record<string, number> = {};
+	const subOrder: string[] = [];
 	const currentPool = { ...availPool };
 
-	for (let i = 0; i < subCount; i++) {
+	for (let i = 0; i < baseSubCount; i++) {
 		const stat = weightedPick(currentPool);
 		if (!stat) break;
-		delete currentPool[stat]; // Each substat can only appear once
+		delete currentPool[stat];
+		subOrder.push(stat);
+		subRawValues[stat] = rollSubValue(stat);
+		subRolls[stat] = 1;
+	}
 
-		const tiers = SUB_ROLL_VALUES[stat];
-		if (tiers) {
-			// Pick a random roll tier (equal 25% each)
-			const rollValue = tiers[Math.floor(Math.random() * 4)];
-			const isPercent =
-				stat.includes('%') ||
-				['CRIT Rate', 'CRIT DMG', 'Energy Recharge'].includes(stat);
-			picked.push({
-				name: stat,
-				value: isPercent
-					? `${rollValue.toFixed(1)}%`
-					: `${Math.round(rollValue)}`,
-			});
+	// Simulate leveling to +20
+	// 5★: upgrades at +4, +8, +12, +16, +20 = 5 upgrades
+	// 4★: upgrades at +4, +8, +12, +16 = 4 upgrades
+	const totalUpgrades = rarity === 5 ? 5 : 4;
+
+	for (let u = 0; u < totalUpgrades; u++) {
+		if (subOrder.length < 4) {
+			// First upgrade on a 3-sub artifact adds the 4th substat
+			const stat = weightedPick(currentPool);
+			if (stat) {
+				delete currentPool[stat];
+				subOrder.push(stat);
+				subRawValues[stat] = rollSubValue(stat);
+				subRolls[stat] = 1;
+			}
+		} else {
+			// Roll into a random existing substat
+			const target = subOrder[Math.floor(Math.random() * subOrder.length)];
+			subRawValues[target] += rollSubValue(target);
+			subRolls[target] += 1;
 		}
 	}
+
+	const substats = subOrder.map((name) => ({
+		name,
+		value: formatSubValue(name, subRawValues[name]),
+		rolls: subRolls[name],
+	}));
 
 	return {
 		set,
 		slot,
-		rarity: Math.random() > 0.15 ? 5 : 4,
+		rarity,
 		mainStat: main,
-		substats: picked,
+		baseSubCount,
+		substats,
 	};
 }
 
@@ -290,7 +333,7 @@ export function getArtifactPieceIcon(
 			if (set.name === setName) {
 				const baseIcon = set.icon.replace(/_\d+$/, '');
 				const suffix = SLOT_META[slot]?.iconSuffix ?? '_4';
-				return `${YATTA_ASSETS}/${baseIcon}${suffix}.png`;
+				return `${YATTA_ASSETS}/reliquary/${baseIcon}${suffix}.png`;
 			}
 		}
 	}

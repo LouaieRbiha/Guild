@@ -747,7 +747,7 @@ export default function SimulatorPage() {
 										{domain.sets.map((set) => (
 											<div key={set.name} className='flex items-center gap-1.5'>
 												<Image
-													src={`${YATTA_ASSETS}/${set.icon}.png`}
+													src={`${YATTA_ASSETS}/reliquary/${set.icon}.png`}
 													alt={set.name}
 													width={32}
 													height={32}
@@ -847,16 +847,26 @@ export default function SimulatorPage() {
 												<div className='text-xs font-medium truncate'>
 													{SLOT_META[a.slot]?.label ?? a.slot}
 												</div>
-												<span
-													className={cn(
-														'text-[10px]',
-														a.rarity === 5
-															? 'text-amber-400'
-															: 'text-purple-400',
-													)}
-												>
-													{'\u2605'.repeat(a.rarity)}
-												</span>
+												<div className='flex items-center gap-1.5'>
+													<span
+														className={cn(
+															'text-[10px]',
+															a.rarity === 5
+																? 'text-amber-400'
+																: 'text-purple-400',
+														)}
+													>
+														{'\u2605'.repeat(a.rarity)}
+													</span>
+													<span className={cn(
+														'text-[9px] font-medium px-1 rounded',
+														a.baseSubCount === 4
+															? 'bg-amber-500/15 text-amber-400'
+															: 'bg-guild-elevated text-guild-dim',
+													)}>
+														{a.baseSubCount === 4 ? '4L' : '3L'}
+													</span>
+												</div>
 											</div>
 										</div>
 
@@ -876,13 +886,20 @@ export default function SimulatorPage() {
 												<div
 													key={s.name}
 													className={cn(
-														'text-[10px] flex justify-between',
+														'text-[10px] flex items-center justify-between',
 														s.name === 'CRIT Rate' || s.name === 'CRIT DMG'
 															? 'text-white/80'
 															: 'text-guild-muted',
 													)}
 												>
-													<span>{s.name}</span>
+													<span className='flex items-center gap-1'>
+														{s.name}
+														{s.rolls > 1 && (
+															<span className='text-guild-accent/70 font-mono text-[8px]'>
+																+{s.rolls - 1}
+															</span>
+														)}
+													</span>
 													<span className='font-mono'>{s.value}</span>
 												</div>
 											))}

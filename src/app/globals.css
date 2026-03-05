@@ -187,6 +187,41 @@ html {
   animation: shake 0.4s ease-in-out;
 }
 
+@keyframes wordle-win {
+  0% { opacity: 0; transform: scale(0.8) translateY(20px); }
+  50% { transform: scale(1.05) translateY(-5px); }
+  70% { transform: scale(0.97) translateY(2px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes wordle-win-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.1); }
+  50% { box-shadow: 0 0 40px rgba(16, 185, 129, 0.3), 0 0 80px rgba(16, 185, 129, 0.1); }
+}
+
+@keyframes wordle-lose {
+  0% { opacity: 0; transform: translateY(15px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes wordle-lose-shake {
+  0% { transform: translateX(0); }
+  15% { transform: translateX(-6px) rotate(-1deg); }
+  30% { transform: translateX(5px) rotate(0.5deg); }
+  45% { transform: translateX(-3px) rotate(-0.3deg); }
+  60% { transform: translateX(2px) rotate(0.1deg); }
+  75% { transform: translateX(-1px); }
+  100% { transform: translateX(0); }
+}
+
+.animate-wordle-win {
+  animation: wordle-win 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, wordle-win-glow 2s ease-in-out 0.6s infinite;
+}
+
+.animate-wordle-lose {
+  animation: wordle-lose 0.4s ease-out forwards, wordle-lose-shake 0.5s ease-in-out 0.4s;
+}
+
 .element-glow-pyro { box-shadow: 0 0 20px rgba(239, 68, 68, 0.2); }
 .element-glow-hydro { box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); }
 .element-glow-anemo { box-shadow: 0 0 20px rgba(45, 212, 191, 0.2); }

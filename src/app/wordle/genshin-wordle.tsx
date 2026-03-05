@@ -436,7 +436,7 @@ export default function GenshinWordle() {
 
 			{/* Win banner */}
 			{won && (
-				<div className="guild-card p-5 text-center guild-glow border-emerald-500/30">
+				<div className="guild-card p-5 text-center guild-glow border-emerald-500/30 animate-wordle-win">
 					<Trophy className="h-7 w-7 text-guild-gold mx-auto mb-2" />
 					<h2 className="text-lg font-bold text-emerald-400">Correct!</h2>
 					<p className="text-sm text-guild-muted mt-1">
@@ -466,7 +466,7 @@ export default function GenshinWordle() {
 
 			{/* Lose banner */}
 			{lost && !won && (
-				<div className="guild-card p-5 text-center border-red-500/30">
+				<div className="guild-card p-5 text-center border-red-500/30 animate-wordle-lose">
 					<h2 className="text-lg font-bold text-red-400">Game Over</h2>
 					<p className="text-sm text-guild-muted mt-1">
 						The answer was{' '}
