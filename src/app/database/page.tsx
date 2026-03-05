@@ -433,6 +433,7 @@ function CharacterCard({ char }: { char: CharacterEntry }) {
             src={useFallback ? charIconUrl(char.id) : gachaArtUrl(char.id)}
             alt={char.name}
             fill
+            quality={95}
             sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16vw"
             className="object-cover object-top transition-transform duration-300 group-hover:scale-110"
             onError={() => { if (!useFallback) setUseFallback(true); }}

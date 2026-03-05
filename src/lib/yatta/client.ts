@@ -114,13 +114,26 @@ const TALENT_TYPE_MAP: Record<number, TalentInfo["type"]> = {
   1: "Elemental Burst",
 };
 
-function cleanDescription(desc: string): string {
+export function cleanDescription(desc: string): string {
   if (!desc) return "";
-  return desc
-    .replace(/<color=#[A-Fa-f0-9]+>/g, "")
-    .replace(/<\/color>/g, "")
-    .replace(/\\n/g, "\n")
-    .replace(/<i>/g, "").replace(/<\/i>/g, "");
+  let cleaned = desc;
+  // Remove HTML-style color tags <color=#RRGGBB>
+  cleaned = cleaned.replace(/<color=#[A-Fa-f0-9]+>/g, "");
+  cleaned = cleaned.replace(/<\/color>/g, "");
+  // Remove {LAYOUT_MOBILE#...} blocks (keep PC content)
+  cleaned = cleaned.replace(/\{LAYOUT_MOBILE#[^}]*\}/g, "");
+  cleaned = cleaned.replace(/\{LAYOUT_PC#([^}]*)\}/g, "$1");
+  // Remove {link#...} references
+  cleaned = cleaned.replace(/\{link#[^}]*\}/g, "");
+  // Remove {color#...} / {/color} tags
+  cleaned = cleaned.replace(/\{color[^}]*\}/g, "");
+  cleaned = cleaned.replace(/\{\/color\}/g, "");
+  // Remove HTML italic tags
+  cleaned = cleaned.replace(/<i>/g, "").replace(/<\/i>/g, "");
+  // Clean up literal \n to actual newlines
+  cleaned = cleaned.replace(/\\n/g, "\n");
+  cleaned = cleaned.replace(/\n{3,}/g, "\n\n");
+  return cleaned.trim();
 }
 
 const REGION_DISPLAY: Record<string, string> = {

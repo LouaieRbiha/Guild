@@ -13,15 +13,18 @@ import {
 	TabsTrigger,
 	TabsContent,
 } from '@/components/ui/tabs';
-import { CharacterEntry, charIconUrl, charGachaUrl } from '@/lib/characters';
-import { ELEMENT_COLORS } from '@/lib/constants';
+import { CharacterEntry, charIconUrl, charGachaUrl, ALL_CHARACTERS } from '@/lib/characters';
+import { ELEMENT_COLORS, weaponIconUrl } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import {
 	CharacterDetail,
 	MaterialGroup,
 	MaterialItem,
 	yattaIconUrl,
+	cleanDescription,
 } from '@/lib/yatta/client';
+import { getDomainDays, isDomainOpenToday } from '@/data/farming-schedule';
+import { CHARACTER_GUIDES } from '@/data/character-guides';
 import * as SliderPrimitive from '@radix-ui/react-slider';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -59,7 +62,7 @@ function estimateConstellationImpact(
 		return {
 			label: '~15-20% DPS',
 			color: 'text-blue-400',
-			detail: '+3 talent levels ≈ 15-20% more talent scaling damage',
+			detail: '+3 talent levels = 15-20% more talent scaling damage',
 		};
 	}
 
@@ -206,6 +209,23 @@ const TALENT_COLORS: Record<string, string> = {
 	'Elemental Burst': 'border-purple-500',
 };
 
+const TALENT_BADGE_STYLES: Record<string, string> = {
+	'Normal Attack': 'bg-gray-500/20 text-gray-300 border-gray-500/30',
+	'Elemental Skill': 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+	'Elemental Burst': 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+};
+
+// Element-colored glow for constellation icons
+const ELEMENT_GLOW_SHADOW: Record<string, string> = {
+	Pyro: '0 0 12px rgba(239, 68, 68, 0.5)',
+	Hydro: '0 0 12px rgba(59, 130, 246, 0.5)',
+	Anemo: '0 0 12px rgba(94, 234, 212, 0.5)',
+	Cryo: '0 0 12px rgba(103, 232, 249, 0.5)',
+	Electro: '0 0 12px rgba(168, 85, 247, 0.5)',
+	Geo: '0 0 12px rgba(250, 204, 21, 0.5)',
+	Dendro: '0 0 12px rgba(74, 222, 128, 0.5)',
+};
+
 interface Props {
 	detail: CharacterDetail;
 	entry: CharacterEntry;
@@ -223,7 +243,7 @@ export function CharacterDetailClient({ detail, entry }: Props) {
 				href='/database'
 				className='inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors'
 			>
-				← Back to Characters
+				&larr; Back to Characters
 			</Link>
 
 			{/* Hero section */}
@@ -242,7 +262,7 @@ export function CharacterDetailClient({ detail, entry }: Props) {
 							quality={95}
 							sizes='(max-width: 768px) 100vw, 320px'
 							onLoad={() => {
-								// Hero art loaded - optional analytics/logic here
+								// Hero art loaded
 							}}
 							onError={(e) => {
 								(e.target as HTMLImageElement).src = charIconUrl(entry.id);
@@ -379,6 +399,9 @@ export function CharacterDetailClient({ detail, entry }: Props) {
 					<TabsTrigger value='materials' className='flex-1'>
 						Materials
 					</TabsTrigger>
+					<TabsTrigger value='guides' className='flex-1'>
+						Guides
+					</TabsTrigger>
 					<TabsTrigger value='lore' className='flex-1'>
 						Lore
 					</TabsTrigger>
@@ -392,6 +415,9 @@ export function CharacterDetailClient({ detail, entry }: Props) {
 				<TabsContent value='materials'>
 					<MaterialsTab detail={detail} colors={colors} />
 				</TabsContent>
+				<TabsContent value='guides'>
+					<GuidesTab detail={detail} entry={entry} colors={colors} />
+				</TabsContent>
 				<TabsContent value='lore'>
 					<LoreTab detail={detail} />
 				</TabsContent>
@@ -402,29 +428,37 @@ export function CharacterDetailClient({ detail, entry }: Props) {
 
 // ── Sub-components ─────────────────────────────────────────────────────
 
+type ElementColors = (typeof ELEMENT_COLORS)['Pyro'];
+
 function TalentsTab({
 	detail,
 	colors,
 }: {
 	detail: CharacterDetail;
-	colors: (typeof ELEMENT_COLORS)['Pyro'];
+	colors: ElementColors;
 }) {
-	const [expanded, setExpanded] = useState<string | null>(null);
+	const [expanded, setExpanded] = useState<string | null>('talent-0');
 
 	return (
-		<div className='space-y-4'>
-			<h2 className='text-xl font-semibold text-white flex items-center gap-2'>
-				<span className={colors.text}>⚔</span> Active Talents
-			</h2>
-			<p className='text-sm text-gray-400 mb-2'>
-				Recommended priority: Level all to 8+, then focus on the most impactful
-				talent first
-			</p>
+		<div className='space-y-6'>
+			{/* Section header: Combat Talents */}
+			<div className='space-y-2'>
+				<h2 className='text-2xl font-bold text-white flex items-center gap-3'>
+					<span className={colors.text}>&#9876;</span> Combat Talents
+				</h2>
+				<div className={`h-0.5 rounded-full ${colors.bg}`} />
+				<p className='text-base text-gray-400'>
+					Recommended priority: Level all to 8+, then focus on the most impactful
+					talent first
+				</p>
+			</div>
+
 			<div className='space-y-3'>
 				{detail.talents.map((talent, i) => {
 					const isExpanded = expanded === `talent-${i}`;
 					const priorityLabel = TALENT_PRIORITY[talent.type] || talent.type;
 					const borderColor = TALENT_COLORS[talent.type] || 'border-gray-600';
+					const badgeStyle = TALENT_BADGE_STYLES[talent.type] || `${colors.bg} ${colors.text} ${colors.border}`;
 
 					return (
 						<div
@@ -432,42 +466,36 @@ function TalentsTab({
 							className={`guild-card p-4 cursor-pointer transition-all hover:bg-white/5 border-l-4 ${borderColor}`}
 							onClick={() => setExpanded(isExpanded ? null : `talent-${i}`)}
 						>
-							<div className='flex items-center gap-3'>
+							<div className='flex items-center gap-4'>
 								{talent.icon && (
 									<Image
 										src={yattaIconUrl(talent.icon)}
 										alt={talent.name}
-										width={48}
-										height={48}
+										width={64}
+										height={64}
 										className='rounded-lg bg-black/30'
-										sizes='48px'
+										sizes='64px'
 										fetchPriority='low'
 									/>
 								)}
 								<div className='flex-1'>
-									<div className='flex items-center gap-2'>
-										<span className='text-white font-semibold text-base'>
+									<div className='flex items-center gap-2 flex-wrap'>
+										<span className='text-white font-semibold text-lg'>
 											{talent.name}
 										</span>
-										<Badge
-											className={cn(
-												colors.bg,
-												colors.text,
-												colors.border,
-											)}
-										>
+										<Badge className={badgeStyle}>
 											{priorityLabel}
 										</Badge>
 									</div>
-									<p className='text-sm text-gray-400'>{talent.type}</p>
+									<p className='text-base text-gray-400'>{talent.type}</p>
 								</div>
-								<span className='text-gray-500'>{isExpanded ? '▲' : '▼'}</span>
+								<span className='text-gray-500 text-lg'>{isExpanded ? '\u25B2' : '\u25BC'}</span>
 							</div>
 							{isExpanded && (
-								<div className='mt-3 pt-3 border-t border-white/10'>
-									<p className='text-sm text-gray-300 whitespace-pre-line leading-relaxed'>
+								<div className='mt-4 pt-4 border-t border-white/10'>
+									<p className='text-base text-gray-300 whitespace-pre-line leading-relaxed'>
 										<HighlightNumbers
-											text={talent.description}
+											text={cleanDescription(talent.description)}
 											color={colors.text}
 										/>
 									</p>
@@ -478,12 +506,16 @@ function TalentsTab({
 				})}
 			</div>
 
-			{/* Passive talents */}
+			{/* Section header: Passive Talents */}
 			{detail.passives.length > 0 && (
-				<>
-					<h2 className='text-xl font-semibold text-white flex items-center gap-2 mt-6'>
-						<span className={colors.text}>✦</span> Passive Talents
-					</h2>
+				<div className='space-y-6'>
+					<div className='space-y-2 mt-8'>
+						<h2 className='text-2xl font-bold text-white flex items-center gap-3'>
+							<span className='text-amber-400'>&#10022;</span> Passive Talents
+						</h2>
+						<div className='h-0.5 rounded-full bg-amber-500/20' />
+					</div>
+
 					<div className='space-y-3'>
 						{detail.passives.map((passive, i) => {
 							const isExpanded = expanded === `passive-${i}`;
@@ -495,32 +527,32 @@ function TalentsTab({
 										setExpanded(isExpanded ? null : `passive-${i}`)
 									}
 								>
-									<div className='flex items-center gap-3'>
+									<div className='flex items-center gap-4'>
 										{passive.icon && (
 											<Image
 												src={yattaIconUrl(passive.icon)}
 												alt={passive.name}
-												width={48}
-												height={48}
+												width={64}
+												height={64}
 												className='rounded-lg bg-black/30'
-												sizes='48px'
+												sizes='64px'
 											/>
 										)}
 										<div className='flex-1'>
-											<span className='text-white font-semibold text-base'>
+											<span className='text-white font-semibold text-lg'>
 												{passive.name}
 											</span>
-											<p className='text-sm text-gray-400'>{passive.type}</p>
+											<p className='text-base text-gray-400'>{passive.type}</p>
 										</div>
-										<span className='text-gray-500'>
-											{isExpanded ? '▲' : '▼'}
+										<span className='text-gray-500 text-lg'>
+											{isExpanded ? '\u25B2' : '\u25BC'}
 										</span>
 									</div>
 									{isExpanded && (
-										<div className='mt-3 pt-3 border-t border-white/10'>
-											<p className='text-sm text-gray-300 whitespace-pre-line leading-relaxed'>
+										<div className='mt-4 pt-4 border-t border-white/10'>
+											<p className='text-base text-gray-300 whitespace-pre-line leading-relaxed'>
 												<HighlightNumbers
-													text={passive.description}
+													text={cleanDescription(passive.description)}
 													color='text-amber-400'
 												/>
 											</p>
@@ -530,7 +562,7 @@ function TalentsTab({
 							);
 						})}
 					</div>
-				</>
+				</div>
 			)}
 		</div>
 	);
@@ -541,67 +573,66 @@ function ConstellationsTab({
 	colors,
 }: {
 	detail: CharacterDetail;
-	colors: (typeof ELEMENT_COLORS)['Pyro'];
+	colors: ElementColors;
 }) {
-	const [expanded, setExpanded] = useState<number | null>(null);
+	const glowShadow = ELEMENT_GLOW_SHADOW[detail.element] || '0 0 12px rgba(168, 85, 247, 0.5)';
 
 	return (
-		<div className='space-y-4'>
-			<h2 className='text-xl font-semibold text-white flex items-center gap-2'>
-				<ConstellationIcon className={`w-6 h-6 ${colors.text}`} />{' '}
-				Constellations — {detail.constellation}
-			</h2>
+		<div className='space-y-6'>
+			<div className='space-y-2'>
+				<h2 className='text-2xl font-bold text-white flex items-center gap-3'>
+					<ConstellationIcon className={`w-7 h-7 ${colors.text}`} />
+					Constellations &mdash; {detail.constellation}
+				</h2>
+				<div className={`h-0.5 rounded-full ${colors.bg}`} />
+			</div>
 
-			{/* Vertical timeline */}
-			<div className='relative space-y-4 pl-16'>
-				{/* Vertical line */}
-				<div className='absolute left-6 top-0 bottom-0 w-px bg-white/10' />
-
+			{/* Full-width card layout -- all expanded by default */}
+			<div className='space-y-4'>
 				{detail.constellations.map((c) => {
-					const isExpanded = expanded === c.index;
 					const impact = estimateConstellationImpact(c.description, c.index);
 
 					return (
-						<div key={c.index} className='relative'>
-							{/* Circle on the line */}
-							<div
-								className={cn(
-									'absolute -left-10 w-12 h-12 rounded-full border flex items-center justify-center flex-shrink-0',
-									colors.bg,
-									colors.border,
-								)}
-							>
-								{c.icon ? (
-									<Image
-										src={yattaIconUrl(c.icon)}
-										alt={c.name}
-										width={36}
-										height={36}
-										className='rounded-full'
-										sizes='36px'
-										fetchPriority='low'
-									/>
-								) : (
-									<span className={`text-base font-bold ${colors.text}`}>
-										C{c.index}
-									</span>
-								)}
-							</div>
+						<Card key={c.index} className='bg-black/20 border-white/5'>
+							<CardContent className='p-5'>
+								<div className='flex gap-5'>
+									{/* Left: C# number + icon */}
+									<div className='flex flex-col items-center gap-2 flex-shrink-0'>
+										<span className={`text-2xl font-black ${colors.text}`}>
+											C{c.index}
+										</span>
+										<div
+											className={cn(
+												'w-16 h-16 rounded-full border-2 flex items-center justify-center overflow-hidden',
+												colors.bg,
+												colors.border,
+											)}
+											style={{ boxShadow: glowShadow }}
+										>
+											{c.icon ? (
+												<Image
+													src={yattaIconUrl(c.icon)}
+													alt={c.name}
+													width={52}
+													height={52}
+													className='rounded-full'
+													sizes='52px'
+													fetchPriority='low'
+												/>
+											) : (
+												<span className={`text-lg font-bold ${colors.text}`}>
+													C{c.index}
+												</span>
+											)}
+										</div>
+									</div>
 
-							{/* Content card */}
-							<Card
-								className='bg-black/20 border-white/5 cursor-pointer transition-all hover:bg-white/5'
-								onClick={() => setExpanded(isExpanded ? null : c.index)}
-							>
-								<CardContent className='p-4'>
-									<div className='flex items-center justify-between'>
-										<div className='flex items-center gap-2 flex-wrap'>
-											<span className={`text-sm font-bold ${colors.text}`}>
-												C{c.index}
-											</span>
-											<span className='text-white font-semibold text-base'>
+									{/* Middle: Name + description */}
+									<div className='flex-1 min-w-0'>
+										<div className='flex items-center gap-3 flex-wrap mb-2'>
+											<h3 className='text-lg font-bold text-white'>
 												{c.name}
-											</span>
+											</h3>
 											<Badge
 												variant='outline'
 												className={cn(
@@ -612,84 +643,47 @@ function ConstellationsTab({
 												{impact.label}
 											</Badge>
 										</div>
-										<span className='text-gray-500'>
-											{isExpanded ? '▲' : '▼'}
-										</span>
-									</div>
-									<p className='text-sm text-gray-400 mt-0.5'>
-										{impact.detail}
-									</p>
-									{isExpanded && (
-										<div className='mt-3 pt-3 border-t border-white/10 space-y-3'>
-											<p className='text-sm text-gray-300 whitespace-pre-line leading-relaxed'>
-												<HighlightNumbers
-													text={c.description}
-													color={colors.text}
-												/>
-											</p>
-											{/* Impact breakdown */}
-											<div
-												className={cn(
-													'flex items-center gap-2 p-3 rounded-lg border',
-													colors.bg,
-													colors.border,
-												)}
+										<p className='text-base text-gray-300 whitespace-pre-line leading-relaxed mb-3'>
+											<HighlightNumbers
+												text={cleanDescription(c.description)}
+												color={colors.text}
+											/>
+										</p>
+										{/* Impact breakdown */}
+										<div
+											className={cn(
+												'flex items-center gap-2 p-3 rounded-lg border',
+												colors.bg,
+												colors.border,
+											)}
+										>
+											<span className='text-base font-semibold text-white'>
+												Impact:
+											</span>
+											<span
+												className={`text-base font-bold ${impact.color}`}
 											>
-												<span className='text-sm font-semibold text-white'>
-													Estimated Impact:
-												</span>
-												<span
-													className={`text-sm font-bold ${impact.color}`}
-												>
-													{impact.label}
-												</span>
-												<span className='text-sm text-gray-400'>
-													— {impact.detail}
-												</span>
-											</div>
+												{impact.label}
+											</span>
+											<span className='text-base text-gray-400'>
+												&mdash; {impact.detail}
+											</span>
 										</div>
-									)}
-								</CardContent>
-							</Card>
-						</div>
+									</div>
+								</div>
+							</CardContent>
+						</Card>
 					);
 				})}
-			</div>
-
-			{/* Summary bar */}
-			<div className='guild-card p-4'>
-				<h3 className='text-sm font-semibold text-white mb-3'>
-					Constellation Priority
-				</h3>
-				<div className='flex gap-2 flex-wrap'>
-					{detail.constellations.map((c) => {
-						const impact = estimateConstellationImpact(c.description, c.index);
-						return (
-							<div
-								key={c.index}
-								className='flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/20 border border-white/5'
-							>
-								<span className={`text-xs font-bold ${colors.text}`}>
-									C{c.index}
-								</span>
-								<span className={`text-xs font-bold ${impact.color}`}>
-									{impact.label}
-								</span>
-							</div>
-						);
-					})}
-				</div>
 			</div>
 		</div>
 	);
 }
 
-// Ascension level breakpoints — phases map to these levels
+// Ascension level breakpoints -- phases map to these levels
 const ASCENSION_LEVELS = [20, 40, 50, 60, 70, 80, 90];
 
 function levelToPhaseIdx(lv: number): number {
-	// Phase 0 = Lv 20→40 materials, Phase 1 = Lv 40→50, etc.
-	// Returns how many ascension phases are completed at this level
 	let idx = 0;
 	for (const bp of ASCENSION_LEVELS) {
 		if (lv <= bp) break;
@@ -724,7 +718,7 @@ function aggregateMaterials(
 	);
 }
 
-// Mora costs per ascension phase (Phase 1→6)
+// Mora costs per ascension phase (Phase 1 through 6)
 const ASCENSION_MORA = [20000, 40000, 60000, 80000, 100000, 120000];
 
 function calcMora(fromLv: number, toLv: number): number {
@@ -750,7 +744,7 @@ function RangeSlider({
 	return (
 		<div className='space-y-4'>
 			<div className='flex items-center justify-between'>
-				<span className='text-sm text-gray-400'>{label}</span>
+				<span className='text-base text-gray-400'>{label}</span>
 				<div className='flex items-center gap-3'>
 					<div className='flex items-center gap-1.5'>
 						<input
@@ -767,7 +761,7 @@ function RangeSlider({
 							}}
 							className='w-14 text-center text-sm font-bold bg-white/5 border border-white/10 rounded-md py-1 text-white focus:outline-none focus:border-guild-accent'
 						/>
-						<span className='text-gray-500 text-sm'>→</span>
+						<span className='text-gray-500 text-base'>&rarr;</span>
 						<input
 							type='number'
 							min={value[0]}
@@ -819,7 +813,6 @@ function RangeSlider({
 						<button
 							key={lv}
 							onClick={() => {
-								// Snap nearest thumb to this breakpoint
 								const distFrom = Math.abs(lv - value[0]);
 								const distTo = Math.abs(lv - value[1]);
 								if (distFrom <= distTo && lv < value[1])
@@ -844,7 +837,7 @@ function MaterialsTab({
 	colors,
 }: {
 	detail: CharacterDetail;
-	colors: (typeof ELEMENT_COLORS)['Pyro'];
+	colors: ElementColors;
 }) {
 	const [ascRange, setAscRange] = useState<[number, number]>([1, 90]);
 	const [talentRange, setTalentRange] = useState<[number, number]>([1, 10]);
@@ -878,13 +871,29 @@ function MaterialsTab({
 		);
 	})();
 
+	// Find talent book domain schedule from talent materials
+	const talentBookSchedule: { materialName: string; days: string[] }[] = [];
+	for (const mat of talentMaterials) {
+		const days = getDomainDays(mat.name);
+		if (days && !talentBookSchedule.some(s => s.materialName === mat.name)) {
+			talentBookSchedule.push({ materialName: mat.name, days });
+		}
+	}
+
+	const today = new Date();
+	const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+	const todayName = dayNames[today.getDay()];
+
 	return (
 		<div className='space-y-6'>
 			{/* Ascension Materials */}
 			<div className='space-y-4'>
-				<h2 className='text-xl font-semibold text-white flex items-center gap-2'>
-					<span className={colors.text}>⬆</span> Ascension Materials
-				</h2>
+				<div className='space-y-2'>
+					<h2 className='text-2xl font-bold text-white flex items-center gap-3'>
+						<span className={colors.text}>&#11014;</span> Ascension Materials
+					</h2>
+					<div className={`h-0.5 rounded-full ${colors.bg}`} />
+				</div>
 
 				<div className='guild-card p-5'>
 					<RangeSlider
@@ -897,17 +906,17 @@ function MaterialsTab({
 				</div>
 
 				{ascRange[0] === ascRange[1] ? (
-					<p className='text-gray-500 text-sm'>
+					<p className='text-gray-500 text-base'>
 						Drag the slider to see materials needed.
 					</p>
 				) : ascMaterials.length > 0 ? (
 					<div className='guild-card p-4'>
 						<div className='flex items-center justify-between mb-4'>
-							<p className='text-base font-semibold text-white'>
-								Lv {ascRange[0]} → {ascRange[1]}
+							<p className='text-lg font-semibold text-white'>
+								Lv {ascRange[0]} &rarr; {ascRange[1]}
 							</p>
 							{ascMora > 0 && (
-								<span className='text-sm text-yellow-400 font-medium'>
+								<span className='text-base text-yellow-400 font-medium'>
 									{ascMora.toLocaleString()} Mora
 								</span>
 							)}
@@ -919,7 +928,7 @@ function MaterialsTab({
 						</div>
 					</div>
 				) : (
-					<p className='text-gray-500 text-sm'>
+					<p className='text-gray-500 text-base'>
 						No ascension materials needed for this range.
 					</p>
 				)}
@@ -927,11 +936,14 @@ function MaterialsTab({
 
 			{/* Talent Materials */}
 			<div className='space-y-4'>
-				<h2 className='text-xl font-semibold text-white flex items-center gap-2'>
-					<span className={colors.text}>📖</span> Talent Level-Up Materials
-				</h2>
-				<p className='text-sm text-gray-400'>
-					Per talent — multiply by number of talents you&apos;re leveling
+				<div className='space-y-2'>
+					<h2 className='text-2xl font-bold text-white flex items-center gap-3'>
+						<span className={colors.text}>&#128214;</span> Talent Level-Up Materials
+					</h2>
+					<div className={`h-0.5 rounded-full ${colors.bg}`} />
+				</div>
+				<p className='text-base text-gray-400'>
+					Per talent &mdash; multiply by number of talents you&apos;re leveling
 				</p>
 
 				<div className='guild-card p-5'>
@@ -945,13 +957,13 @@ function MaterialsTab({
 				</div>
 
 				{talentRange[0] === talentRange[1] ? (
-					<p className='text-gray-500 text-sm'>
+					<p className='text-gray-500 text-base'>
 						Drag the slider to see materials needed.
 					</p>
 				) : talentMaterials.length > 0 ? (
 					<div className='guild-card p-4'>
-						<p className='text-base font-semibold text-white mb-4'>
-							Talent Lv {talentRange[0]} → {talentRange[1]}
+						<p className='text-lg font-semibold text-white mb-4'>
+							Talent Lv {talentRange[0]} &rarr; {talentRange[1]}
 						</p>
 						<div className='flex flex-wrap gap-4 justify-start'>
 							{talentMaterials.map((item) => (
@@ -960,11 +972,69 @@ function MaterialsTab({
 						</div>
 					</div>
 				) : (
-					<p className='text-gray-500 text-sm'>
+					<p className='text-gray-500 text-base'>
 						No talent materials needed for this range.
 					</p>
 				)}
 			</div>
+
+			{/* Farming Schedule */}
+			{talentBookSchedule.length > 0 && (
+				<div className='space-y-4'>
+					<div className='space-y-2'>
+						<h2 className='text-2xl font-bold text-white flex items-center gap-3'>
+							<span className={colors.text}>&#128197;</span> Farming Schedule
+						</h2>
+						<div className={`h-0.5 rounded-full ${colors.bg}`} />
+					</div>
+
+					<div className='guild-card p-5 space-y-4'>
+						{talentBookSchedule.map((schedule) => {
+							const isOpenToday = isDomainOpenToday(schedule.materialName);
+							return (
+								<div key={schedule.materialName} className='space-y-3'>
+									<div className='flex items-center justify-between'>
+										<p className='text-base font-semibold text-white'>
+											{schedule.materialName}
+										</p>
+										{isOpenToday ? (
+											<Badge className='bg-green-500/20 text-green-400 border-green-500/30'>
+												Available Today!
+											</Badge>
+										) : (
+											<Badge className='bg-red-500/20 text-red-400 border-red-500/30'>
+												Not available today
+											</Badge>
+										)}
+									</div>
+									<div className='flex gap-2 flex-wrap'>
+										{["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => {
+											const isScheduled = schedule.days.includes(day);
+											const isToday = day === todayName;
+											return (
+												<Badge
+													key={day}
+													variant='outline'
+													className={cn(
+														'text-sm',
+														isScheduled && isToday
+															? 'bg-green-500/20 text-green-400 border-green-500/40 font-bold'
+															: isScheduled
+															? `${colors.bg} ${colors.text} ${colors.border}`
+															: 'bg-black/20 text-gray-600 border-white/5',
+													)}
+												>
+													{day.substring(0, 3)}
+												</Badge>
+											);
+										})}
+									</div>
+								</div>
+							);
+						})}
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }
@@ -978,7 +1048,7 @@ function LoreTab({
 		<div className='space-y-6'>
 			{/* Story */}
 			<div className='guild-card p-6 space-y-4'>
-				<h2 className='text-xl font-semibold text-white'>Story</h2>
+				<h2 className='text-2xl font-bold text-white'>Story</h2>
 				{detail.description ? (
 					<p className='text-base text-gray-300 leading-relaxed'>
 						{detail.description}
@@ -992,7 +1062,7 @@ function LoreTab({
 
 			{/* Character info card */}
 			<div className='guild-card p-6'>
-				<h2 className='text-xl font-semibold text-white mb-4'>
+				<h2 className='text-2xl font-bold text-white mb-4'>
 					Character Info
 				</h2>
 				<div className='grid grid-cols-2 md:grid-cols-3 gap-4'>
@@ -1005,23 +1075,231 @@ function LoreTab({
 						label='Constellation'
 						value={detail.constellation || '\u2014'}
 					/>
+					<DetailCard label='Ascension Stat' value={detail.ascensionStat} />
+					<DetailCard label='Weapon Type' value={detail.weapon} />
+					<DetailCard label='Release Date' value={detail.release} />
 				</div>
 			</div>
 
-			{/* Voice actors */}
+			{/* Voice actors -- more prominent */}
 			{detail.cv.EN && (
 				<div className='guild-card p-6'>
-					<h2 className='text-xl font-semibold text-white mb-4'>
+					<h2 className='text-2xl font-bold text-white mb-4'>
 						Voice Actors
 					</h2>
-					<div className='grid grid-cols-2 gap-4'>
-						<DetailCard label='English' value={detail.cv.EN} />
-						<DetailCard label='Japanese' value={detail.cv.JP || '\u2014'} />
-						<DetailCard label='Chinese' value={detail.cv.CHS || '\u2014'} />
-						<DetailCard label='Korean' value={detail.cv.KR || '\u2014'} />
+					<div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+						<Card className='bg-black/20 border-white/5'>
+							<CardContent className='p-4'>
+								<p className='text-sm text-gray-500 mb-1'>English (EN)</p>
+								<p className='text-lg font-semibold text-white'>{detail.cv.EN}</p>
+							</CardContent>
+						</Card>
+						<Card className='bg-black/20 border-white/5'>
+							<CardContent className='p-4'>
+								<p className='text-sm text-gray-500 mb-1'>Japanese (JP)</p>
+								<p className='text-lg font-semibold text-white'>{detail.cv.JP || '\u2014'}</p>
+							</CardContent>
+						</Card>
+						<Card className='bg-black/20 border-white/5'>
+							<CardContent className='p-4'>
+								<p className='text-sm text-gray-500 mb-1'>Chinese (CN)</p>
+								<p className='text-lg font-semibold text-white'>{detail.cv.CHS || '\u2014'}</p>
+							</CardContent>
+						</Card>
+						<Card className='bg-black/20 border-white/5'>
+							<CardContent className='p-4'>
+								<p className='text-sm text-gray-500 mb-1'>Korean (KR)</p>
+								<p className='text-lg font-semibold text-white'>{detail.cv.KR || '\u2014'}</p>
+							</CardContent>
+						</Card>
 					</div>
 				</div>
 			)}
+
+			{/* Character Quote */}
+			{detail.description && (
+				<div className='guild-card p-6'>
+					<h2 className='text-2xl font-bold text-white mb-4'>
+						Introduction
+					</h2>
+					<blockquote className='border-l-4 border-white/20 pl-4 italic text-base text-gray-400 leading-relaxed'>
+						{detail.description}
+					</blockquote>
+				</div>
+			)}
+		</div>
+	);
+}
+
+function GuidesTab({
+	detail,
+	entry,
+	colors,
+}: {
+	detail: CharacterDetail;
+	entry: CharacterEntry;
+	colors: ElementColors;
+}) {
+	const guide = CHARACTER_GUIDES[detail.name];
+
+	if (!guide) {
+		return (
+			<div className='guild-card p-8 text-center'>
+				<h2 className='text-xl font-semibold text-white mb-2'>Guide Coming Soon</h2>
+				<p className='text-gray-400'>Community guide for {detail.name} is being prepared.</p>
+			</div>
+		);
+	}
+
+	// Resolve team member entries for icons
+	const findCharEntry = (name: string): CharacterEntry | undefined =>
+		ALL_CHARACTERS.find(c => c.name === name);
+
+	return (
+		<div className='space-y-6'>
+			{/* Playstyle overview */}
+			<Card className='border-white/5'>
+				<CardContent className='p-6'>
+					<h2 className='text-xl font-semibold text-white mb-3'>Playstyle</h2>
+					<p className='text-base text-gray-300 leading-relaxed'>{guide.playstyle}</p>
+				</CardContent>
+			</Card>
+
+			{/* Talent Priority */}
+			<Card className='border-white/5'>
+				<CardContent className='p-6'>
+					<h2 className='text-xl font-semibold text-white mb-3'>Talent Priority</h2>
+					<p className='text-lg font-bold text-white'>
+						{guide.talentPriority.split(' > ').map((part, i, arr) => (
+							<span key={i}>
+								<span className={colors.text}>{part.trim()}</span>
+								{i < arr.length - 1 && <span className='text-gray-500'> &gt; </span>}
+							</span>
+						))}
+					</p>
+				</CardContent>
+			</Card>
+
+			{/* Best Weapons */}
+			<Card className='border-white/5'>
+				<CardContent className='p-6'>
+					<h2 className='text-xl font-semibold text-white mb-4'>Best Weapons</h2>
+					<div className='space-y-3'>
+						{guide.bestWeapons.map((w, i) => (
+							<div key={i} className='flex items-center gap-4 p-3 rounded-lg bg-black/20'>
+								<div className='relative w-12 h-12 flex-shrink-0'>
+									<Image
+										src={weaponIconUrl(w.weaponId)}
+										alt={w.name}
+										width={48}
+										height={48}
+										className='object-contain'
+										sizes='48px'
+									/>
+								</div>
+								<div className='flex-1 min-w-0'>
+									<p className='font-semibold text-white text-base'>{w.name}</p>
+									<p className='text-sm text-gray-400'>{w.note}</p>
+								</div>
+								{i === 0 && (
+									<Badge className='bg-amber-500/20 text-amber-400 border-amber-500/30 flex-shrink-0'>
+										BiS
+									</Badge>
+								)}
+							</div>
+						))}
+					</div>
+				</CardContent>
+			</Card>
+
+			{/* Best Artifacts */}
+			<Card className='border-white/5'>
+				<CardContent className='p-6'>
+					<h2 className='text-xl font-semibold text-white mb-4'>Best Artifacts</h2>
+					<div className='space-y-3'>
+						{guide.bestArtifacts.map((a, i) => (
+							<div key={i} className='flex items-center gap-4 p-3 rounded-lg bg-black/20'>
+								<div className={cn(
+									'w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0',
+									colors.bg,
+								)}>
+									<span className={`text-lg font-bold ${colors.text}`}>{a.pieces}pc</span>
+								</div>
+								<div className='flex-1 min-w-0'>
+									<p className='font-semibold text-white text-base'>{a.setName}</p>
+									<p className='text-sm text-gray-400'>{a.note}</p>
+								</div>
+								{i === 0 && (
+									<Badge className='bg-amber-500/20 text-amber-400 border-amber-500/30 flex-shrink-0'>
+										Best
+									</Badge>
+								)}
+							</div>
+						))}
+					</div>
+				</CardContent>
+			</Card>
+
+			{/* Teams */}
+			<Card className='border-white/5'>
+				<CardContent className='p-6'>
+					<h2 className='text-xl font-semibold text-white mb-4'>Recommended Teams</h2>
+					<div className='space-y-4'>
+						{guide.teams.map((team, i) => (
+							<div key={i} className='p-4 rounded-lg bg-black/20 space-y-3'>
+								<div className='flex items-center justify-between flex-wrap gap-2'>
+									<h3 className='text-lg font-semibold text-white'>{team.name}</h3>
+									<Badge variant='outline' className={cn(colors.bg, colors.text, colors.border)}>
+										{team.archetype}
+									</Badge>
+								</div>
+								<div className='flex gap-3 flex-wrap'>
+									{team.members.map((member) => {
+										const memberEntry = findCharEntry(member);
+										return (
+											<div key={member} className='flex flex-col items-center gap-1.5'>
+												<div className='w-14 h-14 rounded-full overflow-hidden border-2 border-white/10 relative bg-black/30'>
+													{memberEntry ? (
+														<Image
+															src={charIconUrl(memberEntry.id)}
+															alt={member}
+															fill
+															className='object-cover'
+															sizes='56px'
+														/>
+													) : (
+														<div className='w-full h-full flex items-center justify-center text-xs text-gray-500'>
+															{member.charAt(0)}
+														</div>
+													)}
+												</div>
+												<span className='text-xs text-gray-400 text-center max-w-[64px] truncate'>
+													{member.split(' ').pop()}
+												</span>
+											</div>
+										);
+									})}
+								</div>
+							</div>
+						))}
+					</div>
+				</CardContent>
+			</Card>
+
+			{/* Tips */}
+			<Card className='border-white/5'>
+				<CardContent className='p-6'>
+					<h2 className='text-xl font-semibold text-white mb-4'>Tips &amp; Tricks</h2>
+					<ul className='space-y-3'>
+						{guide.tips.map((tip, i) => (
+							<li key={i} className='flex gap-3'>
+								<span className={`${colors.text} font-bold text-lg flex-shrink-0`}>&bull;</span>
+								<p className='text-base text-gray-300 leading-relaxed'>{tip}</p>
+							</li>
+						))}
+					</ul>
+				</CardContent>
+			</Card>
 		</div>
 	);
 }
@@ -1031,7 +1309,7 @@ function DetailCard({ label, value }: { label: string; value: string }) {
 		<div className='bg-black/20 rounded-lg p-3'>
 			<p className='text-sm text-gray-500'>{label}</p>
 			<p
-				className={`font-medium ${value === '\u2014' ? 'text-gray-600' : 'text-white'}`}
+				className={`font-medium text-base ${value === '\u2014' ? 'text-gray-600' : 'text-white'}`}
 			>
 				{value}
 			</p>
