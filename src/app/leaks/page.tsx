@@ -18,7 +18,7 @@ export default function LeaksPage() {
   const [enabled, setEnabled] = useState(false);
   const [revealed, setRevealed] = useState<Set<string>>(new Set());
 
-  const toggle = (n: string) => setRevealed((p) => { const s = new Set(p); s.has(n) ? s.delete(n) : s.add(n); return s; });
+  const toggle = (n: string) => setRevealed((p) => { const s = new Set(p); if (s.has(n)) { s.delete(n); } else { s.add(n); } return s; });
 
   if (!enabled) {
     return (

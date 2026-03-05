@@ -29,6 +29,7 @@ export const ELEMENTS = ["All", "Pyro", "Hydro", "Anemo", "Cryo", "Electro", "Ge
 export const WEAPONS = ["All", "Sword", "Claymore", "Polearm", "Bow", "Catalyst"] as const;
 
 // Element icons mapping
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const ELEMENT_ICONS: Record<string, any> = {
   Pyro: PyroIcon,
   Hydro: HydroIcon,
@@ -37,18 +38,8 @@ export const ELEMENT_ICONS: Record<string, any> = {
   Cryo: CryoIcon,
   Geo: GeoIcon,
   Dendro: DendroIcon,
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as Record<string, any>;
-
-// Element color mapping for quick text/bg lookup
-export const ELEMENT_COLORS_SHORT: Record<string, string> = {
-  Pyro: "text-red-400",
-  Hydro: "text-blue-400",
-  Anemo: "text-teal-300",
-  Electro: "text-purple-400",
-  Cryo: "text-cyan-300",
-  Geo: "text-yellow-400",
-  Dendro: "text-green-400",
-} as Record<string, string>;
 
 // Export icons from the icon components file
 import { PyroIcon, HydroIcon, AnemoIcon, ElectroIcon, CryoIcon, GeoIcon, DendroIcon } from "@/components/icons/genshin-icons";

@@ -9,8 +9,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ uid: s
 
   try {
     profile = await fetchEnkaProfile(uid);
-  } catch (e: any) {
-    error = e.message || "Failed to fetch profile";
+  } catch (e: unknown) {
+    error = e instanceof Error ? e.message : "Failed to fetch profile";
   }
 
   if (error || !profile) {

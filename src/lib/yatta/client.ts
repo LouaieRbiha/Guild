@@ -144,6 +144,7 @@ export async function fetchCharacterDetail(id: string): Promise<CharacterDetail>
   const talents: TalentInfo[] = [];
   const passives: TalentInfo[] = [];
   if (d.talent) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const entries = Object.values(d.talent) as any[];
     for (const t of entries) {
       const info: TalentInfo = {
@@ -163,7 +164,7 @@ export async function fetchCharacterDetail(id: string): Promise<CharacterDetail>
       } else {
         // For type 0: first occurrence is NA, subsequent are Skill
         if (t.type === 0 && talents.filter(tt => tt.type === "Normal Attack").length > 0) {
-          info.type = "Elemental Skill" as any;
+          info.type = "Elemental Skill" as TalentInfo["type"];
         }
         talents.push(info);
       }
@@ -173,6 +174,7 @@ export async function fetchCharacterDetail(id: string): Promise<CharacterDetail>
   // Constellations
   const constellations: ConstellationInfo[] = [];
   if (d.constellation) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const entries = Object.entries(d.constellation) as [string, any][];
     for (const [idx, c] of entries) {
       constellations.push({
@@ -189,6 +191,7 @@ export async function fetchCharacterDetail(id: string): Promise<CharacterDetail>
 
   // Parse materials helper
   const itemsMap = d.items || {};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function parseMaterials(promote: any[], phaseLabel: (i: number, p: any) => string): MaterialGroup[] {
     const groups: MaterialGroup[] = [];
     for (let i = 0; i < promote.length; i++) {
@@ -219,10 +222,12 @@ export async function fetchCharacterDetail(id: string): Promise<CharacterDetail>
   });
 
   // Talent materials (merge from first active talent's promote)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const firstTalent = d.talent ? (Object.values(d.talent) as any[])[0] : null;
   const talentPromote = firstTalent?.promote ? Object.entries(firstTalent.promote) : [];
   const talentMaterials: MaterialGroup[] = [];
   for (const [lvl, info] of talentPromote) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const p = info as any;
     const costs = p?.costItems;
     if (!costs || Object.keys(costs).length === 0) continue;
@@ -305,7 +310,9 @@ export async function fetchWeaponDetail(id: string): Promise<WeaponDetail> {
 
   // Base stats from upgrade.prop
   const props = d.upgrade?.prop || [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const baseAtkProp = props.find((p: any) => p.propType === "FIGHT_PROP_BASE_ATTACK");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const subProp = props.find((p: any) => p.propType !== "FIGHT_PROP_BASE_ATTACK");
 
   const substatName = STAT_DISPLAY[d.specialProp] || d.specialProp || "None";
@@ -315,6 +322,7 @@ export async function fetchWeaponDetail(id: string): Promise<WeaponDetail> {
   let passiveDesc = "";
   const refinements: { rank: number; description: string }[] = [];
   if (d.affix) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const affixEntry = Object.values(d.affix)[0] as any;
     if (affixEntry) {
       passiveName = affixEntry.name || "";
@@ -373,6 +381,7 @@ export async function fetchWeaponDetail(id: string): Promise<WeaponDetail> {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseWeaponMaterials(d: any): MaterialGroup[] {
   const itemsMap = d.items || {};
   const promote = d.upgrade?.promote || [];

@@ -4,9 +4,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
-import { WeaponDetail, MaterialGroup, MaterialItem } from "@/lib/yatta/client";
+import { WeaponDetail, MaterialItem } from "@/lib/yatta/client";
 import { WeaponEntry } from "@/lib/weapons";
-import { ENKA_UI, RARITY_COLORS, SUBSTAT_COLORS, MAT_RARITY_BORDER, MAT_RARITY_BG } from "@/lib/constants";
+import { ENKA_UI, RARITY_COLORS, SUBSTAT_COLORS } from "@/lib/constants";
 import { RarityStars, MaterialCard } from "@/components/shared";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -24,11 +24,9 @@ function highlightValues(desc: string, prevDesc?: string): React.ReactNode {
   if (!desc) return desc;
 
   const prevValues = prevDesc ? extractValues(prevDesc) : [];
-  const currValues = extractValues(desc);
 
   // Replace values in text with highlighted spans
-  let result: React.ReactNode[] = [];
-  let remaining = desc;
+  const result: React.ReactNode[] = [];
   let valueIdx = 0;
 
   const valueRegex = /[\d.]+%?/g;
@@ -73,7 +71,7 @@ interface Props {
   entry: WeaponEntry;
 }
 
-export function WeaponDetailClient({ detail, entry }: Props) {
+export function WeaponDetailClient({ detail }: Props) {
   const [selectedRef, setSelectedRef] = useState(0);
   const colors = RARITY_COLORS[detail.rarity] || RARITY_COLORS[4];
   const substatColor = SUBSTAT_COLORS[detail.substat] || "text-gray-300";

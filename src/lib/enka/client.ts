@@ -246,7 +246,9 @@ function loadLocale(): Promise<Record<string, string>> {
   return _localePromise;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let _charStorePromise: Promise<Record<string, any>> | null = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function loadCharStore(): Promise<Record<string, any>> {
   if (!_charStorePromise) {
     _charStorePromise = fetch("https://raw.githubusercontent.com/EnkaNetwork/API-docs/master/store/characters.json")
@@ -258,6 +260,7 @@ function loadCharStore(): Promise<Record<string, any>> {
 
 // ── Parser ─────────────────────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseEnkaResponse(data: any, uid: string, loc: Record<string, string>, charStore: Record<string, any>): EnkaProfile {
   const pi = data.playerInfo;
 
@@ -283,6 +286,7 @@ function parseEnkaResponse(data: any, uid: string, loc: Record<string, string>, 
   return { player, characters, uid };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseCharacter(avatar: any, loc: Record<string, string>, charStore: Record<string, any>): Character | null {
   const avatarId = avatar.avatarId;
   const charInfo = CHARACTER_MAP[avatarId];
@@ -301,15 +305,13 @@ function parseCharacter(avatar: any, loc: Record<string, string>, charStore: Rec
   // Resolve icon from store (most reliable) → our AVATAR_KEY map → fallback
   const storeSideIcon = storeEntry?.SideIconName || "";
   const storeIcon = storeSideIcon.replace("_Side_", "_");
-  const storeAvatarKey = storeSideIcon.replace("UI_AvatarIcon_Side_", "");
-  
+
   const icon = storeIcon || `UI_AvatarIcon_${getAvatarKey(avatarId)}`;
   const sideIcon = storeSideIcon || `UI_AvatarIcon_Side_${getAvatarKey(avatarId)}`;
-  
+
 
   // Level from propMap
   const level = parseInt(avatar.propMap?.["4001"]?.val || "1");
-  const ascension = parseInt(avatar.propMap?.["1002"]?.val || "0");
 
   // Constellation count
   const constellation = avatar.talentIdList?.length || 0;
@@ -340,6 +342,7 @@ function parseCharacter(avatar: any, loc: Record<string, string>, charStore: Rec
           set: loc[equip.flat.setNameTextMapHash] || "Unknown Set",
           mainStat: APPEND_PROP_MAP[mainStat?.mainPropId] || mainStat?.mainPropId || "?",
           mainValue: formatStatValue(mainStat?.mainPropId, mainStat?.statValue),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           substats: subs.map((s: any) => ({
             name: APPEND_PROP_MAP[s.appendPropId] || s.appendPropId,
             value: formatStatValue(s.appendPropId, s.statValue),

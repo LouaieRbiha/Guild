@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Dices, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -52,6 +52,12 @@ export default function SimulatorPage() {
 
   const good = arts.filter((a) => a.substats.some((s) => s.name === "CRIT Rate" || s.name === "CRIT DMG")).length;
 
+  const quipIndex = useMemo(
+    () => Math.floor(Math.random() * quips.length),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [arts.length],
+  );
+
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <h1 className="text-2xl font-bold">Artifact Simulator</h1>
@@ -78,7 +84,7 @@ export default function SimulatorPage() {
 
       {arts.length > 0 && arts.length % 5 === 0 && (
         <div className="guild-card p-4" style={{ borderColor: "rgba(249,115,22,0.2)" }}>
-          <p className="text-sm italic text-orange-400">💬 &quot;{quips[Math.floor(Math.random() * quips.length)]}&quot;</p>
+          <p className="text-sm italic text-orange-400">&#128172; &quot;{quips[quipIndex]}&quot;</p>
         </div>
       )}
 

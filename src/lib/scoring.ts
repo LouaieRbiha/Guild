@@ -4,7 +4,6 @@ import type { Artifact, Character } from "./enka/client";
 
 // ── Substat weights by role ────────────────────────────────────────────
 
-const CRIT_SUBS = ["CRIT Rate", "CRIT DMG"];
 const USEFUL_SUBS = ["ATK%", "HP%", "DEF%", "Energy Recharge", "Elemental Mastery"];
 
 // Max single-roll values for substats (5★, highest tier)

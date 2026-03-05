@@ -56,13 +56,6 @@ function gachaArtUrl(avatarKey: string): string {
   return `${ENKA_UI}/UI_Gacha_AvatarImg_${avatarKey}.png`;
 }
 
-const ASC_LABELS: Record<string, string> = {
-  critdmg: "CRIT DMG", critrate: "CRIT Rate", em: "EM", hp: "HP%", atk: "ATK%",
-  def: "DEF%", er: "ER", healing: "Healing", physical: "Phys DMG",
-  pyro: "Pyro DMG", hydro: "Hydro DMG", cryo: "Cryo DMG", electro: "Electro DMG",
-  anemo: "Anemo DMG", geo: "Geo DMG", dendro: "Dendro DMG",
-};
-
 export default function DatabasePage() {
   const [elements, setElements] = useState<string[]>([]);
   const [weapon, setWeapon] = useState<string>("All");

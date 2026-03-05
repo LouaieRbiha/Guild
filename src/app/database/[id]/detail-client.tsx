@@ -28,41 +28,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 
-// Highlight numeric values in descriptions (percentages, flat numbers, durations)
-function HighlightedText({
-	text,
-	accentColor,
-}: {
-	text: string;
-	accentColor: string;
-}) {
-	if (!text) return null;
-	// Match: percentages (10%, 0.8%), flat numbers with context (15s, 60 Energy), standalone numbers
-	const parts = text.split(
-		/([\d]+\.?[\d]*%|[\d]+\.?[\d]*s\b|[\d]+(?:\.\d+)?(?=\s*(?:Energy|HP|ATK|DEF|DMG|pts|times|hits|stacks|levels?|seconds?)))/g,
-	);
-
-	return (
-		<>
-			{parts.map((part, i) => {
-				// Check if this part is a numeric value
-				if (
-					/^[\d]+\.?[\d]*%$/.test(part) ||
-					/^[\d]+\.?[\d]*s$/.test(part) ||
-					/^[\d]+(?:\.\d+)?$/.test(part)
-				) {
-					return (
-						<span key={i} className={`font-bold ${accentColor}`}>
-							{part}
-						</span>
-					);
-				}
-				return <span key={i}>{part}</span>;
-			})}
-		</>
-	);
-}
-
 // Simpler version: highlight ALL numbers in text
 function HighlightNumbers({ text, color }: { text: string; color: string }) {
 	if (!text) return null;
@@ -429,7 +394,7 @@ export function CharacterDetailClient({ detail, entry }: Props) {
 					<MaterialsTab detail={detail} colors={colors} />
 				</TabsContent>
 				<TabsContent value='lore'>
-					<LoreTab detail={detail} colors={colors} />
+					<LoreTab detail={detail} />
 				</TabsContent>
 			</Tabs>
 		</div>
@@ -776,14 +741,12 @@ function RangeSlider({
 	min,
 	max,
 	label,
-	accentColor,
 }: {
 	value: [number, number];
 	onChange: (v: [number, number]) => void;
 	min: number;
 	max: number;
 	label: string;
-	accentColor: string;
 }) {
 	return (
 		<div className='space-y-4'>
@@ -931,7 +894,6 @@ function MaterialsTab({
 						min={1}
 						max={90}
 						label='Character Level'
-						accentColor={colors.text}
 					/>
 				</div>
 
@@ -980,7 +942,6 @@ function MaterialsTab({
 						min={1}
 						max={10}
 						label='Talent Level'
-						accentColor={colors.text}
 					/>
 				</div>
 
@@ -1011,10 +972,8 @@ function MaterialsTab({
 
 function LoreTab({
 	detail,
-	colors,
 }: {
 	detail: CharacterDetail;
-	colors: (typeof ELEMENT_COLORS)['Pyro'];
 }) {
 	return (
 		<div className='space-y-6'>

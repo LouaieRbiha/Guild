@@ -1,5 +1,5 @@
 import { fetchCharacterDetail } from "@/lib/yatta/client";
-import { ALL_CHARACTERS, ENKA_UI, ELEMENT_COLORS } from "@/lib/characters";
+import { ALL_CHARACTERS } from "@/lib/characters";
 import { CharacterDetailClient } from "./detail-client";
 import { notFound } from "next/navigation";
 

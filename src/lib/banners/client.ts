@@ -16,6 +16,7 @@ function parseBannerDate(dateStr: string): Date {
 }
 
 // Extract JSON-like arrays from JavaScript source
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseJSArray(source: string, varName: string): any[] {
   // Find the array export
   const regex = new RegExp(

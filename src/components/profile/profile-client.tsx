@@ -4,8 +4,8 @@ import { useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Download, Share2 } from "lucide-react";
-import type { EnkaProfile, Character as CharType } from "@/lib/enka/client";
-import { ENKA_UI } from "@/lib/characters";
+import type { EnkaProfile } from "@/lib/enka/client";
+import { ENKA_UI } from "@/lib/constants";
 import {
   VerdictIcon,
   ResinIcon,
