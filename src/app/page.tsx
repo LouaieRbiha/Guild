@@ -1,9 +1,20 @@
+import type { Metadata } from 'next';
 import { getActiveBanner } from '@/data/banners';
 import type { BannerWeaponInfo } from '@/lib/banners/types';
 import type { CharacterEntry } from '@/lib/characters';
 import { ALL_CHARACTERS } from '@/lib/characters';
 import { ALL_WEAPONS } from '@/lib/weapons';
 import { HomeClient } from './home-client';
+
+export const metadata: Metadata = {
+	title: 'Guild - Genshin Impact Companion',
+	description: 'Your all-in-one Genshin Impact companion: character database, build showcase, wish simulator, abyss guides, event calendar, and more.',
+	openGraph: {
+		title: 'Guild - Genshin Impact Companion',
+		description: 'Your all-in-one Genshin Impact companion app.',
+		type: 'website',
+	},
+};
 
 export default function HomePage() {
 	const banner = getActiveBanner();

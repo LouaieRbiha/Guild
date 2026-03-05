@@ -1,7 +1,18 @@
+import type { Metadata } from 'next';
 import { fetchCharacterDetail } from "@/lib/yatta/client";
 import { ALL_CHARACTERS } from "@/lib/characters";
 import { CharacterDetailClient } from "./detail-client";
 import { notFound } from "next/navigation";
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const char = ALL_CHARACTERS.find((c) => c.id === id);
+  const name = char?.name ?? id;
+  return {
+    title: `${name} - Genshin Impact Character | Guild`,
+    description: `${name} character details, talents, constellations, and build guide for Genshin Impact.`,
+  };
+}
 
 export default async function CharacterDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

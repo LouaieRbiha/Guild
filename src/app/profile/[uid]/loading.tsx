@@ -1,18 +1,18 @@
-import { Skeleton } from "@/components/ui/skeleton";
-
-export default function ProfileLoading() {
+export default function Loading() {
   return (
-    <div className="space-y-6 pb-12">
-      {/* Player header skeleton */}
-      <Skeleton className="h-32 rounded-xl" />
-      {/* Character selector skeleton */}
-      <div className="flex gap-3 overflow-hidden">
+    <div className="max-w-5xl mx-auto space-y-8 animate-pulse">
+      <div className="flex items-center gap-4">
+        <div className="w-16 h-16 rounded-full bg-guild-elevated" />
+        <div className="space-y-2">
+          <div className="h-7 w-36 bg-guild-elevated rounded-lg" />
+          <div className="h-4 w-24 bg-guild-elevated rounded" />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {Array.from({ length: 8 }).map((_, i) => (
-          <Skeleton key={i} className="w-16 h-16 rounded-full shrink-0" />
+          <div key={i} className="h-48 bg-guild-elevated rounded-2xl" />
         ))}
       </div>
-      {/* Build card skeleton */}
-      <Skeleton className="h-96 rounded-xl" />
     </div>
   );
 }

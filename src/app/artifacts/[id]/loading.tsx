@@ -1,18 +1,16 @@
-import { Skeleton } from "@/components/ui/skeleton";
-
-export default function ArtifactDetailLoading() {
+export default function Loading() {
   return (
-    <div className="space-y-6 pb-12">
-      <Skeleton className="h-5 w-40" />
-      <Skeleton className="h-72 rounded-xl" />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Skeleton className="h-32 rounded-xl" />
-        <Skeleton className="h-32 rounded-xl" />
+    <div className="max-w-4xl mx-auto space-y-8 animate-pulse">
+      <div className="flex items-center gap-4">
+        <div className="w-16 h-16 rounded-xl bg-guild-elevated" />
+        <div className="space-y-2">
+          <div className="h-7 w-52 bg-guild-elevated rounded-lg" />
+          <div className="h-4 w-28 bg-guild-elevated rounded" />
+        </div>
       </div>
-      <Skeleton className="h-6 w-44" />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} className="h-24 rounded-xl" />
+          <div key={i} className="h-40 bg-guild-elevated rounded-2xl" />
         ))}
       </div>
     </div>

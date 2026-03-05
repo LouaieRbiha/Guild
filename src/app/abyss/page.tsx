@@ -372,43 +372,9 @@ function StygianStageCard({ stage }: { stage: StygianStage }) {
 
 // ── Usage Rates (Live from AZA.GG) ──────────────────────────────────────
 
-function UsageRatesSection() {
-  const [data, setData] = useState<AbyssRatesData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+function UsageRatesSection({ data }: { data: AbyssRatesData }) {
   const [rateType, setRateType] = useState<"pickRate" | "ownRate" | "useByOwnRate">("pickRate");
   const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    fetch("/api/abyss")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.error) throw new Error(d.error);
-        setData(d);
-      })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="space-y-3">
-        <div className="h-6 w-48 bg-white/5 rounded animate-pulse" />
-        {Array.from({ length: 10 }).map((_, i) => (
-          <div key={i} className="h-12 bg-white/5 rounded-lg animate-pulse" />
-        ))}
-      </div>
-    );
-  }
-
-  if (error || !data) {
-    return (
-      <div className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20">
-        <AlertTriangle className="h-4 w-4 text-red-400 shrink-0" />
-        <p className="text-sm text-red-300">Failed to load usage data from AZA.GG</p>
-      </div>
-    );
-  }
 
   const sorted = [...data.characters].sort((a, b) => b[rateType] - a[rateType]);
   const top = sorted.filter((c) => c[rateType] > 0).slice(0, 50);
@@ -527,36 +493,8 @@ function UsageRatesSection() {
 
 // ── Live Top Teams (from AZA.GG teammate data) ─────────────────────────
 
-function LiveTopTeams() {
-  const [data, setData] = useState<AbyssRatesData | null>(null);
-  const [loading, setLoading] = useState(true);
+function LiveTopTeams({ data }: { data: AbyssRatesData }) {
   const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    fetch("/api/abyss")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.error) throw new Error(d.error);
-        setData(d);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        <div className="h-6 w-40 bg-white/5 rounded animate-pulse" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-32 bg-white/5 rounded-xl animate-pulse" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (!data) return null;
 
   // Build team comps from top characters + their top teammates
   const topChars = data.characters
@@ -846,6 +784,62 @@ function StygianUsageRatesSection() {
   );
 }
 
+// ── Abyss Data Section (single fetch for usage rates + top teams) ────
+
+function AbyssDataSection() {
+  const [data, setData] = useState<AbyssRatesData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/abyss")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.error) throw new Error(d.error);
+        setData(d);
+      })
+      .catch(() => setError(true))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="space-y-4">
+          <div className="h-6 w-40 bg-white/5 rounded animate-pulse" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-32 bg-white/5 rounded-xl animate-pulse" />
+            ))}
+          </div>
+        </div>
+        <div className="space-y-3">
+          <div className="h-6 w-48 bg-white/5 rounded animate-pulse" />
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div key={i} className="h-12 bg-white/5 rounded-lg animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20">
+        <AlertTriangle className="h-4 w-4 text-red-400 shrink-0" />
+        <p className="text-sm text-red-300">Failed to load usage data from AZA.GG</p>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <LiveTopTeams data={data} />
+      <UsageRatesSection data={data} />
+    </>
+  );
+}
+
 // ── Main Page ────────────────────────────────────────────────────────────
 
 export default function AbyssPage() {
@@ -913,11 +907,8 @@ export default function AbyssPage() {
             ))}
           </Tabs>
 
-          {/* Live Top Teams from AZA.GG */}
-          <LiveTopTeams />
-
-          {/* Live Usage Rates */}
-          <UsageRatesSection />
+          {/* Live Top Teams + Usage Rates from AZA.GG (single fetch) */}
+          <AbyssDataSection />
         </>
       ) : (
         <>
