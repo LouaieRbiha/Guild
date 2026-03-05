@@ -1239,6 +1239,13 @@ function GuidesTab({ detail, colors }: { detail: CharacterDetail; colors: Elemen
 				</a>
 			</div>
 
+			{/* TL;DR */}
+			{guide?.tldr && (
+				<div className={cn("guild-card p-4 border-l-4", colors.border)}>
+					<p className="text-sm text-foreground/90 italic leading-relaxed">{guide.tldr}</p>
+				</div>
+			)}
+
 			{/* Weapons Section */}
 			<div className="guild-card overflow-hidden p-0">
 				<SectionHeader title="Weapons" />
