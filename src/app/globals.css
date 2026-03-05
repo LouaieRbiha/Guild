@@ -123,3 +123,72 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(255 255 255 / 0.1);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(255 255 255 / 0.2);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.element-glow-pyro { box-shadow: 0 0 20px rgba(239, 68, 68, 0.2); }
+.element-glow-hydro { box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); }
+.element-glow-anemo { box-shadow: 0 0 20px rgba(45, 212, 191, 0.2); }
+.element-glow-electro { box-shadow: 0 0 20px rgba(168, 85, 247, 0.2); }
+.element-glow-cryo { box-shadow: 0 0 20px rgba(103, 232, 249, 0.2); }
+.element-glow-geo { box-shadow: 0 0 20px rgba(250, 204, 21, 0.2); }
+.element-glow-dendro { box-shadow: 0 0 20px rgba(74, 222, 128, 0.2); }
+
+.rarity-glow-5 { box-shadow: 0 0 20px rgba(245, 158, 11, 0.3); }
+.rarity-glow-4 { box-shadow: 0 0 20px rgba(168, 85, 247, 0.2); }
+.rarity-glow-3 { box-shadow: 0 0 20px rgba(59, 130, 246, 0.15); }
+
+.guild-focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-guild-accent);
+}
