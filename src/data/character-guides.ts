@@ -1,8 +1,14 @@
+export type WeaponSource = 'Wish' | 'BP' | 'Craft' | 'Shop' | 'F2P' | 'Event' | 'Fish';
+
 export interface CharacterGuide {
 	characterName: string;
-	bestWeapons: { name: string; weaponId: number; note: string }[];
+	role: string;
+	bestWeapons: { name: string; weaponId: number; note: string; source?: WeaponSource }[];
 	bestArtifacts: { setName: string; pieces: number; note: string }[];
-	teams: { name: string; members: string[]; archetype: string }[];
+	mainStats: { sands: string; goblet: string; circlet: string };
+	substats: string[];
+	erRequirement?: string;
+	teams: { name: string; members: string[]; archetype: string; note?: string }[];
 	talentPriority: string;
 	tips: string[];
 	playstyle: string;
@@ -11,22 +17,18 @@ export interface CharacterGuide {
 export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 	'Raiden Shogun': {
 		characterName: 'Raiden Shogun',
+		role: 'Main DPS / Sub-DPS',
 		bestWeapons: [
-			{ name: 'Engulfing Lightning', weaponId: 13509, note: 'Best in Slot' },
-			{
-				name: 'The Catch',
-				weaponId: 13415,
-				note: 'F2P Best -- free from fishing',
-			},
-			{ name: 'Staff of Homa', weaponId: 13501, note: 'Great stat stick' },
+			{ name: 'Engulfing Lightning', weaponId: 13509, note: 'Best in Slot', source: 'Wish' },
+			{ name: 'The Catch', weaponId: 13415, note: 'F2P Best -- free from fishing', source: 'Fish' },
+			{ name: 'Staff of Homa', weaponId: 13501, note: 'Great stat stick', source: 'Wish' },
 		],
 		bestArtifacts: [
-			{
-				setName: 'Emblem of Severed Fate',
-				pieces: 4,
-				note: 'Best set overall',
-			},
+			{ setName: 'Emblem of Severed Fate', pieces: 4, note: 'Best set overall' },
 		],
+		mainStats: { sands: 'Energy Recharge / ATK%', goblet: 'Electro DMG%', circlet: 'CRIT Rate / CRIT DMG' },
+		substats: ['CRIT', 'ATK%', 'Energy Recharge'],
+		erRequirement: '200-250% ER for comfortable Burst uptime',
 		teams: [
 			{
 				name: 'Raiden National',
@@ -50,21 +52,25 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 	},
 	Neuvillette: {
 		characterName: 'Neuvillette',
+		role: 'On-Field DPS',
 		bestWeapons: [
 			{
 				name: 'Tome of the Eternal Flow',
 				weaponId: 14512,
 				note: 'Best in Slot',
+				source: 'Wish',
 			},
 			{
 				name: 'Cashflow Supervision',
 				weaponId: 14514,
 				note: 'Excellent alternative',
+				source: 'Wish',
 			},
 			{
 				name: 'Prototype Amber',
 				weaponId: 14401,
 				note: 'F2P option -- provides healing',
+				source: 'Craft',
 			},
 		],
 		bestArtifacts: [
@@ -75,6 +81,8 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 			},
 			{ setName: 'Heart of Depth', pieces: 4, note: 'Solid alternative' },
 		],
+		mainStats: { sands: 'HP%', goblet: 'Hydro DMG%', circlet: 'CRIT Rate / CRIT DMG' },
+		substats: ['CRIT', 'HP%', 'ATK%'],
 		teams: [
 			{
 				name: 'Neuvi Furina',
@@ -93,10 +101,11 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 	},
 	'Hu Tao': {
 		characterName: 'Hu Tao',
+		role: 'Main DPS',
 		bestWeapons: [
-			{ name: 'Staff of Homa', weaponId: 13501, note: 'Best in Slot' },
-			{ name: "Dragon's Bane", weaponId: 13401, note: 'F2P Best for Vaporize' },
-			{ name: 'Deathmatch', weaponId: 13404, note: 'Battle Pass option' },
+			{ name: 'Staff of Homa', weaponId: 13501, note: 'Best in Slot', source: 'Wish' },
+			{ name: "Dragon's Bane", weaponId: 13401, note: 'F2P Best for Vaporize', source: 'Wish' },
+			{ name: 'Deathmatch', weaponId: 13404, note: 'Battle Pass option', source: 'BP' },
 		],
 		bestArtifacts: [
 			{
@@ -110,6 +119,9 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 				note: 'Higher CA damage but lose Burst',
 			},
 		],
+		mainStats: { sands: 'HP%', goblet: 'Pyro DMG%', circlet: 'CRIT Rate / CRIT DMG' },
+		substats: ['CRIT', 'HP%', 'Elemental Mastery'],
+		erRequirement: 'Not needed -- does not rely on Burst',
 		teams: [
 			{
 				name: 'Hu Tao Double Hydro',
@@ -133,26 +145,33 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 	},
 	Bennett: {
 		characterName: 'Bennett',
+		role: 'Support / Healer',
 		bestWeapons: [
 			{
 				name: 'Mistsplitter Reforged',
 				weaponId: 11509,
 				note: 'Highest Base ATK 5-star',
+				source: 'Wish',
 			},
 			{
 				name: 'Aquila Favonia',
 				weaponId: 11501,
 				note: 'Highest Base ATK standard',
+				source: 'Wish',
 			},
 			{
 				name: 'Prototype Rancour',
 				weaponId: 11406,
 				note: 'Highest Base ATK 4-star (F2P)',
+				source: 'Craft',
 			},
 		],
 		bestArtifacts: [
 			{ setName: 'Noblesse Oblige', pieces: 4, note: 'Team ATK buff on Burst' },
 		],
+		mainStats: { sands: 'Energy Recharge', goblet: 'Pyro DMG% / HP%', circlet: 'CRIT Rate / Healing Bonus' },
+		substats: ['Energy Recharge', 'HP%', 'CRIT'],
+		erRequirement: '180-200% ER for Burst uptime',
 		teams: [
 			{
 				name: 'National Team',
@@ -171,14 +190,16 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 	},
 	Xiangling: {
 		characterName: 'Xiangling',
+		role: 'Off-Field DPS',
 		bestWeapons: [
-			{ name: 'Staff of Homa', weaponId: 13501, note: 'Best in Slot' },
+			{ name: 'Staff of Homa', weaponId: 13501, note: 'Best in Slot', source: 'Wish' },
 			{
 				name: 'The Catch',
 				weaponId: 13415,
 				note: 'F2P Best -- free from fishing',
+				source: 'Fish',
 			},
-			{ name: "Dragon's Bane", weaponId: 13401, note: 'Great for Vaporize' },
+			{ name: "Dragon's Bane", weaponId: 13401, note: 'Great for Vaporize', source: 'Wish' },
 		],
 		bestArtifacts: [
 			{
@@ -187,6 +208,9 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 				note: 'Best set for burst damage',
 			},
 		],
+		mainStats: { sands: 'Energy Recharge / ATK%', goblet: 'Pyro DMG%', circlet: 'CRIT Rate / CRIT DMG' },
+		substats: ['CRIT', 'ATK%', 'Energy Recharge', 'Elemental Mastery'],
+		erRequirement: '180-200% without Bennett, 160% with',
 		teams: [
 			{
 				name: 'National Team',
@@ -205,14 +229,16 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 	},
 	Furina: {
 		characterName: 'Furina',
+		role: 'Off-Field Support / Sub-DPS',
 		bestWeapons: [
 			{
 				name: 'Splendor of Tranquil Waters',
 				weaponId: 11513,
 				note: 'Best in Slot',
+				source: 'Wish',
 			},
-			{ name: 'Festering Desire', weaponId: 11413, note: 'Good ER option' },
-			{ name: 'Favonius Sword', weaponId: 11401, note: 'F2P energy battery' },
+			{ name: 'Festering Desire', weaponId: 11413, note: 'Good ER option', source: 'Event' },
+			{ name: 'Favonius Sword', weaponId: 11401, note: 'F2P energy battery', source: 'Wish' },
 		],
 		bestArtifacts: [
 			{
@@ -221,6 +247,9 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 				note: 'Best for off-field damage',
 			},
 		],
+		mainStats: { sands: 'HP%', goblet: 'HP%', circlet: 'CRIT Rate / CRIT DMG' },
+		substats: ['CRIT', 'HP%', 'Energy Recharge'],
+		erRequirement: '140-160% ER',
 		teams: [
 			{
 				name: 'Neuvi Furina',
@@ -244,21 +273,25 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 	},
 	'Kaedehara Kazuha': {
 		characterName: 'Kaedehara Kazuha',
+		role: 'Support / Sub-DPS',
 		bestWeapons: [
 			{
 				name: 'Freedom-Sworn',
 				weaponId: 11505,
 				note: 'Best in Slot for support',
+				source: 'Wish',
 			},
 			{
 				name: 'Iron Sting',
 				weaponId: 11407,
 				note: 'F2P Best -- craftable EM weapon',
+				source: 'Craft',
 			},
 			{
 				name: 'Favonius Sword',
 				weaponId: 11401,
 				note: 'Energy battery option',
+				source: 'Wish',
 			},
 		],
 		bestArtifacts: [
@@ -268,6 +301,9 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 				note: 'Must-have for RES shred',
 			},
 		],
+		mainStats: { sands: 'Elemental Mastery', goblet: 'Elemental Mastery', circlet: 'Elemental Mastery' },
+		substats: ['Elemental Mastery', 'Energy Recharge', 'CRIT'],
+		erRequirement: '160-180% ER',
 		teams: [
 			{
 				name: 'Raiden Hypercarry',
@@ -291,14 +327,16 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 	},
 	Mavuika: {
 		characterName: 'Mavuika',
+		role: 'Main DPS',
 		bestWeapons: [
 			{
 				name: 'A Thousand Blazing Suns',
 				weaponId: 12512,
 				note: 'Best in Slot',
+				source: 'Wish',
 			},
-			{ name: 'Verdict', weaponId: 12510, note: 'Strong alternative' },
-			{ name: 'Serpent Spine', weaponId: 12410, note: 'Battle Pass option' },
+			{ name: 'Verdict', weaponId: 12510, note: 'Strong alternative', source: 'Wish' },
+			{ name: 'Serpent Spine', weaponId: 12410, note: 'Battle Pass option', source: 'BP' },
 		],
 		bestArtifacts: [
 			{
@@ -307,6 +345,8 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 				note: 'Best set for Nightsoul builds',
 			},
 		],
+		mainStats: { sands: 'ATK%', goblet: 'Pyro DMG%', circlet: 'CRIT Rate / CRIT DMG' },
+		substats: ['CRIT', 'ATK%', 'Energy Recharge'],
 		teams: [
 			{
 				name: 'Mavuika Vaporize',
@@ -330,18 +370,21 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 	},
 	Nahida: {
 		characterName: 'Nahida',
+		role: 'Off-Field Sub-DPS',
 		bestWeapons: [
 			{
 				name: 'A Thousand Floating Dreams',
 				weaponId: 14509,
 				note: 'Best in Slot',
+				source: 'Wish',
 			},
 			{
 				name: 'Sacrificial Fragments',
 				weaponId: 14402,
 				note: 'Good EM stat stick with utility',
+				source: 'Wish',
 			},
-			{ name: 'Mappa Mare', weaponId: 14407, note: 'F2P craftable option' },
+			{ name: 'Mappa Mare', weaponId: 14407, note: 'F2P craftable option', source: 'Craft' },
 		],
 		bestArtifacts: [
 			{
@@ -355,6 +398,9 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 				note: 'Best if another character holds Deepwood',
 			},
 		],
+		mainStats: { sands: 'Elemental Mastery', goblet: 'Elemental Mastery / Dendro DMG%', circlet: 'CRIT Rate / CRIT DMG' },
+		substats: ['CRIT', 'Elemental Mastery', 'ATK%'],
+		erRequirement: 'Not needed in most teams',
 		teams: [
 			{
 				name: 'Nahida Nilou Bloom',
@@ -378,21 +424,25 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 	},
 	Zhongli: {
 		characterName: 'Zhongli',
+		role: 'Shielder / Support',
 		bestWeapons: [
 			{
 				name: 'Staff of Homa',
 				weaponId: 13501,
 				note: 'Best in Slot for hybrid builds',
+				source: 'Wish',
 			},
 			{
 				name: 'Favonius Lance',
 				weaponId: 13407,
 				note: 'Energy battery support',
+				source: 'Wish',
 			},
 			{
 				name: 'Black Tassel',
 				weaponId: 13301,
 				note: 'F2P Best -- HP% for shields',
+				source: 'F2P',
 			},
 		],
 		bestArtifacts: [
@@ -402,6 +452,9 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 				note: 'Best support set -- ATK buff on Skill',
 			},
 		],
+		mainStats: { sands: 'HP%', goblet: 'HP%', circlet: 'HP%' },
+		substats: ['HP%', 'Energy Recharge', 'CRIT'],
+		erRequirement: 'Not needed for shield builds',
 		teams: [
 			{
 				name: 'Hu Tao Double Hydro',
@@ -420,14 +473,16 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 	},
 	Yelan: {
 		characterName: 'Yelan',
+		role: 'Off-Field Sub-DPS',
 		bestWeapons: [
-			{ name: 'Aqua Simulacra', weaponId: 15503, note: 'Best in Slot' },
+			{ name: 'Aqua Simulacra', weaponId: 15503, note: 'Best in Slot', source: 'Wish' },
 			{
 				name: 'Favonius Warbow',
 				weaponId: 15401,
 				note: 'Energy battery option',
+				source: 'Wish',
 			},
-			{ name: 'Recurve Bow', weaponId: 15301, note: 'Budget HP% option' },
+			{ name: 'Recurve Bow', weaponId: 15301, note: 'Budget HP% option', source: 'F2P' },
 		],
 		bestArtifacts: [
 			{
@@ -436,6 +491,9 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 				note: 'Best set for burst damage',
 			},
 		],
+		mainStats: { sands: 'HP%', goblet: 'Hydro DMG%', circlet: 'CRIT Rate / CRIT DMG' },
+		substats: ['CRIT', 'HP%', 'Energy Recharge'],
+		erRequirement: '140-160% with Sac Bow, 180% without',
 		teams: [
 			{
 				name: 'Hu Tao Double Hydro',
@@ -459,14 +517,16 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 	},
 	'Kamisato Ayaka': {
 		characterName: 'Kamisato Ayaka',
+		role: 'Burst DPS',
 		bestWeapons: [
-			{ name: 'Mistsplitter Reforged', weaponId: 11509, note: 'Best in Slot' },
+			{ name: 'Mistsplitter Reforged', weaponId: 11509, note: 'Best in Slot', source: 'Wish' },
 			{
 				name: 'Amenoma Kageuchi',
 				weaponId: 11414,
 				note: 'F2P Best -- craftable with energy refund',
+				source: 'Craft',
 			},
-			{ name: 'The Black Sword', weaponId: 11408, note: 'Battle Pass option' },
+			{ name: 'The Black Sword', weaponId: 11408, note: 'Battle Pass option', source: 'BP' },
 		],
 		bestArtifacts: [
 			{
@@ -475,6 +535,9 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 				note: 'Best set -- massive Crit Rate in freeze',
 			},
 		],
+		mainStats: { sands: 'ATK%', goblet: 'Cryo DMG%', circlet: 'CRIT DMG' },
+		substats: ['CRIT DMG', 'ATK%', 'Energy Recharge'],
+		erRequirement: '120-140% ER',
 		teams: [
 			{
 				name: 'Ayaka Freeze',
@@ -503,27 +566,33 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 	},
 	Ganyu: {
 		characterName: 'Ganyu',
+		role: 'Main DPS / Sub-DPS',
 		bestWeapons: [
 			{
 				name: "Amos' Bow",
 				weaponId: 15502,
 				note: 'Best in Slot for charged shots',
+				source: 'Wish',
 			},
 			{
 				name: 'Prototype Crescent',
 				weaponId: 15405,
 				note: 'F2P Best -- craftable',
+				source: 'Craft',
 			},
 			{
 				name: 'Hamayumi',
 				weaponId: 15410,
 				note: 'F2P alternative from Inazuma',
+				source: 'Craft',
 			},
 		],
 		bestArtifacts: [
 			{ setName: 'Blizzard Strayer', pieces: 4, note: 'Best for Freeze teams' },
 			{ setName: "Wanderer's Troupe", pieces: 4, note: 'Best for Melt teams' },
 		],
+		mainStats: { sands: 'ATK%', goblet: 'Cryo DMG%', circlet: 'CRIT Rate / CRIT DMG' },
+		substats: ['CRIT', 'ATK%', 'Elemental Mastery'],
 		teams: [
 			{
 				name: 'Ganyu Melt',
@@ -547,21 +616,25 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 	},
 	Xingqiu: {
 		characterName: 'Xingqiu',
+		role: 'Off-Field Sub-DPS',
 		bestWeapons: [
 			{
 				name: 'Sacrificial Sword',
 				weaponId: 11402,
 				note: 'Best in Slot -- Skill reset',
+				source: 'Wish',
 			},
 			{
 				name: 'Favonius Sword',
 				weaponId: 11401,
 				note: 'Energy battery alternative',
+				source: 'Wish',
 			},
 			{
 				name: 'Harbinger of Dawn',
 				weaponId: 11302,
 				note: 'Budget Crit option',
+				source: 'F2P',
 			},
 		],
 		bestArtifacts: [
@@ -571,6 +644,9 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 				note: 'Best set for burst damage',
 			},
 		],
+		mainStats: { sands: 'ATK% / Energy Recharge', goblet: 'Hydro DMG%', circlet: 'CRIT Rate / CRIT DMG' },
+		substats: ['CRIT', 'ATK%', 'Energy Recharge'],
+		erRequirement: '180-200% without Sac Sword, 140% with',
 		teams: [
 			{
 				name: 'National Team',
@@ -589,21 +665,25 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 	},
 	Alhaitham: {
 		characterName: 'Alhaitham',
+		role: 'On-Field DPS',
 		bestWeapons: [
 			{
 				name: 'Light of Foliar Incision',
 				weaponId: 11510,
 				note: 'Best in Slot',
+				source: 'Wish',
 			},
 			{
 				name: 'Iron Sting',
 				weaponId: 11407,
 				note: 'F2P Best -- craftable EM weapon',
+				source: 'Craft',
 			},
 			{
 				name: 'Harbinger of Dawn',
 				weaponId: 11302,
 				note: 'Budget Crit option',
+				source: 'F2P',
 			},
 		],
 		bestArtifacts: [
@@ -618,6 +698,8 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 				note: 'Use if no other Deepwood holder',
 			},
 		],
+		mainStats: { sands: 'Elemental Mastery / ATK%', goblet: 'Dendro DMG%', circlet: 'CRIT Rate / CRIT DMG' },
+		substats: ['CRIT', 'Elemental Mastery', 'ATK%'],
 		teams: [
 			{
 				name: 'Alhaitham Quicken',
@@ -641,13 +723,15 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 	},
 	Clorinde: {
 		characterName: 'Clorinde',
+		role: 'On-Field DPS',
 		bestWeapons: [
-			{ name: 'Absolution', weaponId: 11514, note: 'Best in Slot' },
-			{ name: 'The Black Sword', weaponId: 11408, note: 'Battle Pass option' },
+			{ name: 'Absolution', weaponId: 11514, note: 'Best in Slot', source: 'Wish' },
+			{ name: 'The Black Sword', weaponId: 11408, note: 'Battle Pass option', source: 'BP' },
 			{
 				name: 'Finale of the Deep',
 				weaponId: 11412,
 				note: 'Craftable alternative',
+				source: 'Craft',
 			},
 		],
 		bestArtifacts: [
@@ -657,6 +741,8 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 				note: 'Best set for Bond of Life builds',
 			},
 		],
+		mainStats: { sands: 'ATK%', goblet: 'Electro DMG%', circlet: 'CRIT Rate / CRIT DMG' },
+		substats: ['CRIT', 'ATK%', 'Elemental Mastery'],
 		teams: [
 			{
 				name: 'Clorinde Overloaded',
@@ -680,14 +766,16 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 	},
 	Xilonen: {
 		characterName: 'Xilonen',
+		role: 'Support',
 		bestWeapons: [
-			{ name: 'Peak Patrol Song', weaponId: 11515, note: 'Best in Slot' },
+			{ name: 'Peak Patrol Song', weaponId: 11515, note: 'Best in Slot', source: 'Wish' },
 			{
 				name: 'Favonius Sword',
 				weaponId: 11401,
 				note: 'Energy battery option',
+				source: 'Wish',
 			},
-			{ name: 'Festering Desire', weaponId: 11413, note: 'Good ER stat stick' },
+			{ name: 'Festering Desire', weaponId: 11413, note: 'Good ER stat stick', source: 'Event' },
 		],
 		bestArtifacts: [
 			{
@@ -696,6 +784,9 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 				note: 'Best support set for RES shred',
 			},
 		],
+		mainStats: { sands: 'DEF%', goblet: 'DEF%', circlet: 'DEF%' },
+		substats: ['DEF%', 'Energy Recharge', 'CRIT'],
+		erRequirement: '140-160% ER',
 		teams: [
 			{
 				name: 'Mavuika Xilonen',
@@ -719,21 +810,25 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 	},
 	Sucrose: {
 		characterName: 'Sucrose',
+		role: 'Support / Sub-DPS',
 		bestWeapons: [
 			{
 				name: 'Sacrificial Fragments',
 				weaponId: 14402,
 				note: 'Best in Slot -- EM + Skill reset',
+				source: 'Wish',
 			},
 			{
 				name: 'Thrilling Tales of Dragon Slayers',
 				weaponId: 14302,
 				note: '48% ATK buff to next character',
+				source: 'F2P',
 			},
 			{
 				name: 'Hakushin Ring',
 				weaponId: 14414,
 				note: 'Craftable option for reaction teams',
+				source: 'Craft',
 			},
 		],
 		bestArtifacts: [
@@ -743,6 +838,9 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 				note: 'Must-have for RES shred',
 			},
 		],
+		mainStats: { sands: 'Elemental Mastery', goblet: 'Elemental Mastery', circlet: 'Elemental Mastery' },
+		substats: ['Elemental Mastery', 'Energy Recharge', 'CRIT'],
+		erRequirement: '160% ER',
 		teams: [
 			{
 				name: 'National Team',
@@ -766,14 +864,16 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 	},
 	Fischl: {
 		characterName: 'Fischl',
+		role: 'Off-Field Sub-DPS',
 		bestWeapons: [
-			{ name: 'Polar Star', weaponId: 15507, note: 'Best in Slot for damage' },
+			{ name: 'Polar Star', weaponId: 15507, note: 'Best in Slot for damage', source: 'Wish' },
 			{
 				name: 'The Stringless',
 				weaponId: 15402,
 				note: 'Great for Skill/Burst damage',
+				source: 'Wish',
 			},
-			{ name: 'Slingshot', weaponId: 15304, note: 'Budget Crit Rate option' },
+			{ name: 'Slingshot', weaponId: 15304, note: 'Budget Crit Rate option', source: 'F2P' },
 		],
 		bestArtifacts: [
 			{
@@ -787,6 +887,8 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 				note: 'Alternative for reaction teams',
 			},
 		],
+		mainStats: { sands: 'ATK%', goblet: 'Electro DMG%', circlet: 'CRIT Rate / CRIT DMG' },
+		substats: ['CRIT', 'ATK%', 'Elemental Mastery'],
 		teams: [
 			{
 				name: 'Taser',
@@ -810,17 +912,20 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 	},
 	Citlali: {
 		characterName: 'Citlali',
+		role: 'Off-Field Support / Sub-DPS',
 		bestWeapons: [
-			{ name: 'Cashflow Supervision', weaponId: 14514, note: 'Best in Slot' },
+			{ name: 'Cashflow Supervision', weaponId: 14514, note: 'Best in Slot', source: 'Wish' },
 			{
 				name: 'Sacrificial Fragments',
 				weaponId: 14402,
 				note: 'Good EM + Skill reset',
+				source: 'Wish',
 			},
 			{
 				name: 'Prototype Amber',
 				weaponId: 14401,
 				note: 'F2P option -- provides healing',
+				source: 'Craft',
 			},
 		],
 		bestArtifacts: [
@@ -830,6 +935,8 @@ export const CHARACTER_GUIDES: Record<string, CharacterGuide> = {
 				note: 'Best for Cryo damage and freeze teams',
 			},
 		],
+		mainStats: { sands: 'Elemental Mastery / ATK%', goblet: 'Cryo DMG%', circlet: 'CRIT Rate / CRIT DMG' },
+		substats: ['CRIT', 'Elemental Mastery', 'ATK%'],
 		teams: [
 			{
 				name: 'Citlali Melt',
