@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { Download, Share2 } from "lucide-react";
+import { Download, Share2, Trophy } from "lucide-react";
 import type { EnkaProfile } from "@/lib/enka/client";
+import type { AkashaCalculation } from "@/lib/akasha/types";
 import { ENKA_UI } from "@/lib/constants";
 import {
   VerdictIcon,
@@ -36,7 +37,13 @@ function CharImg({ src, alt, size, className }: { src: string; alt: string; size
   );
 }
 
-export function ProfileClient({ profile }: { profile: EnkaProfile }) {
+interface ProfileClientProps {
+  profile: EnkaProfile;
+  rankings?: Record<string, AkashaCalculation>;
+  source?: "akasha" | "enka";
+}
+
+export function ProfileClient({ profile, rankings = {}, source = "enka" }: ProfileClientProps) {
   const [selectedIdx, setSelectedIdx] = useState(0);
   const selected = profile.characters[selectedIdx];
 
@@ -51,6 +58,9 @@ export function ProfileClient({ profile }: { profile: EnkaProfile }) {
   // Deterministic seed: uid + character name → same roast on server and client
   const roast = getRoast(tier, `${profile.uid}-${selected.name}`);
 
+  // Akasha leaderboard ranking for the selected character (if available)
+  const ranking = rankings[selected.name];
+
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       {/* Player Header */}
@@ -63,6 +73,9 @@ export function ProfileClient({ profile }: { profile: EnkaProfile }) {
             <span className="font-mono">UID: {profile.uid}</span>
             {profile.player.achievements && <span className="flex items-center gap-1"><TrophyIcon size={14} className="text-guild-gold" /> {profile.player.achievements}</span>}
             {profile.player.abyssFloor && <span>Abyss {profile.player.abyssFloor}-{profile.player.abyssChamber}</span>}
+            {source === "akasha" && (
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-guild-gold/15 text-guild-gold">Akasha</span>
+            )}
           </div>
           {profile.player.signature && (
             <p className="text-sm text-guild-muted mt-2 italic">&quot;{profile.player.signature}&quot;</p>
@@ -131,6 +144,37 @@ export function ProfileClient({ profile }: { profile: EnkaProfile }) {
               <div className="text-sm text-guild-gold mt-1">{"★".repeat(selected.rarity)}</div>
             </div>
           </div>
+          {/* Akasha Leaderboard Ranking */}
+          {ranking && (
+            <div className="border-t border-white/5 pt-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Trophy size={14} className="text-guild-gold" />
+                <h3 className="text-sm font-medium text-guild-muted">Akasha Leaderboard</h3>
+              </div>
+              <div className="bg-guild-elevated rounded-lg p-3 border border-white/5 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-guild-muted">{ranking.name || "Best Fit"}</span>
+                  <span className={cn(
+                    "text-xs font-bold px-2 py-0.5 rounded",
+                    ranking.outOf > 0 && (ranking.ranking / ranking.outOf) <= 0.01
+                      ? "bg-guild-gold/20 text-guild-gold"
+                      : ranking.outOf > 0 && (ranking.ranking / ranking.outOf) <= 0.10
+                        ? "bg-green-500/20 text-green-400"
+                        : "bg-guild-accent/20 text-guild-accent"
+                  )}>
+                    Top {ranking.outOf > 0 ? ((ranking.ranking / ranking.outOf) * 100).toFixed(1) : "?"}%
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-guild-muted font-mono">#{ranking.ranking.toLocaleString()} / {ranking.outOf.toLocaleString()}</span>
+                  <span className="text-guild-gold font-mono font-bold">{Math.round(ranking.result).toLocaleString()}</span>
+                </div>
+                {ranking.details && (
+                  <p className="text-[10px] text-guild-dim">{ranking.details}</p>
+                )}
+              </div>
+            </div>
+          )}
           <div className="border-t border-white/5 pt-4">
             <h3 className="text-sm font-medium text-guild-muted mb-2">Weapon</h3>
             <div className="flex items-center gap-3">
