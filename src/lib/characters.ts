@@ -19,15 +19,15 @@ export interface CharacterEntry {
 export { ELEMENT_COLORS } from "@/lib/constants";
 
 export function charIconUrl(id: string): string {
-  return `/assets/characters/${id}/icon.png`;
+  return `/api/images/characters/${id}/icon.png`;
 }
 
 export function charGachaUrl(id: string): string {
-  return `/assets/characters/${id}/gacha.png`;
+  return `/api/images/characters/${id}/gacha.png`;
 }
 
 export function charSideUrl(id: string): string {
-  return `/assets/characters/${id}/side.png`;
+  return `/api/images/characters/${id}/side.png`;
 }
 
 export const ELEMENTS = ["All", "Pyro", "Hydro", "Anemo", "Cryo", "Electro", "Geo", "Dendro"] as const;
