@@ -4,10 +4,11 @@ import { ELEMENT_ICONS } from '@/components/icons/genshin-icons';
 import { ALL_CHARACTERS } from '@/lib/characters';
 import { cn } from '@/lib/utils';
 import { ALL_WEAPONS } from '@/lib/weapons';
-import { Eye, EyeOff, Monitor, Moon, Search, Settings, X } from 'lucide-react';
+import { Eye, EyeOff, Monitor, Moon, Search, Settings, Sun, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTheme } from 'next-themes';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // ── Settings Storage ─────────────────────────────────────────────────
@@ -61,6 +62,8 @@ export function TopBar() {
 	const [search, setSearch] = useState('');
 	const [searchFocused, setSearchFocused] = useState(false);
 	const router = useRouter();
+	const { theme, setTheme } = useTheme();
+	const [mounted, setMounted] = useState(false);
 
 	const searchResults = useMemo(() => {
 		if (!search.trim() || search.trim().length < 2) return [];
@@ -102,6 +105,8 @@ export function TopBar() {
 	useEffect(() => {
 		setSettings(loadSettings());
 	}, []);
+
+	useEffect(() => setMounted(true), []);
 
 	const updateSetting = useCallback(
 		<K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
@@ -148,7 +153,7 @@ export function TopBar() {
 
 	return (
 		<>
-			<header className='h-16 flex items-center justify-between px-6 border-b border-white/5 bg-guild-card/30 backdrop-blur-sm'>
+			<header className='h-16 flex items-center justify-between px-6 border-b border-guild-border/30 bg-guild-card/30 backdrop-blur-sm'>
 				<div className='hidden md:flex items-center gap-4 flex-1 max-w-xl'>
 					<div className='relative flex-1'>
 						<Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-guild-muted' />
@@ -159,10 +164,10 @@ export function TopBar() {
 							onChange={(e) => setSearch(e.target.value)}
 							onFocus={() => setSearchFocused(true)}
 							onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
-							className='w-full h-9 pl-9 pr-4 rounded-md bg-guild-elevated border border-white/5 text-sm text-foreground placeholder:text-guild-muted focus:outline-none focus:ring-1 focus:ring-guild-accent'
+							className='w-full h-9 pl-9 pr-4 rounded-md bg-guild-elevated border border-guild-border/30 text-sm text-foreground placeholder:text-guild-muted focus:outline-none focus:ring-1 focus:ring-guild-accent'
 						/>
 						{searchFocused && searchResults.length > 0 && (
-							<div className='absolute top-full left-0 right-0 mt-1 rounded-lg bg-guild-card border border-white/10 shadow-xl z-50 overflow-hidden'>
+							<div className='absolute top-full left-0 right-0 mt-1 rounded-lg bg-guild-card border border-guild-border shadow-xl z-50 overflow-hidden'>
 								{searchResults.map((r) => (
 									<Link
 										key={r.href}
@@ -171,7 +176,7 @@ export function TopBar() {
 											setSearch('');
 											setSearchFocused(false);
 										}}
-										className='flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition-colors'
+										className='flex items-center gap-3 px-4 py-2.5 hover:bg-guild-elevated/50 transition-colors'
 									>
 										{r.type === 'character' &&
 											r.element &&
@@ -211,7 +216,7 @@ export function TopBar() {
 							value={uid}
 							onChange={(e) => setUid(e.target.value)}
 							onKeyDown={(e) => e.key === 'Enter' && handleLookup()}
-							className='h-9 w-28 sm:w-36 px-3 rounded-md bg-guild-elevated border border-white/5 text-sm text-foreground placeholder:text-guild-muted focus:outline-none focus:ring-1 focus:ring-guild-accent font-mono'
+							className='h-9 w-28 sm:w-36 px-3 rounded-md bg-guild-elevated border border-guild-border/30 text-sm text-foreground placeholder:text-guild-muted focus:outline-none focus:ring-1 focus:ring-guild-accent font-mono'
 						/>
 						<button
 							onClick={handleLookup}
@@ -220,13 +225,22 @@ export function TopBar() {
 							Lookup
 						</button>
 					</div>
+					{mounted && (
+						<button
+							onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+							className='h-9 w-9 rounded-xl bg-guild-elevated/50 hover:bg-guild-elevated flex items-center justify-center transition-colors cursor-pointer'
+							title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+						>
+							{theme === 'dark' ? <Sun size={18} className='text-guild-muted' /> : <Moon size={18} className='text-guild-muted' />}
+						</button>
+					)}
 					<button
 						onClick={() => setShowSettings(!showSettings)}
 						className={cn(
 							'h-9 w-9 flex items-center justify-center rounded-md transition-colors cursor-pointer',
 							showSettings
 								? 'bg-guild-accent/20 text-guild-accent'
-								: 'hover:bg-white/5 text-guild-muted hover:text-foreground',
+								: 'hover:bg-guild-elevated/50 text-guild-muted hover:text-foreground',
 						)}
 					>
 						<Settings className='h-4 w-4' />
@@ -239,17 +253,17 @@ export function TopBar() {
 				<div className='fixed inset-0 z-50 bg-black/40 backdrop-blur-sm'>
 					<div
 						ref={panelRef}
-						className='absolute right-0 top-0 h-full w-80 bg-guild-card border-l border-white/10 shadow-2xl shadow-black/50 overflow-y-auto animate-in slide-in-from-right duration-200'
+						className='absolute right-0 top-0 h-full w-80 bg-guild-card border-l border-guild-border shadow-2xl shadow-black/50 overflow-y-auto animate-in slide-in-from-right duration-200'
 					>
 						{/* Panel header */}
-						<div className='flex items-center justify-between p-5 border-b border-white/5'>
+						<div className='flex items-center justify-between p-5 border-b border-guild-border/30'>
 							<div className='flex items-center gap-2'>
 								<Settings className='h-5 w-5 text-guild-accent' />
 								<h2 className='text-lg font-semibold'>Settings</h2>
 							</div>
 							<button
 								onClick={() => setShowSettings(false)}
-								className='h-8 w-8 flex items-center justify-center rounded-md hover:bg-white/5 text-guild-muted hover:text-foreground transition-colors'
+								className='h-8 w-8 flex items-center justify-center rounded-md hover:bg-guild-elevated/50 text-guild-muted hover:text-foreground transition-colors'
 							>
 								<X className='h-4 w-4' />
 							</button>
@@ -342,7 +356,7 @@ function SettingsToggle({
 	return (
 		<button
 			onClick={() => onChange(!checked)}
-			className='w-full flex items-start gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors text-left'
+			className='w-full flex items-start gap-3 p-3 rounded-lg hover:bg-guild-elevated/50 transition-colors text-left'
 		>
 			<div
 				className={cn(
@@ -360,7 +374,7 @@ function SettingsToggle({
 			<div
 				className={cn(
 					'relative w-10 h-5 rounded-full transition-colors shrink-0 mt-0.5',
-					checked ? 'bg-guild-accent' : 'bg-white/10',
+					checked ? 'bg-guild-accent' : 'bg-guild-elevated',
 				)}
 			>
 				<div

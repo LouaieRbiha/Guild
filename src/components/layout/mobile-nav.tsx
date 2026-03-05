@@ -5,6 +5,7 @@ import {
 	CompassIcon,
 	FateIcon,
 	FlowerIcon,
+	KameraIcon,
 	PrimogemIcon,
 	VisionIcon,
 	WeaponIcon,
@@ -39,6 +40,7 @@ const MORE_ITEMS: MobileNavItem[] = [
 	{ href: '/map', icon: CompassIcon, label: 'Map' },
 	{ href: '/simulator', icon: FateIcon, label: 'Simulator' },
 	{ href: '/wordle', icon: Gamepad2, label: 'Genshindle' },
+	{ href: '/streamers', icon: KameraIcon, label: 'Live' },
 ];
 
 // ── Component ─────────────────────────────────────────────────────────────
@@ -66,14 +68,14 @@ export function MobileNav() {
 			{/* More menu popup */}
 			{moreOpen && (
 				<div className='fixed bottom-16 left-0 right-0 z-50 md:hidden px-3 pb-2'>
-					<div className='bg-guild-card border border-white/10 rounded-2xl p-3 shadow-2xl shadow-black/50'>
+					<div className='bg-guild-card border border-guild-border rounded-2xl p-3 shadow-2xl shadow-black/50'>
 						<div className='flex items-center justify-between mb-3 px-1'>
 							<span className='text-sm font-semibold text-guild-muted'>
 								More
 							</span>
 							<button
 								onClick={() => setMoreOpen(false)}
-								className='p-1 rounded-lg hover:bg-white/5 cursor-pointer'
+								className='p-1 rounded-lg hover:bg-guild-elevated/50 cursor-pointer'
 							>
 								<X size={16} className='text-guild-dim' />
 							</button>
@@ -90,10 +92,18 @@ export function MobileNav() {
 											'flex flex-col items-center gap-1.5 py-3 rounded-xl transition-colors',
 											active
 												? 'bg-guild-accent/15 text-guild-accent'
-												: 'text-guild-muted hover:bg-white/5 hover:text-foreground',
+												: 'text-guild-muted hover:bg-guild-elevated/50 hover:text-foreground',
 										)}
 									>
-										<item.icon size={22} />
+										<div className="relative">
+											<item.icon size={22} />
+											{item.label === 'Live' && (
+												<span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+													<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+													<span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+												</span>
+											)}
+										</div>
 										<span className='text-[11px] font-medium'>
 											{item.label}
 										</span>
@@ -106,7 +116,7 @@ export function MobileNav() {
 			)}
 
 			{/* Bottom tab bar */}
-			<nav className='fixed bottom-0 left-0 right-0 z-40 md:hidden bg-guild-card/95 backdrop-blur-lg border-t border-white/5'>
+			<nav className='fixed bottom-0 left-0 right-0 z-40 md:hidden bg-guild-card/95 backdrop-blur-lg border-t border-guild-border/30'>
 				<div className='flex items-center justify-around h-16 px-2'>
 					{PRIMARY_TABS.map((item) => {
 						const active = isActive(item.href);

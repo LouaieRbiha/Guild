@@ -129,8 +129,8 @@ export function Sidebar() {
 	});
 
 	return (
-		<aside className='hidden md:flex w-16 hover:w-48 transition-all duration-300 flex-col bg-guild-card/50 border-r border-white/5 group overflow-hidden'>
-			<div className='flex items-center h-16 px-4 border-b border-white/5'>
+		<aside className='hidden md:flex w-16 hover:w-48 transition-all duration-300 flex-col bg-guild-card/50 border-r border-guild-border/30 group overflow-hidden'>
+			<div className='flex items-center h-16 px-4 border-b border-guild-border/30'>
 				<PrimogemIcon className='text-guild-accent shrink-0' size={24} />
 				<span className='ml-2 text-lg font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap'>
 					Guild
@@ -150,7 +150,7 @@ export function Sidebar() {
 								'flex items-center h-10 px-4 mx-2 rounded-md transition-colors',
 								isActive
 									? 'bg-guild-accent/20 text-guild-accent'
-									: 'text-guild-muted hover:text-foreground hover:bg-white/5',
+									: 'text-guild-muted hover:text-foreground hover:bg-guild-elevated/50',
 							)}
 						>
 							<span className='relative shrink-0'>
@@ -176,7 +176,7 @@ export function Sidebar() {
 				})}
 			</nav>
 
-			<div className='p-4 border-t border-white/5'>
+			<div className='p-4 border-t border-guild-border/30'>
 				<div className='text-xs text-guild-dim opacity-0 group-hover:opacity-100 transition-opacity duration-300'>
 					Not affiliated with HoYoverse
 				</div>

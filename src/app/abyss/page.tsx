@@ -121,25 +121,23 @@ function BossCard({ boss }: { boss: AbyssBoss }) {
 
   return (
     <Card className="bg-guild-card border-guild-border overflow-hidden">
-      {/* Boss Image Banner */}
-      {boss.image && !imgError && (
-        <div className="relative aspect-[2/1] w-full bg-black/20">
-          <Image
-            src={boss.image}
-            alt={boss.name}
-            fill
-            sizes="(max-width: 768px) 100vw, 50vw"
-            className="object-cover"
-            onError={() => setImgError(true)}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-guild-card via-guild-card/40 to-transparent" />
-        </div>
-      )}
-
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-guild-accent" />
+            {boss.image && !imgError ? (
+              <div className="w-8 h-8 rounded-lg overflow-hidden bg-white/5 shrink-0">
+                <Image
+                  src={boss.image}
+                  alt={boss.name}
+                  width={32}
+                  height={32}
+                  className="object-cover"
+                  onError={() => setImgError(true)}
+                />
+              </div>
+            ) : (
+              <Shield className="h-5 w-5 text-guild-accent" />
+            )}
             <span>{boss.name}</span>
           </div>
           <Badge variant="outline" className="text-guild-muted font-mono">{boss.hp} HP</Badge>
@@ -644,6 +642,7 @@ function StygianUsageRatesSection() {
   const [error, setError] = useState(false);
   const [rateType, setRateType] = useState<"pickRate" | "ownRate" | "useByOwnRate">("pickRate");
   const [roomFilter, setRoomFilter] = useState<"overall" | number>("overall");
+  const [difficultyId, setDifficultyId] = useState<string | null>(null);
   const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -677,11 +676,25 @@ function StygianUsageRatesSection() {
     );
   }
 
+  const activeDiff = data.difficulties?.length
+    ? data.difficulties.find((d) => d.id === difficultyId) ?? data.difficulties[data.difficulties.length - 1]
+    : null;
+
+  const activeRooms = activeDiff ? activeDiff.rooms : data.rooms;
+  const activeOverall = activeDiff ? activeDiff.overall : data.overall;
+
   const chars = roomFilter === "overall"
-    ? data.overall
-    : data.rooms.find((r) => r.room === roomFilter)?.characters ?? [];
+    ? activeOverall
+    : activeRooms.find((r) => r.room === roomFilter)?.characters ?? [];
   const sorted = [...chars].sort((a, b) => b[rateType] - a[rateType]);
   const top = sorted.filter((c) => c[rateType] > 0).slice(0, 50);
+
+  const DIFFICULTY_LABELS: Record<string, string> = {
+    "3": "Normal",
+    "4": "Hard",
+    "5": "Expert",
+    "6": "Master",
+  };
 
   const rateLabels: Record<string, string> = {
     pickRate: "Pick Rate",
@@ -691,7 +704,7 @@ function StygianUsageRatesSection() {
 
   const roomLabels: { value: "overall" | number; label: string }[] = [
     { value: "overall", label: "Overall" },
-    ...data.rooms.map((r) => ({ value: r.room, label: `Room ${r.room}` })),
+    ...activeRooms.map((r) => ({ value: r.room, label: `Room ${r.room}` })),
   ];
 
   return (
@@ -702,6 +715,30 @@ function StygianUsageRatesSection() {
           Stygian Character Usage
         </h2>
       </div>
+
+      {/* Difficulty filter */}
+      {data.difficulties && data.difficulties.length > 1 && (
+        <div className="flex gap-1.5 flex-wrap">
+          {data.difficulties.map((diff) => {
+            const isActive = activeDiff?.id === diff.id;
+            return (
+              <button
+                key={diff.id}
+                onClick={() => { setDifficultyId(diff.id); setRoomFilter("overall"); }}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer",
+                  isActive
+                    ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                    : "bg-white/5 text-guild-dim hover:text-white hover:bg-white/10 border border-transparent"
+                )}
+              >
+                {DIFFICULTY_LABELS[diff.id] ?? `Lv.${diff.id}`}
+                <span className="ml-1 text-[10px] opacity-60">({diff.sampleSize}%)</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Room filter */}
       <div className="flex gap-1.5 flex-wrap">

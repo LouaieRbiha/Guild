@@ -168,7 +168,7 @@ function VersionHeader() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Badge
               variant="outline"
               className="text-guild-accent border-guild-accent/30 text-sm px-3 py-1"
@@ -247,12 +247,12 @@ function DailyChecklist() {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {/* Daily Commissions */}
-        <div className="flex items-start gap-3 rounded-xl bg-white/3 border border-white/5 p-4">
+        <div className="flex items-start gap-3 rounded-xl bg-white/3 border border-white/5 p-4 min-w-0">
           <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0 mt-0.5">
             <Sparkles size={16} className="text-amber-400" />
           </div>
-          <div>
-            <p className="text-sm font-semibold">Daily Commissions</p>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold truncate">Daily Commissions</p>
             <p className="text-xs text-guild-muted mt-0.5">
               4 commissions = 60 Primogems
             </p>
@@ -260,12 +260,12 @@ function DailyChecklist() {
         </div>
 
         {/* Resin Cap */}
-        <div className="flex items-start gap-3 rounded-xl bg-white/3 border border-white/5 p-4">
+        <div className="flex items-start gap-3 rounded-xl bg-white/3 border border-white/5 p-4 min-w-0">
           <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0 mt-0.5">
             <Zap size={16} className="text-blue-400" />
           </div>
-          <div>
-            <p className="text-sm font-semibold">Spend Resin</p>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold truncate">Spend Resin</p>
             <p className="text-xs text-guild-muted mt-0.5">
               160/160 cap, 1 per 8 min
             </p>
@@ -273,12 +273,12 @@ function DailyChecklist() {
         </div>
 
         {/* Talent Books */}
-        <div className="flex items-start gap-3 rounded-xl bg-white/3 border border-white/5 p-4">
+        <div className="flex items-start gap-3 rounded-xl bg-white/3 border border-white/5 p-4 min-w-0">
           <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0 mt-0.5">
             <BookOpen size={16} className="text-purple-400" />
           </div>
-          <div>
-            <p className="text-sm font-semibold">Talent Books</p>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold truncate">Talent Books</p>
             {isSunday ? (
               <p className="text-xs text-guild-success mt-0.5">
                 All books available today
@@ -338,7 +338,7 @@ function PrimogemCalculator() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {/* Daily Commissions */}
         <div className="rounded-xl bg-white/3 border border-white/5 p-4 text-center">
           <p className="text-2xl font-bold font-mono text-guild-accent">
@@ -446,18 +446,18 @@ function EventCard({ event, status }: EventCardProps) {
       </div>
 
       {/* Description */}
-      <p className="text-sm text-guild-muted leading-relaxed">
+      <p className="text-sm text-guild-muted leading-relaxed line-clamp-2">
         {event.description}
       </p>
 
       {/* Rewards as small badges */}
       {event.rewards && event.rewards.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5 pt-1">
+        <div className="flex flex-wrap items-center gap-1.5 pt-1 overflow-hidden">
           <Gift size={14} className="text-guild-gold shrink-0" />
           {event.rewards.map((reward) => (
             <span
               key={reward}
-              className="text-[11px] px-2 py-0.5 rounded-md bg-guild-gold/10 text-guild-gold font-medium"
+              className="text-[11px] px-2 py-0.5 rounded-md bg-guild-gold/10 text-guild-gold font-medium truncate max-w-[150px]"
             >
               {reward}
             </span>
@@ -504,12 +504,12 @@ function EventSection({
     <section className="space-y-4">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex items-center gap-3 w-full group"
+        className="flex items-center gap-3 w-full group min-w-0"
       >
-        <div className={cn("w-2.5 h-2.5 rounded-full", dotColor)} />
-        <h2 className="text-lg font-bold">{title}</h2>
-        <span className="text-sm text-guild-muted">({events.length})</span>
-        <div className="ml-auto text-guild-muted group-hover:text-white transition-colors">
+        <div className={cn("w-2.5 h-2.5 rounded-full shrink-0", dotColor)} />
+        <h2 className="text-lg font-bold truncate">{title}</h2>
+        <span className="text-sm text-guild-muted shrink-0">({events.length})</span>
+        <div className="ml-auto text-guild-muted group-hover:text-white transition-colors shrink-0">
           {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
         </div>
       </button>
@@ -543,12 +543,12 @@ function PermanentCard({ event }: { event: GameEvent }) {
         {event.description}
       </p>
       {event.rewards && event.rewards.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5 overflow-hidden">
           <Gift size={12} className="text-guild-gold shrink-0" />
           {event.rewards.map((reward) => (
             <span
               key={reward}
-              className="text-[11px] px-1.5 py-0.5 rounded bg-guild-gold/10 text-guild-gold font-medium"
+              className="text-[11px] px-1.5 py-0.5 rounded bg-guild-gold/10 text-guild-gold font-medium truncate max-w-[150px]"
             >
               {reward}
             </span>
