@@ -98,8 +98,8 @@ body {
   --accent-foreground: 210 40% 98%;
   --destructive: 0 63% 31%;
   --destructive-foreground: 0 0% 100%;
-  --border: 231 21% 29%;
-  --input: 231 21% 29%;
+  --border: 231 21% 20%;
+  --input: 231 21% 20%;
   --ring: 239 84% 67%;
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);

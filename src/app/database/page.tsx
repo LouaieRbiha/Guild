@@ -154,7 +154,7 @@ export default function DatabasePage() {
       </div>
 
       {/* Sticky Filter Bar */}
-      <Card className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border p-4 gap-3">
+      <Card className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-guild-border/30 p-4 gap-3">
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
