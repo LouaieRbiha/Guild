@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import { Shield, AlertTriangle, Swords, Trophy, Info, ChevronRight, Flame, Zap } from "lucide-react";
+import { Shield, AlertTriangle, Swords, Trophy, Info, ChevronRight, Flame, Zap, BarChart3, Users, TrendingUp } from "lucide-react";
+import type { AbyssRatesData, AbyssCharacterRate } from "@/app/api/abyss/route";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -471,6 +472,161 @@ function StygianStageCard({ stage }: { stage: StygianStage }) {
   );
 }
 
+// ── Usage Rates (Live from AZA.GG) ──────────────────────────────────────
+
+function UsageRatesSection() {
+  const [data, setData] = useState<AbyssRatesData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [rateType, setRateType] = useState<"pickRate" | "ownRate" | "useByOwnRate">("pickRate");
+  const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    fetch("/api/abyss")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.error) throw new Error(d.error);
+        setData(d);
+      })
+      .catch(() => setError(true))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        <div className="h-6 w-48 bg-white/5 rounded animate-pulse" />
+        {Array.from({ length: 10 }).map((_, i) => (
+          <div key={i} className="h-12 bg-white/5 rounded-lg animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20">
+        <AlertTriangle className="h-4 w-4 text-red-400 shrink-0" />
+        <p className="text-sm text-red-300">Failed to load usage data from AZA.GG</p>
+      </div>
+    );
+  }
+
+  const sorted = [...data.characters].sort((a, b) => b[rateType] - a[rateType]);
+  const top = sorted.filter((c) => c[rateType] > 0).slice(0, 50);
+
+  const rateLabels: Record<string, string> = {
+    pickRate: "Pick Rate",
+    ownRate: "Ownership",
+    useByOwnRate: "Use/Own",
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <h2 className="text-xl font-semibold flex items-center gap-2">
+          <BarChart3 className="h-5 w-5 text-guild-accent" />
+          Character Usage Rates
+        </h2>
+        <div className="flex items-center gap-2 text-xs text-guild-muted">
+          <Users className="h-3.5 w-3.5" />
+          {data.sampleSize.toLocaleString()} players sampled
+        </div>
+      </div>
+
+      {/* Rate type toggle */}
+      <div className="flex gap-1.5">
+        {(["pickRate", "ownRate", "useByOwnRate"] as const).map((type) => (
+          <button
+            key={type}
+            onClick={() => setRateType(type)}
+            className={cn(
+              "px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer",
+              rateType === type
+                ? "bg-guild-accent/20 text-guild-accent border border-guild-accent/30"
+                : "bg-white/5 text-guild-dim hover:text-white hover:bg-white/10 border border-transparent"
+            )}
+          >
+            {rateLabels[type]}
+          </button>
+        ))}
+      </div>
+
+      {/* Rate list */}
+      <div className="space-y-1">
+        {top.map((char, i) => {
+          const charEntry = ALL_CHARACTERS.find((c) => c.id === char.id);
+          const rate = char[rateType];
+          const maxRate = top[0]?.[rateType] || 1;
+          const barWidth = Math.max((rate / maxRate) * 100, 2);
+          const hasImgError = char.id ? imgErrors[char.id] : true;
+
+          return (
+            <div
+              key={char.id}
+              className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/3 transition-colors group"
+            >
+              {/* Rank */}
+              <span className={cn(
+                "text-xs font-mono w-6 text-right shrink-0",
+                i === 0 ? "text-guild-gold font-bold" : i < 3 ? "text-guild-accent" : "text-guild-dim"
+              )}>
+                {i + 1}
+              </span>
+
+              {/* Icon */}
+              <div className="w-8 h-8 rounded-full overflow-hidden bg-guild-elevated shrink-0 border border-white/5">
+                {charEntry && !hasImgError ? (
+                  <Image
+                    src={charIconUrl(charEntry.id)}
+                    alt={char.name}
+                    width={32}
+                    height={32}
+                    className="object-cover"
+                    onError={() => setImgErrors((prev) => ({ ...prev, [char.id]: true }))}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[10px] text-guild-muted">
+                    {char.name.charAt(0)}
+                  </div>
+                )}
+              </div>
+
+              {/* Name */}
+              <span className="text-sm font-medium w-32 truncate shrink-0">
+                {char.name}
+              </span>
+
+              {/* Bar */}
+              <div className="flex-1 h-5 bg-white/5 rounded-full overflow-hidden">
+                <div
+                  className={cn(
+                    "h-full rounded-full transition-all duration-500",
+                    i === 0 ? "bg-guild-gold/70" : i < 3 ? "bg-guild-accent/60" : "bg-guild-accent/30"
+                  )}
+                  style={{ width: `${barWidth}%` }}
+                />
+              </div>
+
+              {/* Rate */}
+              <span className={cn(
+                "text-sm font-mono w-14 text-right shrink-0",
+                i === 0 ? "text-guild-gold font-bold" : "text-foreground"
+              )}>
+                {rate}%
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      <p className="text-[10px] text-guild-dim text-right">
+        Data from AZA.GG · Updated {new Date(data.updatedAt).toLocaleDateString()}
+      </p>
+    </div>
+  );
+}
+
 // ── Main Page ────────────────────────────────────────────────────────────
 
 export default function AbyssPage() {
@@ -551,6 +707,9 @@ export default function AbyssPage() {
               ))}
             </div>
           </div>
+
+          {/* Live Usage Rates */}
+          <UsageRatesSection />
         </>
       ) : (
         <>
