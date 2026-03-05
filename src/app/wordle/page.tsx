@@ -37,6 +37,14 @@ function getDailyCharacter(): CharacterEntry {
 	return ALL_CHARACTERS[idx];
 }
 
+function getDailyDateKey(): string {
+	const today = new Date();
+	const yyyy = today.getFullYear();
+	const mm = String(today.getMonth() + 1).padStart(2, '0');
+	const dd = String(today.getDate()).padStart(2, '0');
+	return `genshindle-${yyyy}-${mm}-${dd}`;
+}
+
 function getReleaseYear(date: string): number {
 	return new Date(date).getFullYear();
 }
@@ -98,6 +106,49 @@ export default function WordlePage() {
 	const [showHelp, setShowHelp] = useState(false);
 	const inputRef = useRef<HTMLInputElement>(null);
 	const suggestionsRef = useRef<HTMLDivElement>(null);
+
+	// Load saved game state from localStorage on mount
+	useEffect(() => {
+		try {
+			const key = getDailyDateKey();
+			const saved = localStorage.getItem(key);
+			if (saved) {
+				const names: string[] = JSON.parse(saved);
+				const restored: GuessResult[] = [];
+				for (const name of names) {
+					const char = ALL_CHARACTERS.find((c) => c.name === name);
+					if (char) {
+						restored.push({
+							character: char,
+							matches: compareGuess(char, answer),
+						});
+					}
+				}
+				if (restored.length > 0) {
+					setGuesses(restored);
+					const didWin = restored.some(
+						(g) => g.character.name === answer.name,
+					);
+					if (!didWin && restored.length >= 8) {
+						setGameOver(true);
+					}
+				}
+			}
+		} catch {
+			// Ignore localStorage errors (SSR, private browsing, etc.)
+		}
+	}, [answer]);
+
+	// Save guesses to localStorage whenever they change
+	useEffect(() => {
+		try {
+			const key = getDailyDateKey();
+			const names = guesses.map((g) => g.character.name);
+			localStorage.setItem(key, JSON.stringify(names));
+		} catch {
+			// Ignore localStorage errors
+		}
+	}, [guesses]);
 
 	const guessedNames = useMemo(
 		() => new Set(guesses.map((g) => g.character.name)),
@@ -177,6 +228,11 @@ export default function WordlePage() {
 		setGuesses([]);
 		setGameOver(false);
 		setInputValue('');
+		try {
+			localStorage.removeItem(getDailyDateKey());
+		} catch {
+			// Ignore localStorage errors
+		}
 	};
 
 	const columns = [

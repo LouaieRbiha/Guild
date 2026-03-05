@@ -3,29 +3,11 @@
 import { useState } from "react";
 import { MapPin, ExternalLink, Compass, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-
-const MAP_TOOLS = [
-  { label: "Oculi", color: "bg-purple-500/20 text-purple-300 border-purple-500/30" },
-  { label: "Chests", color: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30" },
-  { label: "Materials", color: "bg-green-500/20 text-green-300 border-green-500/30" },
-  { label: "Waypoints", color: "bg-cyan-500/20 text-cyan-300 border-cyan-500/30" },
-  { label: "Bosses", color: "bg-red-500/20 text-red-300 border-red-500/30" },
-];
 
 const ALT_MAPS = [
-  {
-    label: "Official HoYoLAB Map",
-    href: "https://act.hoyolab.com/ys/app/interactive-map/",
-  },
-  {
-    label: "Teyvat Interactive Map",
-    href: "https://genshin-impact-map.appsample.com/",
-  },
-  {
-    label: "MapGenie",
-    href: "https://mapgenie.io/genshin-impact",
-  },
+  { label: "Official HoYoLAB Map", href: "https://act.hoyolab.com/ys/app/interactive-map/" },
+  { label: "Teyvat Interactive Map", href: "https://genshin-impact-map.appsample.com/" },
+  { label: "MapGenie", href: "https://mapgenie.io/genshin-impact" },
 ];
 
 export default function MapPage() {
@@ -47,25 +29,12 @@ export default function MapPage() {
           </div>
         </div>
 
-        {/* Quick-link badges */}
-        <div className="flex flex-wrap items-center gap-2">
-          {MAP_TOOLS.map((tool) => (
-            <Badge
-              key={tool.label}
-              variant="outline"
-              className={cn("border", tool.color)}
-            >
-              {tool.label}
-            </Badge>
-          ))}
-        </div>
-
         {/* Usage note */}
         <div className="flex items-start gap-2 rounded-lg bg-guild-elevated px-4 py-3 border border-white/5">
           <Compass size={16} className="mt-0.5 shrink-0 text-guild-accent" />
           <p className="text-sm text-guild-dim leading-relaxed">
-            Use the sidebar in the map to filter markers and layers. Click
-            markers for details.
+            Use the sidebar in the map to filter Oculi, Chests, Materials,
+            Waypoints, Bosses and more. Click markers for details.
           </p>
         </div>
       </div>

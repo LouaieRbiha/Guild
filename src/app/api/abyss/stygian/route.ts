@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ALL_CHARACTERS } from '@/lib/characters';
+import { getCached } from '@/lib/redis';
 
 // ── Types ─────────────────────────────────────────────────────────────
 
@@ -31,10 +32,9 @@ export interface StygianRatesData {
 	overall: StygianCharacterRate[];
 }
 
-// ── In-memory cache (5 min) ───────────────────────────────────────────
+// ── Cache TTL ─────────────────────────────────────────────────────────
 
-let cache: { data: StygianRatesData; expiresAt: number } | null = null;
-const CACHE_TTL = 5 * 60 * 1000;
+const CACHE_TTL = 300; // 5 minutes in seconds
 
 // ── Character name lookup ─────────────────────────────────────────────
 
@@ -59,11 +59,7 @@ function transformCharacters(chars: SsrCharacter[]): StygianCharacterRate[] {
 
 // ── Route handler ─────────────────────────────────────────────────────
 
-export async function GET() {
-	if (cache && cache.expiresAt > Date.now()) {
-		return NextResponse.json(cache.data);
-	}
-
+async function fetchStygianData(): Promise<StygianRatesData | null> {
 	try {
 		const res = await fetch('https://genshin.aza.gg/leyline', {
 			headers: {
@@ -73,40 +69,24 @@ export async function GET() {
 			next: { revalidate: 300 },
 		});
 
-		if (!res.ok) {
-			return NextResponse.json(
-				{ error: 'Failed to fetch leyline page', status: res.status },
-				{ status: 502 },
-			);
-		}
+		if (!res.ok) return null;
 
 		const html = await res.text();
 
 		// Extract SSR data from SvelteKit page
-		// The data is embedded as JSON in the page's script tags
 		const dataMatch = html.match(
 			/ssr_load_data\s*=\s*(\[[\s\S]*?\]);\s*(?:const|let|var|<\/script>)/,
 		);
 
-		if (!dataMatch) {
-			return NextResponse.json(
-				{ error: 'Could not extract SSR data from leyline page' },
-				{ status: 502 },
-			);
-		}
+		if (!dataMatch) return null;
 
 		let ssrData: unknown;
 		try {
 			ssrData = JSON.parse(dataMatch[1]);
 		} catch {
-			return NextResponse.json(
-				{ error: 'Failed to parse SSR data' },
-				{ status: 502 },
-			);
+			return null;
 		}
 
-		// SSR data is an array; the main data is typically in the first element
-		// Structure: [{data: {rooms: [...], difficulties: [...], ...}, ...}]
 		const loadData = Array.isArray(ssrData)
 			? (ssrData as Record<string, unknown>[])
 			: [];
@@ -114,24 +94,16 @@ export async function GET() {
 			(d) => d && typeof d === 'object' && 'data' in d,
 		) as { data: { rooms: SsrRoom[]; updated_at?: number } } | undefined;
 
-		if (!pageData?.data?.rooms) {
-			return NextResponse.json(
-				{ error: 'Unexpected SSR data structure' },
-				{ status: 502 },
-			);
-		}
+		if (!pageData?.data?.rooms) return null;
 
 		const { rooms: ssrRooms } = pageData.data;
-		const updatedAt =
-			pageData.data.updated_at || Date.now();
+		const updatedAt = pageData.data.updated_at || Date.now();
 
-		// Build per-room data
 		const rooms = ssrRooms.map((room, idx) => ({
 			room: idx + 1,
 			characters: transformCharacters(room.characters),
 		}));
 
-		// Build overall stats by averaging across rooms
 		const charMap = new Map<
 			string,
 			{ pickSum: number; ownMax: number; useOwnSum: number; count: number }
@@ -167,19 +139,26 @@ export async function GET() {
 			}))
 			.sort((a, b) => b.pickRate - a.pickRate);
 
-		const result: StygianRatesData = {
-			updatedAt,
-			rooms,
-			overall,
-		};
-
-		cache = { data: result, expiresAt: Date.now() + CACHE_TTL };
-		return NextResponse.json(result);
+		return { updatedAt, rooms, overall };
 	} catch (err) {
-		console.error('Stygian API error:', err);
+		console.error('Stygian fetch error:', err);
+		return null;
+	}
+}
+
+export async function GET() {
+	const result = await getCached<StygianRatesData | null>(
+		'guild:stygian:rates',
+		CACHE_TTL,
+		fetchStygianData,
+	);
+
+	if (!result) {
 		return NextResponse.json(
 			{ error: 'Failed to fetch stygian data' },
-			{ status: 500 },
+			{ status: 502 },
 		);
 	}
+
+	return NextResponse.json(result);
 }

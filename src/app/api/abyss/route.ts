@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ALL_CHARACTERS } from '@/lib/characters';
+import { getCached } from '@/lib/redis';
 
 // ── Types for AZA.GG response ─────────────────────────────────────────
 
@@ -47,10 +48,9 @@ export interface AbyssRatesData {
 	characters: AbyssCharacterRate[];
 }
 
-// ── In-memory cache (5 min) ───────────────────────────────────────────
+// ── Cache TTL ─────────────────────────────────────────────────────────
 
-let cache: { data: AbyssRatesData; expiresAt: number } | null = null;
-const CACHE_TTL = 5 * 60 * 1000;
+const CACHE_TTL = 300; // 5 minutes in seconds
 
 // ── Character name lookup ─────────────────────────────────────────────
 
@@ -203,13 +203,16 @@ async function fetchFromSsr(): Promise<AbyssRatesData | null> {
 
 // ── Route handler ─────────────────────────────────────────────────────
 
-export async function GET() {
-	if (cache && cache.expiresAt > Date.now()) {
-		return NextResponse.json(cache.data);
-	}
+async function fetchAbyssData(): Promise<AbyssRatesData | null> {
+	return (await fetchFromApi()) || (await fetchFromSsr());
+}
 
-	// Try JSON API first, fall back to SSR scraping
-	const result = (await fetchFromApi()) || (await fetchFromSsr());
+export async function GET() {
+	const result = await getCached<AbyssRatesData | null>(
+		'guild:abyss:rates',
+		CACHE_TTL,
+		fetchAbyssData,
+	);
 
 	if (!result) {
 		return NextResponse.json(
@@ -218,6 +221,5 @@ export async function GET() {
 		);
 	}
 
-	cache = { data: result, expiresAt: Date.now() + CACHE_TTL };
 	return NextResponse.json(result);
 }

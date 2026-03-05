@@ -236,13 +236,12 @@ export async function GET(): Promise<NextResponse> {
     return b.viewers - a.viewers;
   });
 
-  // Cache the result in Redis if available
-  if (all.length > 0) {
-    try {
-      await redis.setex("guild:streamers:live", 300, JSON.stringify(all));
-    } catch {
-      // Redis unavailable
-    }
+  // Cache the result in Redis if available (shorter TTL when empty)
+  try {
+    const ttl = all.length > 0 ? 300 : 60;
+    await redis.setex("guild:streamers:live", ttl, JSON.stringify(all));
+  } catch {
+    // Redis unavailable
   }
 
   return NextResponse.json(all);

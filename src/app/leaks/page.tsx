@@ -1,6 +1,6 @@
 "use client";
 
-import { Lock, Eye, EyeOff, AlertTriangle, ExternalLink, MessageCircle, Twitter, Users, ChevronDown, ChevronUp, Sparkles, ArrowUp, Loader2 } from "lucide-react";
+import { Lock, Eye, EyeOff, AlertTriangle, ExternalLink, MessageCircle, Twitter, Users, ChevronDown, ChevronUp, Sparkles, ArrowUp } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -238,7 +238,6 @@ export default function LeaksPage() {
   const [filterReliability, setFilterReliability] = useState<string>("all");
   const [showSources, setShowSources] = useState(false);
   const [leaks, setLeaks] = useState<LeakEntry[]>(LEAKS);
-  const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
 
   // Check settings for default state
@@ -274,8 +273,6 @@ export default function LeaksPage() {
         }
       } catch {
         // API unavailable -- keep hardcoded fallback
-      } finally {
-        if (!cancelled) setLoading(false);
       }
     }
 
@@ -338,13 +335,7 @@ export default function LeaksPage() {
           <p className="text-sm text-yellow-400/60 mt-1">
             Content from beta/datamines. Not final. Click cards to reveal.
           </p>
-          {loading && (
-            <p className="text-xs text-guild-dim mt-1 flex items-center gap-1.5">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              Loading latest leaks...
-            </p>
-          )}
-          {!loading && lastUpdated && (
+          {lastUpdated && (
             <p className="text-xs text-guild-dim mt-1">
               Last updated {Math.round((Date.now() - lastUpdated) / 60000)} minutes ago
             </p>

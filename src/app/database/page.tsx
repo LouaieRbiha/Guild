@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -94,16 +94,16 @@ export default function DatabasePage() {
     : [];
 
   // Filtering uses debouncedSearch
-  const filtered = ALL_CHARACTERS.filter((c) => {
+  const filtered = useMemo(() => ALL_CHARACTERS.filter((c) => {
     if (elements.length > 0 && !elements.includes(c.element)) return false;
     if (weapon !== "All" && c.weapon !== weapon) return false;
     if (rarity && c.rarity !== rarity) return false;
     if (debouncedSearch && !c.name.toLowerCase().includes(debouncedSearch.toLowerCase())) return false;
     return true;
-  });
+  }), [elements, weapon, rarity, debouncedSearch]);
 
   // Sorting
-  const sorted = (() => {
+  const sorted = useMemo(() => {
     const arr = [...filtered];
     switch (sortBy) {
       case "newest":
@@ -121,7 +121,7 @@ export default function DatabasePage() {
       default:
         return arr;
     }
-  })();
+  }, [filtered, sortBy]);
 
   const hasActiveFilters = elements.length > 0 || weapon !== "All" || rarity !== 0 || debouncedSearch.length > 0;
 
@@ -412,7 +412,7 @@ export default function DatabasePage() {
   );
 }
 
-function CharacterCard({ char }: { char: CharacterEntry }) {
+const CharacterCard = React.memo(function CharacterCard({ char }: { char: CharacterEntry }) {
   const [useFallback, setUseFallback] = useState(false);
   const EI = ELEMENT_ICONS[char.element];
   const stats = CHARACTER_STATS[char.name];
@@ -433,7 +433,6 @@ function CharacterCard({ char }: { char: CharacterEntry }) {
             src={useFallback ? charIconUrl(char.id) : gachaArtUrl(char.id)}
             alt={char.name}
             fill
-            quality={100}
             sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16vw"
             className="object-cover object-top transition-transform duration-300 group-hover:scale-110"
             onError={() => { if (!useFallback) setUseFallback(true); }}
@@ -468,7 +467,7 @@ function CharacterCard({ char }: { char: CharacterEntry }) {
       </Card>
     </Link>
   );
-}
+});
 
 function StatRow({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (

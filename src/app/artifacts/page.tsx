@@ -560,7 +560,6 @@ function DomainCard({ domain, setsByName }: DomainCardProps) {
                   fill
                   sizes="40px"
                   className="object-contain p-0.5"
-                  unoptimized
                 />
               </div>
             ))}
@@ -586,7 +585,6 @@ function DomainCard({ domain, setsByName }: DomainCardProps) {
                     fill
                     sizes="64px"
                     className="object-contain p-1 drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]"
-                    unoptimized
                   />
                 </div>
 
@@ -607,7 +605,6 @@ function DomainCard({ domain, setsByName }: DomainCardProps) {
                           fill
                           sizes="20px"
                           className="object-contain p-0.5"
-                          unoptimized
                         />
                       </div>
                     ))}
@@ -709,7 +706,6 @@ function ArtifactSetCard({ set }: ArtifactSetCardProps) {
                     fill
                     sizes="24px"
                     className="object-contain p-0.5"
-                    unoptimized
                   />
                 </div>
               ))}

@@ -145,13 +145,18 @@ export function HomeClient({
 	featured5StarWeapons,
 }: HomeClientProps) {
 	const [uid, setUid] = useState('');
+	const [uidError, setUidError] = useState('');
 	const [activeBannerIdx, setActiveBannerIdx] = useState(0);
 	const [activeCharIdx, setActiveCharIdx] = useState(0);
 	const [activeWeaponIdx, setActiveWeaponIdx] = useState(0);
 	const router = useRouter();
 
 	const go = () => {
-		if (uid.trim().length >= 9) router.push(`/profile/${uid.trim()}`);
+		if (uid.trim().length < 9) {
+			setUidError('UID must be 9 digits');
+			return;
+		}
+		router.push(`/profile/${uid.trim()}`);
 	};
 
 	const charBanner = banners.character;
@@ -229,7 +234,10 @@ export function HomeClient({
 											type='text'
 											placeholder='Enter your UID'
 											value={uid}
-											onChange={(e) => setUid(e.target.value)}
+											onChange={(e) => {
+												setUid(e.target.value);
+												if (uidError) setUidError('');
+											}}
 											onKeyDown={(e) => e.key === 'Enter' && go()}
 											className='h-12 font-mono text-lg bg-background/50'
 										/>
@@ -241,6 +249,9 @@ export function HomeClient({
 											Lookup
 										</Button>
 									</div>
+									{uidError && (
+										<p className='text-sm text-red-400 mt-2'>{uidError}</p>
+									)}
 								</CardContent>
 							</Card>
 						</div>
@@ -415,7 +426,6 @@ export function HomeClient({
 													alt={weapon.name}
 													width={280}
 													height={280}
-													quality={100}
 													className={cn(
 														'absolute object-contain transition-opacity duration-700 drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)]',
 														idx === activeWeaponIdx
@@ -459,7 +469,6 @@ export function HomeClient({
 																alt={weapon.name}
 																width={56}
 																height={56}
-																quality={100}
 																className={cn(
 																	'object-contain transition-opacity duration-500 drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)]',
 																	idx === activeWeaponIdx
@@ -647,7 +656,6 @@ export function HomeClient({
 														alt={weapon.name}
 														width={200}
 														height={200}
-														quality={100}
 														className={cn(
 															'absolute object-contain transition-opacity duration-700 drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)]',
 															idx === activeWeaponIdx
@@ -683,7 +691,6 @@ export function HomeClient({
 															alt={weapon.name}
 															width={48}
 															height={48}
-															quality={100}
 															className={cn(
 																'object-contain transition-opacity duration-500 drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)]',
 																idx === activeWeaponIdx
@@ -882,7 +889,6 @@ export function HomeClient({
 											src={splashUrl}
 											alt={char.name}
 											fill
-											quality={100}
 											className='object-cover opacity-80 group-hover:scale-105 transition-transform duration-300'
 											sizes='(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw'
 										/>

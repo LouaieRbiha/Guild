@@ -9,8 +9,12 @@ const redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379", {
   },
 });
 
+let redisWarned = false;
 redis.on("error", (err) => {
-  console.error("[Redis] Connection error:", err.message);
+  if (!redisWarned) {
+    redisWarned = true;
+    console.warn("[Redis] Unavailable — using direct fetches.", err.message || "");
+  }
 });
 
 /**
