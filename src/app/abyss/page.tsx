@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { Shield, AlertTriangle, Swords, Trophy, Info, ChevronRight, Flame, Zap, BarChart3, Users, TrendingUp } from "lucide-react";
-import type { AbyssRatesData, AbyssCharacterRate } from "@/app/api/abyss/route";
+import { Shield, AlertTriangle, Swords, Trophy, Info, ChevronRight, Flame, Zap, BarChart3, Users } from "lucide-react";
+import type { AbyssRatesData } from "@/app/api/abyss/route";
 import type { StygianRatesData } from "@/app/api/abyss/stygian/route";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,22 +16,20 @@ import {
   ABYSS_FLOORS,
   ABYSS_VERSION,
   ABYSS_CYCLE,
-  RECOMMENDED_TEAMS,
   STYGIAN_STAGES,
   STYGIAN_VERSION,
   STYGIAN_CYCLE,
   type AbyssFloor,
   type AbyssBoss,
   type AbyssEnemy,
-  type TeamComp,
   type StygianStage,
 } from "@/data/abyss";
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 
-function findCharacterId(name: string): string | null {
-  const char = ALL_CHARACTERS.find((c) => c.name === name);
-  return char?.id ?? null;
+const ID_TO_NAME_LOOKUP: Record<string, string> = {};
+for (const c of ALL_CHARACTERS) {
+  ID_TO_NAME_LOOKUP[c.id] = c.name;
 }
 
 const ELEMENT_BAR_COLORS: Record<string, string> = {
@@ -42,20 +40,6 @@ const ELEMENT_BAR_COLORS: Record<string, string> = {
   Anemo: "bg-teal-400",
   Geo: "bg-yellow-500",
   Dendro: "bg-green-500",
-};
-
-const ARCHETYPE_COLORS: Record<string, { text: string; bg: string; border: string }> = {
-  Vaporize: { text: "text-orange-400", bg: "bg-orange-500/20", border: "border-orange-500/30" },
-  "Overloaded/Vape": { text: "text-red-400", bg: "bg-red-500/20", border: "border-red-500/30" },
-  "Hydro Hypercarry": { text: "text-blue-400", bg: "bg-blue-500/20", border: "border-blue-500/30" },
-  "Pyro Hypercarry": { text: "text-red-400", bg: "bg-red-500/20", border: "border-red-500/30" },
-  Spread: { text: "text-green-400", bg: "bg-green-500/20", border: "border-green-500/30" },
-  Freeze: { text: "text-cyan-300", bg: "bg-cyan-500/20", border: "border-cyan-500/30" },
-  "Anemo DPS": { text: "text-teal-300", bg: "bg-teal-500/20", border: "border-teal-500/30" },
-  "Electro Hypercarry": { text: "text-purple-400", bg: "bg-purple-500/20", border: "border-purple-500/30" },
-  "Geo Resonance": { text: "text-yellow-400", bg: "bg-yellow-500/20", border: "border-yellow-500/30" },
-  "Burgeon/Burning": { text: "text-amber-400", bg: "bg-amber-500/20", border: "border-amber-500/30" },
-  Aggravate: { text: "text-violet-400", bg: "bg-violet-500/20", border: "border-violet-500/30" },
 };
 
 // ── Enemy Row ────────────────────────────────────────────────────────────
@@ -308,91 +292,6 @@ function FloorContent({ floor }: { floor: AbyssFloor }) {
   );
 }
 
-// ── Team Card ────────────────────────────────────────────────────────────
-
-function TeamCard({ team }: { team: TeamComp }) {
-  const archetypeColors = ARCHETYPE_COLORS[team.archetype];
-  const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
-
-  return (
-    <Card className="bg-guild-card border-guild-border hover:border-guild-accent/30 transition-all">
-      <CardContent className="p-4 space-y-3">
-        {/* Team Name + Archetype */}
-        <div className="flex items-center justify-between gap-2">
-          <h4 className="text-sm font-semibold truncate">{team.name}</h4>
-          <Badge
-            variant="outline"
-            className={cn(
-              "text-[10px] shrink-0",
-              archetypeColors
-                ? `${archetypeColors.text} ${archetypeColors.bg} ${archetypeColors.border}`
-                : "text-guild-muted"
-            )}
-          >
-            {team.archetype}
-          </Badge>
-        </div>
-
-        {/* Character Icons */}
-        <div className="flex items-center gap-2">
-          {team.characters.map((charName) => {
-            const charId = findCharacterId(charName);
-            const hasError = charId ? imgErrors[charId] : true;
-
-            return (
-              <div
-                key={charName}
-                className="relative w-12 h-12 rounded-full bg-white/5 border border-white/10 overflow-hidden shrink-0"
-              >
-                {charId && !hasError ? (
-                  <Image
-                    src={charIconUrl(charId)}
-                    alt={charName}
-                    fill
-                    sizes="48px"
-                    className="object-cover"
-                    onError={() => setImgErrors((prev) => ({ ...prev, [charId]: true }))}
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-[10px] text-guild-muted font-medium">
-                    {charName.charAt(0)}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Usage + Clear Rate */}
-        <div className="space-y-2">
-          <div className="space-y-1">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-guild-muted">Usage Rate</span>
-              <span className="font-mono text-foreground">{team.usage}%</span>
-            </div>
-            <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-guild-accent rounded-full transition-all duration-500"
-                style={{ width: `${team.usage}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-guild-muted">Clear Rate</span>
-            <span className={cn(
-              "font-mono font-semibold",
-              team.clearRate >= 97 ? "text-green-400" : team.clearRate >= 93 ? "text-yellow-400" : "text-red-400"
-            )}>
-              {team.clearRate}%
-            </span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 // ── Stygian Stage Card ──────────────────────────────────────────────────
 
 const MODIFIER_COLORS = {
@@ -628,6 +527,115 @@ function UsageRatesSection() {
   );
 }
 
+// ── Live Top Teams (from AZA.GG teammate data) ─────────────────────────
+
+function LiveTopTeams() {
+  const [data, setData] = useState<AbyssRatesData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    fetch("/api/abyss")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.error) throw new Error(d.error);
+        setData(d);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <div className="h-6 w-40 bg-white/5 rounded animate-pulse" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-32 bg-white/5 rounded-xl animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
+  // Build team comps from top characters + their top teammates
+  const topChars = data.characters
+    .filter((c) => c.topTeammateIds.length >= 3)
+    .slice(0, 6);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <h2 className="text-xl font-semibold flex items-center gap-2">
+          <Trophy className="h-5 w-5 text-guild-gold" />
+          Top Teams
+        </h2>
+        <span className="text-xs text-guild-muted">Based on teammate co-usage rates</span>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {topChars.map((char) => {
+          const allIds = [char.id, ...char.topTeammateIds.slice(0, 3)];
+          return (
+            <Card key={char.id} className="bg-guild-card border-guild-border hover:border-guild-accent/30 transition-all">
+              <CardContent className="p-4 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <h4 className="text-sm font-semibold truncate">{char.name}</h4>
+                  <Badge variant="outline" className="text-[10px] shrink-0 text-guild-accent bg-guild-accent/10 border-guild-accent/20">
+                    {char.pickRate}% pick
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  {allIds.map((id) => {
+                    const cEntry = ALL_CHARACTERS.find((c) => c.id === id);
+                    const hasError = imgErrors[id];
+                    const cName = cEntry?.name || ID_TO_NAME_LOOKUP[id] || "?";
+                    return (
+                      <div
+                        key={id}
+                        className="relative w-12 h-12 rounded-full bg-white/5 border border-white/10 overflow-hidden shrink-0"
+                        title={cName}
+                      >
+                        {cEntry && !hasError ? (
+                          <Image
+                            src={charIconUrl(cEntry.id)}
+                            alt={cName}
+                            fill
+                            sizes="48px"
+                            className="object-cover"
+                            onError={() => setImgErrors((prev) => ({ ...prev, [id]: true }))}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-[10px] text-guild-muted font-medium">
+                            {cName.charAt(0)}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-guild-muted">Pick Rate</span>
+                    <span className="font-mono text-foreground">{char.pickRate}%</span>
+                  </div>
+                  <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-guild-accent rounded-full transition-all duration-500"
+                      style={{ width: `${Math.min(char.pickRate, 100)}%` }}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ── Stygian Usage Rates (Live from AZA.GG) ──────────────────────────────
 
 function StygianUsageRatesSection() {
@@ -804,7 +812,6 @@ function StygianUsageRatesSection() {
 // ── Main Page ────────────────────────────────────────────────────────────
 
 export default function AbyssPage() {
-  const sortedTeams = [...RECOMMENDED_TEAMS].sort((a, b) => b.usage - a.usage);
   const [mode, setMode] = useState<"abyss" | "stygian">("abyss");
 
   return (
@@ -869,18 +876,8 @@ export default function AbyssPage() {
             ))}
           </Tabs>
 
-          {/* Recommended Teams */}
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-guild-gold" />
-              Top Teams
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {sortedTeams.map((team) => (
-                <TeamCard key={team.name} team={team} />
-              ))}
-            </div>
-          </div>
+          {/* Live Top Teams from AZA.GG */}
+          <LiveTopTeams />
 
           {/* Live Usage Rates */}
           <UsageRatesSection />
