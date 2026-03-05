@@ -1,6 +1,8 @@
 // Auto-generated from yatta.moe — 111 playable characters (sorted by release date)
 // Icons: https://enka.network/ui/{icon}.png
 
+import type React from "react";
+
 export interface CharacterEntry {
   id: string;
   name: string;
@@ -32,8 +34,7 @@ export const ELEMENTS = ["All", "Pyro", "Hydro", "Anemo", "Cryo", "Electro", "Ge
 export const WEAPONS = ["All", "Sword", "Claymore", "Polearm", "Bow", "Catalyst"] as const;
 
 // Element icons mapping
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const ELEMENT_ICONS: Record<string, any> = {
+export const ELEMENT_ICONS: Record<string, React.FC<{ className?: string; size?: number }>> = {
   Pyro: PyroIcon,
   Hydro: HydroIcon,
   Anemo: AnemoIcon,
@@ -41,8 +42,7 @@ export const ELEMENT_ICONS: Record<string, any> = {
   Cryo: CryoIcon,
   Geo: GeoIcon,
   Dendro: DendroIcon,
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-} as Record<string, any>;
+};
 
 // Export icons from the icon components file
 import { PyroIcon, HydroIcon, AnemoIcon, ElectroIcon, CryoIcon, GeoIcon, DendroIcon } from "@/components/icons/genshin-icons";

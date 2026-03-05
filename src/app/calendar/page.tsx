@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   CalendarDays,
   Gift,
@@ -233,8 +233,8 @@ function PermanentCard({ event }: { event: GameEvent }) {
 // ── Page ─────────────────────────────────────────────────────────────────
 
 export default function CalendarPage() {
+  const [now] = useState(() => Date.now());
   const { currentEvents, upcomingEvents } = useMemo(() => {
-    const now = Date.now();
     const current: GameEvent[] = [];
     const upcoming: GameEvent[] = [];
 
@@ -259,7 +259,7 @@ export default function CalendarPage() {
     );
 
     return { currentEvents: current, upcomingEvents: upcoming };
-  }, []);
+  }, [now]);
 
   return (
     <div className="max-w-4xl mx-auto space-y-10">
@@ -366,7 +366,7 @@ export default function CalendarPage() {
 // ── Version Progress Bar ────────────────────────────────────────────────
 
 function VersionProgress({ start, end }: { start: string; end: string }) {
-  const now = Date.now();
+  const [now] = useState(() => Date.now());
   const s = new Date(start).getTime();
   const e = new Date(end).getTime();
   const total = e - s;

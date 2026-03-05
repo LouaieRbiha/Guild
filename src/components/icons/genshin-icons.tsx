@@ -1,7 +1,6 @@
 // Custom Genshin-themed SVG icon components
 // These replace generic Lucide icons with game-accurate visuals
 
-import { cn } from "@/lib/utils";
 import Image from "next/image";
 
 interface IconProps {

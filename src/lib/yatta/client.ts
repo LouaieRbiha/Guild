@@ -56,6 +56,45 @@ export interface MaterialGroup {
   items: MaterialItem[];
 }
 
+// ── Internal API Response Types ───────────────────────────────────────
+
+interface YattaTalentEntry {
+  name?: string;
+  icon?: string;
+  description?: string;
+  type?: number;
+  promote?: Record<string, YattaPromoteEntry>;
+}
+
+interface YattaConstellationEntry {
+  name?: string;
+  icon?: string;
+  description?: string;
+}
+
+interface YattaPromoteEntry {
+  unlockMaxLevel?: number;
+  costItems?: Record<string, number>;
+  addProps?: Record<string, number>;
+}
+
+interface YattaItemEntry {
+  name?: string;
+  icon?: string;
+  rank?: number;
+}
+
+interface YattaUpgradeProp {
+  propType?: string;
+  initValue?: number;
+  type?: string;
+}
+
+interface YattaAffixUpgrade {
+  name?: string;
+  upgrade?: Record<string, string>;
+}
+
 // ── Helpers ────────────────────────────────────────────────────────────
 
 const ELEM_MAP: Record<string, string> = {
@@ -144,14 +183,13 @@ export async function fetchCharacterDetail(id: string): Promise<CharacterDetail>
   const talents: TalentInfo[] = [];
   const passives: TalentInfo[] = [];
   if (d.talent) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const entries = Object.values(d.talent) as any[];
+    const entries = Object.values(d.talent) as YattaTalentEntry[];
     for (const t of entries) {
       const info: TalentInfo = {
         name: t.name || "Unknown",
         icon: t.icon || "",
         description: cleanDescription(t.description || ""),
-        type: t.type === 2 ? "Passive" : (TALENT_TYPE_MAP[t.type] || "Normal Attack"),
+        type: t.type === 2 ? "Passive" : (t.type !== undefined ? TALENT_TYPE_MAP[t.type] || "Normal Attack" : "Normal Attack"),
       };
       // Type 0 entries: first is Normal Attack, second is Elemental Skill
       if (t.type === 2) {
@@ -174,8 +212,7 @@ export async function fetchCharacterDetail(id: string): Promise<CharacterDetail>
   // Constellations
   const constellations: ConstellationInfo[] = [];
   if (d.constellation) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const entries = Object.entries(d.constellation) as [string, any][];
+    const entries = Object.entries(d.constellation) as [string, YattaConstellationEntry][];
     for (const [idx, c] of entries) {
       constellations.push({
         index: parseInt(idx) + 1,
@@ -191,8 +228,7 @@ export async function fetchCharacterDetail(id: string): Promise<CharacterDetail>
 
   // Parse materials helper
   const itemsMap = d.items || {};
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function parseMaterials(promote: any[], phaseLabel: (i: number, p: any) => string): MaterialGroup[] {
+  function parseMaterials(promote: YattaPromoteEntry[], phaseLabel: (i: number, p: YattaPromoteEntry) => string): MaterialGroup[] {
     const groups: MaterialGroup[] = [];
     for (let i = 0; i < promote.length; i++) {
       const p = promote[i];
@@ -222,13 +258,11 @@ export async function fetchCharacterDetail(id: string): Promise<CharacterDetail>
   });
 
   // Talent materials (merge from first active talent's promote)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const firstTalent = d.talent ? (Object.values(d.talent) as any[])[0] : null;
+  const firstTalent = d.talent ? (Object.values(d.talent) as YattaTalentEntry[])[0] : null;
   const talentPromote = firstTalent?.promote ? Object.entries(firstTalent.promote) : [];
   const talentMaterials: MaterialGroup[] = [];
   for (const [lvl, info] of talentPromote) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const p = info as any;
+    const p = info as YattaPromoteEntry;
     const costs = p?.costItems;
     if (!costs || Object.keys(costs).length === 0) continue;
     const items: MaterialItem[] = [];
@@ -274,10 +308,6 @@ export function yattaIconUrl(icon: string): string {
   return `${YATTA_ASSETS}/${icon}.png`;
 }
 
-export function yattaGachaUrl(avatarKey: string): string {
-  return `https://enka.network/ui/UI_Gacha_AvatarImg_${avatarKey}.png`;
-}
-
 // ── Weapon Detail ──────────────────────────────────────────────────────
 
 export interface WeaponDetail {
@@ -310,10 +340,8 @@ export async function fetchWeaponDetail(id: string): Promise<WeaponDetail> {
 
   // Base stats from upgrade.prop
   const props = d.upgrade?.prop || [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const baseAtkProp = props.find((p: any) => p.propType === "FIGHT_PROP_BASE_ATTACK");
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const subProp = props.find((p: any) => p.propType !== "FIGHT_PROP_BASE_ATTACK");
+  const baseAtkProp = props.find((p: YattaUpgradeProp) => p.propType === "FIGHT_PROP_BASE_ATTACK");
+  const subProp = props.find((p: YattaUpgradeProp) => p.propType !== "FIGHT_PROP_BASE_ATTACK");
 
   const substatName = STAT_DISPLAY[d.specialProp] || d.specialProp || "None";
 
@@ -322,8 +350,7 @@ export async function fetchWeaponDetail(id: string): Promise<WeaponDetail> {
   let passiveDesc = "";
   const refinements: { rank: number; description: string }[] = [];
   if (d.affix) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const affixEntry = Object.values(d.affix)[0] as any;
+    const affixEntry = Object.values(d.affix)[0] as YattaAffixUpgrade;
     if (affixEntry) {
       passiveName = affixEntry.name || "";
       const upgrade = affixEntry.upgrade || {};
@@ -381,8 +408,15 @@ export async function fetchWeaponDetail(id: string): Promise<WeaponDetail> {
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function parseWeaponMaterials(d: any): MaterialGroup[] {
+interface YattaWeaponData {
+  items?: Record<string, YattaItemEntry>;
+  upgrade?: {
+    promote?: YattaPromoteEntry[];
+    prop?: YattaUpgradeProp[];
+  };
+}
+
+function parseWeaponMaterials(d: YattaWeaponData): MaterialGroup[] {
   const itemsMap = d.items || {};
   const promote = d.upgrade?.promote || [];
   const groups: MaterialGroup[] = [];
@@ -405,10 +439,4 @@ function parseWeaponMaterials(d: any): MaterialGroup[] {
     groups.push({ phase: `Phase ${groups.length + 1} — Lv ${prevLv}→${p.unlockMaxLevel}`, items });
   }
   return groups;
-}
-
-export function weaponGachaUrl(icon: string): string {
-  // Gacha weapon art: replace EquipIcon with Gacha_EquipIcon and add _Awaken
-  // e.g. UI_EquipIcon_Pole_Homa -> https://enka.network/ui/UI_EquipIcon_Pole_Homa.png (same icon, full size)
-  return `https://enka.network/ui/${icon}.png`;
 }

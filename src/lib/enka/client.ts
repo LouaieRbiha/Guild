@@ -209,29 +209,49 @@ export interface EnkaProfile {
 // ── API fetch ──────────────────────────────────────────────────────────
 
 export async function fetchEnkaProfile(uid: string): Promise<EnkaProfile> {
-  // Fetch API data, localization, and character store in parallel
-  const [res, loc, charStore] = await Promise.all([
-    fetch(`${ENKA_API}/${uid}`, {
-      headers: { "User-Agent": "Guild-GenshinApp/1.0" },
-      next: { revalidate: 60 },
-    }),
-    loadLocale(),
-    loadCharStore(),
-  ]);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
 
-  if (!res.ok) {
-    const codes: Record<number, string> = {
-      400: "Invalid UID format",
-      404: "Player not found",
-      424: "Game maintenance in progress",
-      429: "Rate limited — try again shortly",
-      500: "Enka server error",
-    };
-    throw new Error(codes[res.status] || `Enka API error: ${res.status}`);
+  let res: Response;
+  try {
+    // Fetch API data, localization, and character store in parallel
+    const [apiRes, loc, charStore] = await Promise.all([
+      fetch(`${ENKA_API}/${uid}`, {
+        headers: { "User-Agent": "Guild-GenshinApp/1.0" },
+        signal: controller.signal,
+        next: { revalidate: 60 },
+      }),
+      loadLocale(),
+      loadCharStore(),
+    ]);
+    clearTimeout(timeout);
+    res = apiRes;
+
+    if (!res.ok) {
+      const codes: Record<number, string> = {
+        400: "Invalid UID format",
+        404: "Player not found",
+        424: "Game maintenance in progress",
+        429: "Rate limited — try again shortly",
+        500: "Enka server error",
+        502: "Enka.Network is experiencing server issues. Please try again later.",
+        504: "Enka.Network is experiencing server issues. Please try again later.",
+      };
+      throw new Error(codes[res.status] || `Enka API error: ${res.status}`);
+    }
+
+    const data = await res.json();
+    return parseEnkaResponse(data, uid, loc, charStore);
+  } catch (err) {
+    clearTimeout(timeout);
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error("Request timed out. Enka.Network may be slow — please try again.");
+    }
+    if (err instanceof TypeError && err.message.includes("fetch")) {
+      throw new Error("Could not reach Enka.Network. Please check your connection and try again.");
+    }
+    throw err;
   }
-
-  const data = await res.json();
-  return parseEnkaResponse(data, uid, loc, charStore);
 }
 
 // Load English locale and character store for name/icon resolution
@@ -240,19 +260,24 @@ function loadLocale(): Promise<Record<string, string>> {
   if (!_localePromise) {
     _localePromise = fetch("https://raw.githubusercontent.com/EnkaNetwork/API-docs/master/store/loc.json")
       .then(r => r.json())
-      .then(d => d.en || {})
+      .then((d: Record<string, Record<string, string>>) => d.en || {})
       .catch(() => ({}));
   }
   return _localePromise;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let _charStorePromise: Promise<Record<string, any>> | null = null;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function loadCharStore(): Promise<Record<string, any>> {
+interface CharStoreEntry {
+  NameTextMapHash?: number;
+  Element?: string;
+  SideIconName?: string;
+  QualityType?: string;
+}
+
+let _charStorePromise: Promise<Record<string, CharStoreEntry>> | null = null;
+function loadCharStore(): Promise<Record<string, CharStoreEntry>> {
   if (!_charStorePromise) {
     _charStorePromise = fetch("https://raw.githubusercontent.com/EnkaNetwork/API-docs/master/store/characters.json")
-      .then(r => r.json())
+      .then(r => r.json() as Promise<Record<string, CharStoreEntry>>)
       .catch(() => ({}));
   }
   return _charStorePromise;
@@ -260,8 +285,51 @@ function loadCharStore(): Promise<Record<string, any>> {
 
 // ── Parser ─────────────────────────────────────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function parseEnkaResponse(data: any, uid: string, loc: Record<string, string>, charStore: Record<string, any>): EnkaProfile {
+interface EnkaApiPlayerInfo {
+  nickname?: string;
+  level?: number;
+  worldLevel?: number;
+  signature?: string;
+  finishAchievementNum?: number;
+  towerFloorIndex?: number;
+  towerLevelIndex?: number;
+}
+
+interface EnkaApiSubstat {
+  appendPropId: string;
+  statValue: number;
+}
+
+interface EnkaApiFlat {
+  nameTextMapHash?: string;
+  setNameTextMapHash?: string;
+  rankLevel?: number;
+  itemType?: string;
+  equipType?: string;
+  icon?: string;
+  reliquaryMainstat?: { mainPropId: string; statValue: number };
+  reliquarySubstats?: EnkaApiSubstat[];
+}
+
+interface EnkaApiEquip {
+  flat?: EnkaApiFlat;
+  weapon?: { level?: number; affixMap?: Record<string, number> };
+}
+
+interface EnkaApiAvatar {
+  avatarId: number;
+  propMap?: Record<string, { val?: string }>;
+  talentIdList?: unknown[];
+  equipList?: EnkaApiEquip[];
+  skillLevelMap?: Record<string, number>;
+}
+
+interface EnkaApiResponse {
+  playerInfo: EnkaApiPlayerInfo;
+  avatarInfoList?: EnkaApiAvatar[];
+}
+
+function parseEnkaResponse(data: EnkaApiResponse, uid: string, loc: Record<string, string>, charStore: Record<string, CharStoreEntry>): EnkaProfile {
   const pi = data.playerInfo;
 
   const player: PlayerInfo = {
@@ -286,8 +354,7 @@ function parseEnkaResponse(data: any, uid: string, loc: Record<string, string>, 
   return { player, characters, uid };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function parseCharacter(avatar: any, loc: Record<string, string>, charStore: Record<string, any>): Character | null {
+function parseCharacter(avatar: EnkaApiAvatar, loc: Record<string, string>, charStore: Record<string, CharStoreEntry>): Character | null {
   const avatarId = avatar.avatarId;
   const charInfo = CHARACTER_MAP[avatarId];
   
@@ -299,7 +366,7 @@ function parseCharacter(avatar: any, loc: Record<string, string>, charStore: Rec
   
   // Resolve element from store or hardcoded map
   const ELEM_MAP: Record<string, string> = { Fire: "Pyro", Water: "Hydro", Wind: "Anemo", Ice: "Cryo", Electric: "Electro", Rock: "Geo", Grass: "Dendro" };
-  const storeElement = storeEntry ? ELEM_MAP[storeEntry.Element] || "Unknown" : null;
+  const storeElement = storeEntry?.Element ? ELEM_MAP[storeEntry.Element] || "Unknown" : null;
   const element = storeElement || charInfo?.element || "Unknown";
   
   // Resolve icon from store (most reliable) → our AVATAR_KEY map → fallback
@@ -326,24 +393,23 @@ function parseCharacter(avatar: any, loc: Record<string, string>, charStore: Rec
         const affixMap = equip.weapon?.affixMap;
         const refinement = affixMap ? Object.values(affixMap)[0] as number + 1 : 1;
         weapon = {
-          name: loc[equip.flat.nameTextMapHash] || "Unknown Weapon",
+          name: (equip.flat.nameTextMapHash && loc[equip.flat.nameTextMapHash]) || "Unknown Weapon",
           rarity: equip.flat.rankLevel || 1,
           level: equip.weapon?.level || 1,
           refinement,
           icon: equip.flat.icon || "",
         };
       } else if (equip.flat?.itemType === "ITEM_RELIQUARY") {
-        const slot = EQUIP_TYPE_MAP[equip.flat.equipType] || "Unknown";
+        const slot = EQUIP_TYPE_MAP[equip.flat.equipType ?? ""] || "Unknown";
         const mainStat = equip.flat.reliquaryMainstat;
         const subs = equip.flat.reliquarySubstats || [];
 
         artifacts.push({
           slot,
-          set: loc[equip.flat.setNameTextMapHash] || "Unknown Set",
-          mainStat: APPEND_PROP_MAP[mainStat?.mainPropId] || mainStat?.mainPropId || "?",
+          set: (equip.flat.setNameTextMapHash && loc[equip.flat.setNameTextMapHash]) || "Unknown Set",
+          mainStat: (mainStat?.mainPropId && APPEND_PROP_MAP[mainStat.mainPropId]) || mainStat?.mainPropId || "?",
           mainValue: formatStatValue(mainStat?.mainPropId, mainStat?.statValue),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          substats: subs.map((s: any) => ({
+          substats: subs.map((s: EnkaApiSubstat) => ({
             name: APPEND_PROP_MAP[s.appendPropId] || s.appendPropId,
             value: formatStatValue(s.appendPropId, s.statValue),
           })),
@@ -421,8 +487,9 @@ function getAvatarKey(id: number): string {
   return AVATAR_KEY[id] || String(id);
 }
 
-function formatStatValue(propId: string, value: number): string {
+function formatStatValue(propId: string | undefined, value: number | undefined): string {
   if (!value) return "0";
+  if (!propId) return String(Math.round(value));
   // Percentage stats
   const percentStats = [
     "FIGHT_PROP_HP_PERCENT", "FIGHT_PROP_ATTACK_PERCENT", "FIGHT_PROP_DEFENSE_PERCENT",

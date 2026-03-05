@@ -1,5 +1,6 @@
 import { fetchEnkaProfile } from "@/lib/enka/client";
 import { ProfileClient } from "@/components/profile/profile-client";
+import Link from "next/link";
 
 export default async function ProfilePage({ params }: { params: Promise<{ uid: string }> }) {
   const { uid } = await params;
@@ -19,6 +20,9 @@ export default async function ProfilePage({ params }: { params: Promise<{ uid: s
         <h1 className="text-2xl font-bold text-guild-danger">Error</h1>
         <p className="text-guild-muted">{error || "Unknown error"}</p>
         <p className="text-sm text-guild-dim">Make sure the UID is correct and the player&apos;s Character Showcase is public.</p>
+        <Link href={`/profile/${uid}`} className="inline-block mt-2 px-4 py-2 rounded-md bg-guild-accent hover:bg-guild-accent/80 text-sm font-medium transition-colors">
+          Try Again
+        </Link>
       </div>
     );
   }

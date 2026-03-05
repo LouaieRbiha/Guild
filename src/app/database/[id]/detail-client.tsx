@@ -13,14 +13,13 @@ import {
 	TabsTrigger,
 	TabsContent,
 } from '@/components/ui/tabs';
-import { CharacterEntry, charIconUrl } from '@/lib/characters';
+import { CharacterEntry, charIconUrl, charGachaUrl } from '@/lib/characters';
 import { ELEMENT_COLORS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import {
 	CharacterDetail,
 	MaterialGroup,
 	MaterialItem,
-	yattaGachaUrl,
 	yattaIconUrl,
 } from '@/lib/yatta/client';
 import * as SliderPrimitive from '@radix-ui/react-slider';
@@ -215,7 +214,7 @@ interface Props {
 export function CharacterDetailClient({ detail, entry }: Props) {
 	const colors = ELEMENT_COLORS[detail.element] || ELEMENT_COLORS.Pyro;
 	const VisionComp = ELEMENT_ICONS[detail.element];
-	const gachaUrl = yattaGachaUrl(entry.avatarKey);
+	const gachaUrl = charGachaUrl(entry.id);
 
 	return (
 		<div className='space-y-6 pb-12'>
