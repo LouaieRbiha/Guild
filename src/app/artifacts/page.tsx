@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { YATTA_ASSETS } from "@/lib/constants";
+import { YATTA_RELIQUARY } from "@/lib/constants";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -436,7 +436,7 @@ export default function ArtifactsPage() {
 
 function getPieceIcons(setIcon: string): string[] {
   const base = setIcon.replace(/_\d+$/, '_');
-  return [1, 2, 3, 4, 5].map((n) => `${YATTA_ASSETS}/${base}${n}.png`);
+  return [1, 2, 3, 4, 5].map((n) => `${YATTA_RELIQUARY}/${base}${n}.png`);
 }
 
 // ── Domain Cards Section ───────────────────────────────────────────────
@@ -555,7 +555,7 @@ function DomainCard({ domain, setsByName }: DomainCardProps) {
                 className="relative w-10 h-10 rounded-full bg-guild-elevated border-2 border-background overflow-hidden"
               >
                 <Image
-                  src={`${YATTA_ASSETS}/${set.icon}.png`}
+                  src={`${YATTA_RELIQUARY}/${set.icon}.png`}
                   alt={set.name}
                   fill
                   sizes="40px"
@@ -580,7 +580,7 @@ function DomainCard({ domain, setsByName }: DomainCardProps) {
                 {/* Set icon */}
                 <div className={cn("relative w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-gradient-to-br", gradient)}>
                   <Image
-                    src={`${YATTA_ASSETS}/${set.icon}.png`}
+                    src={`${YATTA_RELIQUARY}/${set.icon}.png`}
                     alt={set.name}
                     fill
                     sizes="64px"
@@ -676,7 +676,7 @@ function ArtifactSetCard({ set }: ArtifactSetCardProps) {
           <div className="absolute inset-0 flex items-center justify-center p-8">
             {!imgErr ? (
               <Image
-                src={`${YATTA_ASSETS}/${set.icon}.png`}
+                src={`${YATTA_RELIQUARY}/${set.icon}.png`}
                 alt={set.name}
                 fill
                 sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"

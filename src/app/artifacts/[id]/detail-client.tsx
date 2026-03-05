@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, BookOpen, ChevronDown, ChevronUp, Crown, Shield } from "lucide-react";
-import { YATTA_ASSETS, RARITY_COLORS } from "@/lib/constants";
+import { YATTA_RELIQUARY, RARITY_COLORS } from "@/lib/constants";
 import { RarityStars } from "@/components/shared";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -99,7 +99,7 @@ export function ArtifactDetailClient({ detail }: Props) {
             )} />
             <div className={cn("absolute inset-0 flex items-center justify-center", RARITY_GLOW[detail.maxRarity])}>
               <Image
-                src={`${YATTA_ASSETS}/${detail.icon}.png`}
+                src={`${YATTA_RELIQUARY}/${detail.icon}.png`}
                 alt={detail.name}
                 width={256}
                 height={256}
@@ -234,7 +234,7 @@ function ArtifactPieceCard({ piece, rarity, expanded, onToggle }: ArtifactPieceC
           <div className={cn("relative shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-linear-to-t", gradient)}>
             {!imgErr ? (
               <Image
-                src={`${YATTA_ASSETS}/${piece.icon}.png`}
+                src={`${YATTA_RELIQUARY}/${piece.icon}.png`}
                 alt={piece.name}
                 fill
                 sizes="64px"

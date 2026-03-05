@@ -1,5 +1,7 @@
 export const ENKA_UI = "https://enka.network/ui";
 export const YATTA_ASSETS = "https://gi.yatta.moe/assets/UI";
+export const YATTA_RELIQUARY = "https://gi.yatta.moe/assets/UI/reliquary";
+export const YATTA_MONSTER = "https://gi.yatta.moe/assets/UI/monster";
 
 export const ELEMENT_COLORS: Record<string, { text: string; bg: string; border: string }> = {
   Pyro:    { text: "text-red-400",    bg: "bg-red-500/20",    border: "border-red-500/30" },

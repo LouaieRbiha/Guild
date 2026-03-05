@@ -4,7 +4,7 @@ import { ALL_CHARACTERS, charIconUrl, ELEMENT_ICONS } from '@/lib/characters';
 import type { CharacterEntry } from '@/lib/characters';
 import { CHARACTER_META } from '@/data/character-meta';
 import { cn } from '@/lib/utils';
-import { RefreshCw, HelpCircle, X, Trophy, Target } from 'lucide-react';
+import { Clock, HelpCircle, X, Trophy, Target } from 'lucide-react';
 import Image from 'next/image';
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 
@@ -43,6 +43,18 @@ function getDailyDateKey(): string {
 	const mm = String(today.getMonth() + 1).padStart(2, '0');
 	const dd = String(today.getDate()).padStart(2, '0');
 	return `genshindle-${yyyy}-${mm}-${dd}`;
+}
+
+function getTimeUntilMidnight(): { hours: number; minutes: number; seconds: number } {
+	const now = new Date();
+	const midnight = new Date(now);
+	midnight.setHours(24, 0, 0, 0);
+	const diff = midnight.getTime() - now.getTime();
+	return {
+		hours: Math.floor(diff / 3600000),
+		minutes: Math.floor((diff % 3600000) / 60000),
+		seconds: Math.floor((diff % 60000) / 1000),
+	};
 }
 
 function getReleaseYear(date: string): number {
@@ -106,6 +118,7 @@ export default function WordlePage() {
 	const [showHelp, setShowHelp] = useState(false);
 	const inputRef = useRef<HTMLInputElement>(null);
 	const suggestionsRef = useRef<HTMLDivElement>(null);
+	const [countdown, setCountdown] = useState(() => getTimeUntilMidnight());
 
 	// Load saved game state from localStorage on mount
 	useEffect(() => {
@@ -224,16 +237,14 @@ export default function WordlePage() {
 		return () => document.removeEventListener('mousedown', handler);
 	}, []);
 
-	const resetGame = () => {
-		setGuesses([]);
-		setGameOver(false);
-		setInputValue('');
-		try {
-			localStorage.removeItem(getDailyDateKey());
-		} catch {
-			// Ignore localStorage errors
-		}
-	};
+	// Countdown timer - ticks every second when game is finished
+	useEffect(() => {
+		if (!won && !gameOver) return;
+		const interval = setInterval(() => {
+			setCountdown(getTimeUntilMidnight());
+		}, 1000);
+		return () => clearInterval(interval);
+	}, [won, gameOver]);
 
 	const columns = [
 		{ key: 'character', label: 'Character' },
@@ -278,13 +289,15 @@ export default function WordlePage() {
 						</div>
 					</div>
 					{(won || gameOver) && (
-						<button
-							onClick={resetGame}
-							className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-guild-accent hover:bg-guild-accent/80 text-sm font-medium transition-colors cursor-pointer"
-						>
-							<RefreshCw className="h-3.5 w-3.5" />
-							New Game
-						</button>
+						<div className="flex items-center gap-2 text-sm text-guild-muted">
+							<Clock className="h-3.5 w-3.5" />
+							<span>Next in</span>
+							<span className="font-mono font-bold text-white">
+								{String(countdown.hours).padStart(2, '0')}:
+								{String(countdown.minutes).padStart(2, '0')}:
+								{String(countdown.seconds).padStart(2, '0')}
+							</span>
+						</div>
 					)}
 				</div>
 			</div>
@@ -304,6 +317,14 @@ export default function WordlePage() {
 						in {guesses.length} guess
 						{guesses.length !== 1 ? 'es' : ''}
 					</p>
+					<p className="text-xs text-guild-dim mt-3">
+						Next character in{' '}
+						<span className="font-mono text-guild-muted">
+							{String(countdown.hours).padStart(2, '0')}:
+							{String(countdown.minutes).padStart(2, '0')}:
+							{String(countdown.seconds).padStart(2, '0')}
+						</span>
+					</p>
 				</div>
 			)}
 			{gameOver && !won && (
@@ -315,6 +336,14 @@ export default function WordlePage() {
 						The answer was{' '}
 						<span className="text-white font-semibold">
 							{answer.name}
+						</span>
+					</p>
+					<p className="text-xs text-guild-dim mt-3">
+						Next character in{' '}
+						<span className="font-mono text-guild-muted">
+							{String(countdown.hours).padStart(2, '0')}:
+							{String(countdown.minutes).padStart(2, '0')}:
+							{String(countdown.seconds).padStart(2, '0')}
 						</span>
 					</p>
 				</div>
