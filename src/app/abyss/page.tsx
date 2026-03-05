@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Shield, AlertTriangle, Swords, Trophy, Info, ChevronRight, Flame, Zap, BarChart3, Users, TrendingUp } from "lucide-react";
 import type { AbyssRatesData, AbyssCharacterRate } from "@/app/api/abyss/route";
+import type { StygianRatesData } from "@/app/api/abyss/stygian/route";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -627,6 +628,179 @@ function UsageRatesSection() {
   );
 }
 
+// ── Stygian Usage Rates (Live from AZA.GG) ──────────────────────────────
+
+function StygianUsageRatesSection() {
+  const [data, setData] = useState<StygianRatesData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [rateType, setRateType] = useState<"pickRate" | "ownRate" | "useByOwnRate">("pickRate");
+  const [roomFilter, setRoomFilter] = useState<"overall" | number>("overall");
+  const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    fetch("/api/abyss/stygian")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.error) throw new Error(d.error);
+        setData(d);
+      })
+      .catch(() => setError(true))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        <div className="h-6 w-48 bg-white/5 rounded animate-pulse" />
+        {Array.from({ length: 10 }).map((_, i) => (
+          <div key={i} className="h-12 bg-white/5 rounded-lg animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20">
+        <AlertTriangle className="h-4 w-4 text-red-400 shrink-0" />
+        <p className="text-sm text-red-300">Failed to load stygian usage data from AZA.GG</p>
+      </div>
+    );
+  }
+
+  const chars = roomFilter === "overall"
+    ? data.overall
+    : data.rooms.find((r) => r.room === roomFilter)?.characters ?? [];
+  const sorted = [...chars].sort((a, b) => b[rateType] - a[rateType]);
+  const top = sorted.filter((c) => c[rateType] > 0).slice(0, 50);
+
+  const rateLabels: Record<string, string> = {
+    pickRate: "Pick Rate",
+    ownRate: "Ownership",
+    useByOwnRate: "Use/Own",
+  };
+
+  const roomLabels: { value: "overall" | number; label: string }[] = [
+    { value: "overall", label: "Overall" },
+    ...data.rooms.map((r) => ({ value: r.room, label: `Room ${r.room}` })),
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <h2 className="text-xl font-semibold flex items-center gap-2">
+          <BarChart3 className="h-5 w-5 text-red-400" />
+          Stygian Character Usage
+        </h2>
+      </div>
+
+      {/* Room filter */}
+      <div className="flex gap-1.5 flex-wrap">
+        {roomLabels.map(({ value, label }) => (
+          <button
+            key={String(value)}
+            onClick={() => setRoomFilter(value)}
+            className={cn(
+              "px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer",
+              roomFilter === value
+                ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                : "bg-white/5 text-guild-dim hover:text-white hover:bg-white/10 border border-transparent"
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Rate type toggle */}
+      <div className="flex gap-1.5">
+        {(["pickRate", "ownRate", "useByOwnRate"] as const).map((type) => (
+          <button
+            key={type}
+            onClick={() => setRateType(type)}
+            className={cn(
+              "px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer",
+              rateType === type
+                ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                : "bg-white/5 text-guild-dim hover:text-white hover:bg-white/10 border border-transparent"
+            )}
+          >
+            {rateLabels[type]}
+          </button>
+        ))}
+      </div>
+
+      {/* Rate list */}
+      <div className="space-y-1">
+        {top.map((char, i) => {
+          const charEntry = ALL_CHARACTERS.find((c) => c.id === char.id);
+          const rate = char[rateType];
+          const maxRate = top[0]?.[rateType] || 1;
+          const barWidth = Math.max((rate / maxRate) * 100, 2);
+          const hasImgError = char.id ? imgErrors[char.id] : true;
+
+          return (
+            <div
+              key={char.id}
+              className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/3 transition-colors group"
+            >
+              <span className={cn(
+                "text-xs font-mono w-6 text-right shrink-0",
+                i === 0 ? "text-red-400 font-bold" : i < 3 ? "text-red-300" : "text-guild-dim"
+              )}>
+                {i + 1}
+              </span>
+
+              <div className="w-8 h-8 rounded-full overflow-hidden bg-guild-elevated shrink-0 border border-white/5">
+                {charEntry && !hasImgError ? (
+                  <Image
+                    src={charIconUrl(charEntry.id)}
+                    alt={char.name}
+                    width={32}
+                    height={32}
+                    className="object-cover"
+                    onError={() => setImgErrors((prev) => ({ ...prev, [char.id]: true }))}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[10px] text-guild-muted">
+                    {char.name.charAt(0)}
+                  </div>
+                )}
+              </div>
+
+              <span className="text-sm font-medium w-32 truncate shrink-0">
+                {char.name}
+              </span>
+
+              <div className="flex-1 h-5 bg-white/5 rounded-full overflow-hidden">
+                <div
+                  className={cn(
+                    "h-full rounded-full transition-all duration-500",
+                    i === 0 ? "bg-red-500/70" : i < 3 ? "bg-red-400/50" : "bg-red-400/25"
+                  )}
+                  style={{ width: `${barWidth}%` }}
+                />
+              </div>
+
+              <span className={cn(
+                "text-sm font-mono w-14 text-right shrink-0",
+                i === 0 ? "text-red-400 font-bold" : "text-foreground"
+              )}>
+                {rate}%
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      <p className="text-[10px] text-guild-dim text-right">
+        Data from AZA.GG · Updated {new Date(data.updatedAt).toLocaleDateString()}
+      </p>
+    </div>
+  );
+}
+
 // ── Main Page ────────────────────────────────────────────────────────────
 
 export default function AbyssPage() {
@@ -732,6 +906,9 @@ export default function AbyssPage() {
               <StygianStageCard key={stage.stage} stage={stage} />
             ))}
           </div>
+
+          {/* Live Stygian Usage Rates */}
+          <StygianUsageRatesSection />
         </>
       )}
     </div>
