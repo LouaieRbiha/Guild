@@ -5,7 +5,7 @@ import type { CharacterEntry } from "@/lib/characters";
 import type { BannerWeaponInfo } from "@/lib/banners/types";
 import { HomeClient } from "./home-client";
 
-export default async function HomePage() {
+export default function HomePage() {
   const banner = getActiveBanner();
 
   // Newest 5 characters (array sorted oldest-first, newest at end)

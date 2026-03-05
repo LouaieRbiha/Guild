@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Calendar, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   PrimogemIcon,
@@ -20,6 +21,8 @@ const navItems = [
   { href: "/profile", icon: BuildIcon, label: "Builds" },
   { href: "/database", icon: VisionIcon, label: "Characters" },
   { href: "/weapons", icon: WeaponIcon, label: "Weapons" },
+  { href: "/calendar", icon: Calendar, label: "Calendar" },
+  { href: "/abyss", icon: Shield, label: "Abyss" },
   { href: "/map", icon: CompassIcon, label: "Map" },
   { href: "/simulator", icon: FateIcon, label: "Simulator" },
   { href: "/streamers", icon: KameraIcon, label: "Live" },

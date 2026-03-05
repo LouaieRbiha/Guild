@@ -4,6 +4,14 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import {
+  Users,
+  Swords,
+  Shield,
+  Calendar,
+  Map,
+  Dices,
+} from "lucide-react";
 
 import {
   Card,
@@ -23,7 +31,6 @@ import {
   ELEMENT_ICONS,
   PrimogemIcon,
   AbyssIcon,
-  VerdictIcon,
 } from "@/components/icons/genshin-icons";
 import { cn } from "@/lib/utils";
 import type { CharacterEntry } from "@/lib/characters";
@@ -63,6 +70,46 @@ const ELEMENT_GLOW: Record<string, string> = {
   Dendro: "hover:border-green-500/50",
 };
 
+// Quick navigation items
+const NAV_CARDS = [
+  {
+    href: "/database",
+    icon: Users,
+    title: "Characters",
+    description: "Browse all playable characters, stats, and builds",
+  },
+  {
+    href: "/weapons",
+    icon: Swords,
+    title: "Weapons",
+    description: "Explore weapon stats, passives, and rankings",
+  },
+  {
+    href: "/abyss",
+    icon: Shield,
+    title: "Abyss Guide",
+    description: "Spiral Abyss team comps and floor strategies",
+  },
+  {
+    href: "/calendar",
+    icon: Calendar,
+    title: "Calendar",
+    description: "Upcoming events, banners, and farming schedules",
+  },
+  {
+    href: "/map",
+    icon: Map,
+    title: "Map",
+    description: "Interactive map with markers and routes",
+  },
+  {
+    href: "/simulator",
+    icon: Dices,
+    title: "Simulator",
+    description: "Wish simulator to test your luck for free",
+  },
+];
+
 // ── Props ────────────────────────────────────────────────────────────────
 
 interface HomeClientProps {
@@ -96,9 +143,7 @@ export function HomeClient({
 
   // Hero splash art from first featured 5-star character
   const hero5Star = featured5StarChars[0];
-  const heroSplashUrl = hero5Star
-    ? charGachaUrl(hero5Star.id)
-    : null;
+  const heroSplashUrl = hero5Star ? charGachaUrl(hero5Star.id) : null;
 
   return (
     <div className="min-h-screen text-white">
@@ -110,35 +155,39 @@ export function HomeClient({
               GUILD
             </span>
           </h1>
-          <p className="text-xl text-guild-muted">
-            Your Genshin Impact Command Center
+          <p className="text-xl text-guild-muted max-w-lg mx-auto leading-relaxed">
+            Builds, banners, databases, and tools &mdash; everything a Traveler
+            needs in one place.
           </p>
 
           {/* UID Lookup */}
           <div className="max-w-md mx-auto">
-            <Card className="guild-glow border-white/10 p-0 gap-0">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <Input
-                    type="text"
-                    placeholder="Enter your UID"
-                    value={uid}
-                    onChange={(e) => setUid(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && go()}
-                    className="h-12 font-mono text-lg bg-background/50"
-                  />
-                  <Button
-                    onClick={go}
-                    size="lg"
-                    className="h-12 px-6 bg-guild-accent hover:bg-guild-accent/80"
-                  >
-                    Lookup
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="relative">
+              <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-guild-accent/30 via-guild-accent-2/20 to-guild-accent/30 blur-lg animate-pulse-glow" />
+              <Card className="relative border-white/10 p-0 gap-0">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <Input
+                      type="text"
+                      placeholder="Enter your UID"
+                      value={uid}
+                      onChange={(e) => setUid(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && go()}
+                      className="h-12 font-mono text-lg bg-background/50"
+                    />
+                    <Button
+                      onClick={go}
+                      size="lg"
+                      className="h-12 px-6 bg-guild-accent hover:bg-guild-accent/80"
+                    >
+                      Lookup
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
             <p className="text-sm text-guild-muted mt-3">
-              Enter your UID to get your builds roasted
+              Paste a Genshin UID to view builds, stats, and more
             </p>
           </div>
         </div>
@@ -241,8 +290,17 @@ export function HomeClient({
                 </div>
               </Card>
             ) : (
-              <Card className="min-h-[320px] flex items-center justify-center p-0 gap-0">
-                <p className="text-guild-muted">No active character banner</p>
+              <Card className="overflow-hidden relative min-h-[320px] border-white/5 p-0 gap-0">
+                <div className="absolute inset-0 bg-gradient-to-br from-guild-accent/10 via-card to-guild-accent-2/10" />
+                <div className="relative z-10 flex flex-col items-center justify-center h-full min-h-[320px] gap-3">
+                  <PrimogemIcon className="text-guild-muted" size={40} />
+                  <p className="text-guild-muted font-medium">
+                    No Active Character Banner
+                  </p>
+                  <p className="text-guild-dim text-sm">
+                    Check back when a new banner drops
+                  </p>
+                </div>
               </Card>
             )}
 
@@ -327,15 +385,51 @@ export function HomeClient({
                 </div>
               </Card>
             ) : (
-              <Card className="min-h-[320px] flex items-center justify-center p-0 gap-0">
-                <p className="text-guild-muted">No active weapon banner</p>
+              <Card className="overflow-hidden relative min-h-[320px] border-white/5 p-0 gap-0">
+                <div className="absolute inset-0 bg-gradient-to-br from-guild-accent-2/10 via-card to-guild-accent/10" />
+                <div className="relative z-10 flex flex-col items-center justify-center h-full min-h-[320px] gap-3">
+                  <Swords className="text-guild-muted" size={40} />
+                  <p className="text-guild-muted font-medium">
+                    No Active Weapon Banner
+                  </p>
+                  <p className="text-guild-dim text-sm">
+                    Check back when a new banner drops
+                  </p>
+                </div>
               </Card>
             )}
           </div>
         </div>
       </section>
 
-      {/* ── 3. Fresh Drops ──────────────────────────────────────────── */}
+      {/* ── 3. Quick Navigation ─────────────────────────────────────── */}
+      <section className="px-6 pb-12">
+        <div className="max-w-6xl mx-auto space-y-4">
+          <h2 className="text-xl font-bold">Explore</h2>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {NAV_CARDS.map((item) => (
+              <Link key={item.href} href={item.href} className="group">
+                <Card className="h-full border-white/5 transition-all duration-300 hover:border-guild-accent/30 hover:shadow-[0_0_20px_rgba(99,102,241,0.1)]">
+                  <CardContent className="flex flex-col gap-3 p-5">
+                    <div className="w-10 h-10 rounded-lg bg-guild-accent/10 flex items-center justify-center text-guild-accent group-hover:bg-guild-accent/20 transition-colors">
+                      <item.icon size={22} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-sm">{item.title}</h3>
+                      <p className="text-xs text-guild-muted mt-1 leading-relaxed">
+                        {item.description}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 4. Fresh Drops ──────────────────────────────────────────── */}
       <section className="px-6 pb-12">
         <div className="max-w-6xl mx-auto space-y-4">
           <div className="flex items-center justify-between">
@@ -377,7 +471,7 @@ export function HomeClient({
                     />
 
                     {/* Bottom gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0A0E1A] via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#1a1b2e] via-transparent to-transparent" />
 
                     {/* Element icon (top-right) */}
                     {Icon && (
@@ -401,7 +495,7 @@ export function HomeClient({
         </div>
       </section>
 
-      {/* ── 4. Quick Stats Row ──────────────────────────────────────── */}
+      {/* ── 5. Quick Stats Row ──────────────────────────────────────── */}
       <section className="px-6 pb-12">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Banner Ends */}
@@ -447,73 +541,6 @@ export function HomeClient({
                   5-star{featured5StarChars.length !== 1 ? "s" : ""} on banner
                 </span>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      {/* ── 5. Trending from this Banner ────────────────────────────── */}
-      <section className="px-6 pb-12">
-        <div className="max-w-6xl mx-auto">
-          <Card>
-            <CardHeader>
-              <CardTitle>Trending from this Banner</CardTitle>
-              <CardDescription>
-                Featured characters you can pull right now
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {[...featured5StarChars, ...featured4StarChars].map((char) => {
-                const Icon = ELEMENT_ICONS[char.element];
-                return (
-                  <Link
-                    key={char.id}
-                    href={`/database/${char.id}`}
-                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors"
-                  >
-                    {Icon && <Icon size={20} />}
-                    <span
-                      className={`font-medium ${ELEMENT_COLORS[char.element]?.text || ""}`}
-                    >
-                      {char.name}
-                    </span>
-                    <RarityStars
-                      rarity={char.rarity}
-                      size="xs"
-                      className="ml-auto"
-                    />
-                  </Link>
-                );
-              })}
-              {featured5StarChars.length === 0 &&
-                featured4StarChars.length === 0 && (
-                  <p className="text-guild-muted text-sm">
-                    No featured characters available
-                  </p>
-                )}
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      {/* ── 6. CTA Section ──────────────────────────────────────────── */}
-      <section className="px-6 pb-16">
-        <div className="max-w-3xl mx-auto">
-          <Card className="guild-glow border-white/10">
-            <CardContent className="text-center space-y-4 py-2">
-              <VerdictIcon className="text-guild-accent mx-auto" size={40} />
-              <h2 className="text-3xl font-bold">Ready to get roasted?</h2>
-              <p className="text-guild-muted max-w-md mx-auto">
-                Paste your UID above and we&apos;ll judge every artifact you
-                own. No mercy. No filter. Just facts.
-              </p>
-              <Button
-                asChild
-                variant="outline"
-                className="border-guild-accent text-guild-accent hover:bg-guild-accent/10"
-              >
-                <Link href="/profile">Go to Profile</Link>
-              </Button>
             </CardContent>
           </Card>
         </div>
