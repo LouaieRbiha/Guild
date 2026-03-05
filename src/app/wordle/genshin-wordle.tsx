@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { Clock, HelpCircle, X, Trophy, Share2, Check, Delete } from 'lucide-react';
+import { Clock, HelpCircle, X, Trophy, Share2, Check, Delete, RefreshCw } from 'lucide-react';
 import { useState, useCallback, useMemo, useEffect } from 'react';
 
 // ── Word Pool ────────────────────────────────────────────────────────
@@ -81,18 +81,24 @@ interface SavedState {
 	guesses: string[];
 	won: boolean;
 	lost: boolean;
+	shuffle?: number;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
-function getDailyWord(): string {
+function getDailyWord(shuffle: number = 0): string {
 	const today = new Date();
 	const seed =
 		today.getFullYear() * 10000 +
 		(today.getMonth() + 1) * 100 +
-		today.getDate();
-	// Simple deterministic daily word selection
-	const idx = (seed * 7 + 13) % VALID_WORDS.length;
+		today.getDate() +
+		shuffle * 7919; // prime offset per shuffle
+	// Deterministic daily word via better hash mixing
+	let h = seed;
+	h = ((h >>> 16) ^ h) * 0x45d9f3b;
+	h = ((h >>> 16) ^ h) * 0x45d9f3b;
+	h = (h >>> 16) ^ h;
+	const idx = Math.abs(h) % VALID_WORDS.length;
 	return VALID_WORDS[idx];
 }
 
@@ -159,7 +165,8 @@ const KEYBOARD_ROWS = [
 // ── Component ────────────────────────────────────────────────────────
 
 export default function GenshinWordle() {
-	const [answer] = useState(() => getDailyWord());
+	const [shuffle, setShuffle] = useState(0);
+	const [answer, setAnswer] = useState(() => getDailyWord(0));
 	const [guesses, setGuesses] = useState<string[]>([]);
 	const [currentGuess, setCurrentGuess] = useState('');
 	const [won, setWon] = useState(false);
@@ -180,6 +187,9 @@ export default function GenshinWordle() {
 			if (saved) {
 				const state: SavedState = JSON.parse(saved);
 				if (state.guesses && Array.isArray(state.guesses)) {
+					const s = state.shuffle || 0;
+					setShuffle(s);
+					setAnswer(getDailyWord(s));
 					setGuesses(state.guesses);
 					setWon(state.won || false);
 					setLost(state.lost || false);
@@ -197,12 +207,12 @@ export default function GenshinWordle() {
 		if (!loaded) return;
 		try {
 			const key = getDailyDateKey();
-			const state: SavedState = { guesses, won, lost };
+			const state: SavedState = { guesses, won, lost, shuffle };
 			localStorage.setItem(key, JSON.stringify(state));
 		} catch {
 			// Ignore
 		}
-	}, [guesses, won, lost, loaded]);
+	}, [guesses, won, lost, shuffle, loaded]);
 
 	// Countdown timer
 	useEffect(() => {
@@ -234,6 +244,19 @@ export default function GenshinWordle() {
 	}, [evaluatedGuesses]);
 
 	const gameFinished = won || lost;
+
+	const handleNewWord = useCallback(() => {
+		const next = shuffle + 1;
+		setShuffle(next);
+		setAnswer(getDailyWord(next));
+		setGuesses([]);
+		setCurrentGuess('');
+		setWon(false);
+		setLost(false);
+		setRevealRow(-1);
+		setShakeRow(false);
+		setInvalidMessage('');
+	}, [shuffle]);
 
 	const showInvalid = useCallback((msg: string) => {
 		setInvalidMessage(msg);
@@ -360,12 +383,21 @@ export default function GenshinWordle() {
 						Guess the 5-letter word
 					</p>
 				</div>
-				<button
-					onClick={() => setShowHelp(true)}
-					className="h-9 w-9 rounded-lg bg-guild-elevated hover:bg-foreground/10 flex items-center justify-center transition-colors cursor-pointer"
-				>
-					<HelpCircle className="h-4 w-4 text-guild-muted" />
-				</button>
+				<div className="flex items-center gap-2">
+					<button
+						onClick={handleNewWord}
+						title="New word"
+						className="h-9 w-9 rounded-lg bg-guild-elevated hover:bg-foreground/10 flex items-center justify-center transition-colors cursor-pointer"
+					>
+						<RefreshCw className="h-4 w-4 text-guild-muted" />
+					</button>
+					<button
+						onClick={() => setShowHelp(true)}
+						className="h-9 w-9 rounded-lg bg-guild-elevated hover:bg-foreground/10 flex items-center justify-center transition-colors cursor-pointer"
+					>
+						<HelpCircle className="h-4 w-4 text-guild-muted" />
+					</button>
+				</div>
 			</div>
 
 			{/* Score card */}

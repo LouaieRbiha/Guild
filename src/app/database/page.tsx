@@ -154,7 +154,7 @@ export default function DatabasePage() {
       </div>
 
       {/* Sticky Filter Bar */}
-      <Card className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-guild-border/30 p-4 gap-3">
+      <Card className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-guild-border p-4 gap-3">
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
@@ -235,7 +235,7 @@ export default function DatabasePage() {
                   isActive
                     ? colors
                       ? `${colors.bg} ${colors.text} ${colors.border}`
-                      : "bg-guild-accent/15 text-guild-accent border-guild-accent/30"
+                      : "bg-guild-accent/15 text-guild-accent border-guild-border/30"
                     : "bg-guild-elevated text-guild-muted border-transparent hover:bg-guild-elevated/80"
                 )}
               >
@@ -255,7 +255,7 @@ export default function DatabasePage() {
               className={cn(
                 "cursor-pointer transition-all select-none",
                 weapon === w
-                  ? "bg-guild-accent/20 text-guild-accent border-guild-accent/30"
+                  ? "bg-guild-accent/20 text-guild-accent border-guild-border/30"
                   : "bg-guild-elevated text-guild-muted border-transparent hover:bg-guild-elevated/80"
               )}
             >
@@ -275,7 +275,7 @@ export default function DatabasePage() {
                 rarity === r
                   ? r === 5 ? "bg-amber-500/20 text-amber-400 border-amber-500/30"
                   : r === 4 ? "bg-purple-500/20 text-purple-400 border-purple-500/30"
-                  : "bg-guild-accent/15 text-guild-accent border-guild-accent/30"
+                  : "bg-guild-accent/15 text-guild-accent border-guild-border/30"
                   : "bg-guild-elevated text-guild-muted border-transparent hover:bg-guild-elevated/80"
               )}
             >
@@ -342,7 +342,7 @@ export default function DatabasePage() {
               <Badge
                 variant="outline"
                 onClick={() => setWeapon("All")}
-                className="cursor-pointer gap-1 bg-guild-accent/20 text-guild-accent border-guild-accent/30"
+                className="cursor-pointer gap-1 bg-guild-accent/20 text-guild-accent border-guild-border/30"
               >
                 {weapon}
                 <X className="h-3 w-3 ml-0.5" />

@@ -258,7 +258,7 @@ export default function ArtifactsPage() {
       </div>
 
       {/* Sticky Filter Bar */}
-      <Card className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-guild-border/30 p-4 gap-3">
+      <Card className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-guild-border p-4 gap-3">
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
@@ -282,7 +282,7 @@ export default function ArtifactsPage() {
         {/* Rarity Filter + Sort */}
         <div className="flex gap-2 items-center flex-wrap">
           {[0, 5, 4, 3].map((r) => {
-            let activeStyle = "bg-guild-accent/15 text-guild-accent border-guild-accent/30";
+            let activeStyle = "bg-guild-accent/15 text-guild-accent border-guild-border/30";
             if (r === 5) activeStyle = "bg-amber-500/20 text-amber-400 border-amber-500/30";
             else if (r === 4) activeStyle = "bg-purple-500/20 text-purple-400 border-purple-500/30";
             else if (r === 3) activeStyle = "bg-blue-500/20 text-blue-400 border-blue-500/30";

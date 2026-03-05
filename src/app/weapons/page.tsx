@@ -137,7 +137,7 @@ export default function WeaponsPage() {
       </div>
 
       {/* Sticky Filter Bar */}
-      <Card className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-guild-border/30 p-4 gap-3">
+      <Card className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-guild-border p-4 gap-3">
         {/* Search with autocomplete */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
@@ -215,7 +215,7 @@ export default function WeaponsPage() {
               className={cn(
                 "cursor-pointer transition-all select-none",
                 type === w
-                  ? "bg-guild-accent/20 text-guild-accent border-guild-accent/30"
+                  ? "bg-guild-accent/20 text-guild-accent border-guild-border/30"
                   : "bg-guild-elevated text-guild-muted border-transparent hover:bg-guild-elevated/80"
               )}
             >
@@ -236,7 +236,7 @@ export default function WeaponsPage() {
                   ? r === 5 ? "bg-amber-500/20 text-amber-400 border-amber-500/30"
                   : r === 4 ? "bg-purple-500/20 text-purple-400 border-purple-500/30"
                   : r === 3 ? "bg-blue-500/20 text-blue-400 border-blue-500/30"
-                  : "bg-guild-accent/15 text-guild-accent border-guild-accent/30"
+                  : "bg-guild-accent/15 text-guild-accent border-guild-border/30"
                   : "bg-guild-elevated text-guild-muted border-transparent hover:bg-guild-elevated/80"
               )}
             >
@@ -285,7 +285,7 @@ export default function WeaponsPage() {
               <Badge
                 variant="outline"
                 onClick={() => setType("All")}
-                className="cursor-pointer gap-1 bg-guild-accent/20 text-guild-accent border-guild-accent/30"
+                className="cursor-pointer gap-1 bg-guild-accent/20 text-guild-accent border-guild-border/30"
               >
                 {type}
                 <X className="h-3 w-3 ml-0.5" />

@@ -368,7 +368,7 @@ export default function LeaksPage() {
               "cursor-pointer transition-all select-none capitalize",
               filterCategory === cat
                 ? cat === "all"
-                  ? "bg-guild-accent/15 text-guild-accent border-guild-accent/30"
+                  ? "bg-guild-accent/15 text-guild-accent border-guild-border/30"
                   : cn(CATEGORY_COLORS[cat]?.bg, CATEGORY_COLORS[cat]?.text, CATEGORY_COLORS[cat]?.border)
                 : "bg-guild-elevated text-guild-muted border-transparent hover:bg-guild-elevated/80"
             )}
@@ -385,7 +385,7 @@ export default function LeaksPage() {
               "cursor-pointer transition-all select-none",
               filterReliability === rel
                 ? rel === "all"
-                  ? "bg-guild-accent/15 text-guild-accent border-guild-accent/30"
+                  ? "bg-guild-accent/15 text-guild-accent border-guild-border/30"
                   : cn(RELIABILITY_STYLES[rel]?.bg, RELIABILITY_STYLES[rel]?.text, RELIABILITY_STYLES[rel]?.border)
                 : "bg-guild-elevated text-guild-muted border-transparent hover:bg-guild-elevated/80"
             )}
