@@ -13,6 +13,7 @@ import {
   Dices,
   ChevronLeft,
   ChevronRight,
+  BookOpen,
 } from "lucide-react";
 
 import {
@@ -32,6 +33,7 @@ import {
   AbyssIcon,
 } from "@/components/icons/genshin-icons";
 import { cn } from "@/lib/utils";
+import { TALENT_BOOK_SCHEDULE } from "@/data/farming-schedule";
 import type { CharacterEntry } from "@/lib/characters";
 import type { ActiveBanners, BannerWeaponInfo } from "@/lib/banners/types";
 
@@ -56,6 +58,16 @@ function getNextAbyssReset(): Date {
     return new Date(Date.UTC(y, m, 16, 4, 0, 0));
   }
   return new Date(Date.UTC(y, m + 1, 1, 4, 0, 0));
+}
+
+/** Return talent book names available for a given day (0=Sun..6=Sat). */
+function getTodaysTalentBooks(): string[] {
+  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const todayName = dayNames[new Date().getDay()];
+  if (todayName === "Sunday") return Object.keys(TALENT_BOOK_SCHEDULE);
+  return Object.entries(TALENT_BOOK_SCHEDULE)
+    .filter(([, days]) => days.includes(todayName))
+    .map(([name]) => name);
 }
 
 // Element-specific hover glow for character cards
@@ -130,6 +142,8 @@ export function HomeClient({
 }: HomeClientProps) {
   const [uid, setUid] = useState("");
   const [activeBannerIdx, setActiveBannerIdx] = useState(0);
+  const [activeCharIdx, setActiveCharIdx] = useState(0);
+  const [activeWeaponIdx, setActiveWeaponIdx] = useState(0);
   const router = useRouter();
 
   const go = () => {
@@ -153,9 +167,28 @@ export function HomeClient({
     return () => clearInterval(timer);
   }, [bannerCount, nextBanner]);
 
-  // Hero splash art from first featured 5-star character
-  const hero5Star = featured5StarChars[0];
-  const heroSplashUrl = hero5Star ? charGachaUrl(hero5Star.id) : null;
+  // Auto-rotate featured 5-star characters every 5 seconds
+  useEffect(() => {
+    if (featured5StarChars.length <= 1) return;
+    const timer = setInterval(() => {
+      setActiveCharIdx((i) => (i + 1) % featured5StarChars.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [featured5StarChars.length]);
+
+  // Auto-rotate featured 5-star weapons every 5 seconds (independent timer)
+  useEffect(() => {
+    if (featured5StarWeapons.length <= 1) return;
+    const timer = setInterval(() => {
+      setActiveWeaponIdx((i) => (i + 1) % featured5StarWeapons.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [featured5StarWeapons.length]);
+
+  // Today's farmable talent books
+  const todaysBooks = getTodaysTalentBooks();
+  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const todayName = dayNames[new Date().getDay()];
 
   return (
     <div className="min-h-screen text-white">
@@ -227,21 +260,26 @@ export function HomeClient({
             {/* Character Banner Card */}
             {charBanner ? (
               <Card className="overflow-hidden relative min-h-80 border-white/5 p-0 gap-0">
-                {/* Background splash art */}
-                {heroSplashUrl && (
-                  <>
+                {/* Background splash art — crossfade between featured chars */}
+                {featured5StarChars.map((char, idx) => {
+                  const url = charGachaUrl(char.id);
+                  return (
                     <Image
-                      src={heroSplashUrl}
-                      alt={hero5Star?.name || "Featured character"}
+                      key={char.id}
+                      src={url}
+                      alt={char.name}
                       fill
                       quality={95}
-                      className="object-cover object-top opacity-40"
+                      className={cn(
+                        "object-cover object-top transition-opacity duration-700",
+                        idx === activeCharIdx ? "opacity-40" : "opacity-0"
+                      )}
                       sizes="(max-width: 768px) 100vw, 50vw"
-                      priority={true}
+                      priority={idx === 0}
                     />
-                    <div className="absolute inset-0 bg-linear-to-t from-card via-card/80 to-transparent" />
-                  </>
-                )}
+                  );
+                })}
+                <div className="absolute inset-0 bg-linear-to-t from-card via-card/80 to-transparent" />
 
                 <div className="relative z-10 p-6 flex flex-col justify-between h-full min-h-80">
                   {/* Top label + version */}
@@ -259,13 +297,22 @@ export function HomeClient({
                   {/* Featured 5-star names + element badges */}
                   <div className="space-y-2 my-auto py-6">
                     {featured5StarChars.length > 0
-                      ? featured5StarChars.map((char) => (
+                      ? featured5StarChars.map((char, idx) => (
                           <Link
                             key={char.id}
                             href={`/database/${char.id}`}
                             className="flex items-center gap-3 group/name"
                           >
-                            <h3 className="text-2xl font-bold group-hover/name:text-guild-accent transition-colors">{char.name}</h3>
+                            <h3
+                              className={cn(
+                                "text-2xl font-bold transition-all duration-500 group-hover/name:text-guild-accent",
+                                idx === activeCharIdx
+                                  ? "text-white scale-105 origin-left"
+                                  : "text-white/50"
+                              )}
+                            >
+                              {char.name}
+                            </h3>
                             <ElementBadge element={char.element} />
                           </Link>
                         ))
@@ -274,6 +321,23 @@ export function HomeClient({
                             {name}
                           </h3>
                         ))}
+                    {/* Navigation dots */}
+                    {featured5StarChars.length > 1 && (
+                      <div className="flex items-center gap-1.5 pt-2">
+                        {featured5StarChars.map((char, idx) => (
+                          <button
+                            key={char.id}
+                            onClick={() => setActiveCharIdx(idx)}
+                            className={cn(
+                              "h-1.5 rounded-full transition-all duration-300",
+                              idx === activeCharIdx
+                                ? "w-5 bg-guild-accent"
+                                : "w-1.5 bg-white/25 hover:bg-white/40"
+                            )}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Bottom: 4-star icons (left) + countdown (right) */}
@@ -328,19 +392,22 @@ export function HomeClient({
                 {/* Gradient background */}
                 <div className="absolute inset-0 bg-linear-to-br from-guild-accent/10 via-card to-guild-accent-2/10" />
 
-                {/* Background weapon icons */}
+                {/* Background weapon icon — crossfade between featured weapons */}
                 {featured5StarWeapons.length > 0 && (
-                  <div className="absolute inset-0 flex items-center justify-center gap-8 opacity-20">
-                    {featured5StarWeapons.map((weapon) => (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    {featured5StarWeapons.map((weapon, idx) => (
                       <Image
                         key={weapon.id}
                         src={weaponIconUrl(weapon.id)}
                         alt={weapon.name}
                         width={160}
                         height={160}
-                        className="object-contain"
+                        className={cn(
+                          "absolute object-contain transition-opacity duration-700",
+                          idx === activeWeaponIdx ? "opacity-20" : "opacity-0"
+                        )}
                         sizes="160px"
-                        priority={true}
+                        priority={idx === 0}
                       />
                     ))}
                   </div>
@@ -362,7 +429,7 @@ export function HomeClient({
                   {/* Featured 5-star weapons with icons + rarity */}
                   <div className="space-y-3 my-auto py-6">
                     {featured5StarWeapons.length > 0
-                      ? featured5StarWeapons.map((weapon) => (
+                      ? featured5StarWeapons.map((weapon, idx) => (
                           <Link
                             key={weapon.id}
                             href={`/weapons/${weapon.id}`}
@@ -373,11 +440,21 @@ export function HomeClient({
                               alt={weapon.name}
                               width={40}
                               height={40}
-                              className="object-contain"
+                              className={cn(
+                                "object-contain transition-opacity duration-500",
+                                idx === activeWeaponIdx ? "opacity-100" : "opacity-40"
+                              )}
                               sizes="40px"
                             />
                             <div>
-                              <h3 className="text-lg font-bold group-hover/wname:text-guild-accent transition-colors">
+                              <h3
+                                className={cn(
+                                  "text-lg font-bold transition-all duration-500 group-hover/wname:text-guild-accent",
+                                  idx === activeWeaponIdx
+                                    ? "text-white"
+                                    : "text-white/50"
+                                )}
+                              >
                                 {weapon.name}
                               </h3>
                               <RarityStars rarity={weapon.rarity} size="xs" />
@@ -389,6 +466,23 @@ export function HomeClient({
                             {name}
                           </h3>
                         ))}
+                    {/* Navigation dots */}
+                    {featured5StarWeapons.length > 1 && (
+                      <div className="flex items-center gap-1.5 pt-2">
+                        {featured5StarWeapons.map((weapon, idx) => (
+                          <button
+                            key={weapon.id}
+                            onClick={() => setActiveWeaponIdx(idx)}
+                            className={cn(
+                              "h-1.5 rounded-full transition-all duration-300",
+                              idx === activeWeaponIdx
+                                ? "w-5 bg-guild-accent-2"
+                                : "w-1.5 bg-white/25 hover:bg-white/40"
+                            )}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Bottom: label + countdown */}
@@ -424,19 +518,24 @@ export function HomeClient({
               <div className="overflow-hidden rounded-xl">
                 {activeBannerIdx === 0 && charBanner ? (
                   <Card className="overflow-hidden relative min-h-80 border-white/5 p-0 gap-0">
-                    {heroSplashUrl && (
-                      <>
+                    {featured5StarChars.map((char, idx) => {
+                      const url = charGachaUrl(char.id);
+                      return (
                         <Image
-                          src={heroSplashUrl}
-                          alt={hero5Star?.name || "Featured character"}
+                          key={char.id}
+                          src={url}
+                          alt={char.name}
                           fill
                           quality={95}
-                          className="object-cover object-top opacity-40"
+                          className={cn(
+                            "object-cover object-top transition-opacity duration-700",
+                            idx === activeCharIdx ? "opacity-40" : "opacity-0"
+                          )}
                           sizes="100vw"
                         />
-                        <div className="absolute inset-0 bg-linear-to-t from-card via-card/80 to-transparent" />
-                      </>
-                    )}
+                      );
+                    })}
+                    <div className="absolute inset-0 bg-linear-to-t from-card via-card/80 to-transparent" />
                     <div className="relative z-10 p-6 flex flex-col justify-between h-full min-h-80">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-guild-muted">Character Event Wish</span>
@@ -445,12 +544,29 @@ export function HomeClient({
                         )}
                       </div>
                       <div className="space-y-2 my-auto py-6">
-                        {featured5StarChars.map((char) => (
+                        {featured5StarChars.map((char, idx) => (
                           <Link key={char.id} href={`/database/${char.id}`} className="flex items-center gap-3">
-                            <h3 className="text-2xl font-bold">{char.name}</h3>
+                            <h3 className={cn(
+                              "text-2xl font-bold transition-all duration-500",
+                              idx === activeCharIdx ? "text-white scale-105 origin-left" : "text-white/50"
+                            )}>{char.name}</h3>
                             <ElementBadge element={char.element} />
                           </Link>
                         ))}
+                        {featured5StarChars.length > 1 && (
+                          <div className="flex items-center gap-1.5 pt-2">
+                            {featured5StarChars.map((char, idx) => (
+                              <button
+                                key={char.id}
+                                onClick={() => setActiveCharIdx(idx)}
+                                className={cn(
+                                  "h-1.5 rounded-full transition-all duration-300",
+                                  idx === activeCharIdx ? "w-5 bg-guild-accent" : "w-1.5 bg-white/25 hover:bg-white/40"
+                                )}
+                              />
+                            ))}
+                          </div>
+                        )}
                       </div>
                       <div className="flex items-end justify-between gap-4">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -470,9 +586,20 @@ export function HomeClient({
                   <Card className="overflow-hidden relative min-h-80 border-white/5 p-0 gap-0">
                     <div className="absolute inset-0 bg-linear-to-br from-guild-accent/10 via-card to-guild-accent-2/10" />
                     {featured5StarWeapons.length > 0 && (
-                      <div className="absolute inset-0 flex items-center justify-center gap-8 opacity-20">
-                        {featured5StarWeapons.map((weapon) => (
-                          <Image key={weapon.id} src={weaponIconUrl(weapon.id)} alt={weapon.name} width={160} height={160} className="object-contain" sizes="160px" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        {featured5StarWeapons.map((weapon, idx) => (
+                          <Image
+                            key={weapon.id}
+                            src={weaponIconUrl(weapon.id)}
+                            alt={weapon.name}
+                            width={160}
+                            height={160}
+                            className={cn(
+                              "absolute object-contain transition-opacity duration-700",
+                              idx === activeWeaponIdx ? "opacity-20" : "opacity-0"
+                            )}
+                            sizes="160px"
+                          />
                         ))}
                       </div>
                     )}
@@ -484,15 +611,42 @@ export function HomeClient({
                         )}
                       </div>
                       <div className="space-y-3 my-auto py-6">
-                        {featured5StarWeapons.map((weapon) => (
+                        {featured5StarWeapons.map((weapon, idx) => (
                           <Link key={weapon.id} href={`/weapons/${weapon.id}`} className="flex items-center gap-3">
-                            <Image src={weaponIconUrl(weapon.id)} alt={weapon.name} width={40} height={40} className="object-contain" sizes="40px" />
+                            <Image
+                              src={weaponIconUrl(weapon.id)}
+                              alt={weapon.name}
+                              width={40}
+                              height={40}
+                              className={cn(
+                                "object-contain transition-opacity duration-500",
+                                idx === activeWeaponIdx ? "opacity-100" : "opacity-40"
+                              )}
+                              sizes="40px"
+                            />
                             <div>
-                              <h3 className="text-lg font-bold">{weapon.name}</h3>
+                              <h3 className={cn(
+                                "text-lg font-bold transition-all duration-500",
+                                idx === activeWeaponIdx ? "text-white" : "text-white/50"
+                              )}>{weapon.name}</h3>
                               <RarityStars rarity={weapon.rarity} size="xs" />
                             </div>
                           </Link>
                         ))}
+                        {featured5StarWeapons.length > 1 && (
+                          <div className="flex items-center gap-1.5 pt-2">
+                            {featured5StarWeapons.map((weapon, idx) => (
+                              <button
+                                key={weapon.id}
+                                onClick={() => setActiveWeaponIdx(idx)}
+                                className={cn(
+                                  "h-1.5 rounded-full transition-all duration-300",
+                                  idx === activeWeaponIdx ? "w-5 bg-guild-accent-2" : "w-1.5 bg-white/25 hover:bg-white/40"
+                                )}
+                              />
+                            ))}
+                          </div>
+                        )}
                       </div>
                       <div className="flex items-end justify-between">
                         <span className="text-sm text-guild-muted">Weapon Event Wish</span>
@@ -521,6 +675,43 @@ export function HomeClient({
               )}
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ── Today's Farming ────────────────────────────────────────── */}
+      <section className="px-6 pb-12">
+        <div className="max-w-6xl mx-auto">
+          <Card className="border-white/5 p-0 gap-0">
+            <CardContent className="px-5 py-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                <div className="flex items-center gap-2 shrink-0">
+                  <BookOpen size={18} className="text-guild-accent" />
+                  <span className="text-sm font-semibold">
+                    Today&apos;s Talent Books
+                  </span>
+                  <Badge variant="outline" className="text-xs text-guild-muted border-white/10">
+                    {todayName}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap flex-1">
+                  {todaysBooks.map((book) => (
+                    <Badge
+                      key={book}
+                      className="bg-guild-accent/10 text-guild-accent border-guild-accent/20 text-xs"
+                    >
+                      {book}
+                    </Badge>
+                  ))}
+                </div>
+                <Link
+                  href="/calendar"
+                  className="text-xs text-guild-accent hover:text-guild-accent/80 transition-colors shrink-0"
+                >
+                  Full schedule &rarr;
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
