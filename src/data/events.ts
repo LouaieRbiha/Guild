@@ -78,6 +78,69 @@ export const CURRENT_VERSION: VersionInfo = {
       rewards: ["Primogems x20", "Adventurer's Experience x6"],
     },
     {
+      name: "Ley Line Overflow",
+      type: "In-Game",
+      start: "2026-03-03T10:00:00Z",
+      end: "2026-03-10T04:00:00Z",
+      description:
+        "Claim double rewards from Blossoms of Wealth and Revelation without using extra resin.",
+      rewards: ["Mora x240000", "Hero's Wit x24"],
+    },
+    {
+      name: "Talent Material Double Drops",
+      type: "In-Game",
+      start: "2026-03-10T10:00:00Z",
+      end: "2026-03-17T04:00:00Z",
+      description:
+        "Receive double talent level-up materials from all talent material domains.",
+      rewards: ["Talent Books x2 multiplier"],
+    },
+    {
+      name: "Adventurer's Journey — Natlan Edition",
+      type: "Web Event",
+      start: "2026-03-05T10:00:00Z",
+      end: "2026-03-15T04:00:00Z",
+      description:
+        "Complete web-based exploration challenges for in-game rewards. Share Natlan landmarks on social media for bonus Primogems.",
+      rewards: ["Primogems x120", "Mystic Enhancement Ore x20", "Mora x50000"],
+    },
+    {
+      name: "Genius Invokation TCG — Grand Tournament",
+      type: "In-Game",
+      start: "2026-03-02T10:00:00Z",
+      end: "2026-03-16T04:00:00Z",
+      description:
+        "Compete in the seasonal TCG tournament with special rules and exclusive card rewards.",
+      rewards: ["Primogems x180", "Lucky Coins x1200"],
+    },
+    {
+      name: "Vibro-Crystal Research — Resonant Frequencies",
+      type: "In-Game",
+      start: "2026-03-07T10:00:00Z",
+      end: "2026-03-21T04:00:00Z",
+      description:
+        "Match elemental crystals to achieve high scores in this combat optimization challenge.",
+      rewards: ["Primogems x420", "Hero's Wit x12", "Mora x200000"],
+    },
+    {
+      name: "HoYoLAB Daily Check-in — March",
+      type: "Web Event",
+      start: "2026-03-01T00:00:00Z",
+      end: "2026-03-31T23:59:59Z",
+      description:
+        "Check in daily on HoYoLAB for cumulative rewards throughout the month.",
+      rewards: ["Primogems x60", "Hero's Wit x3", "Mystic Enhancement Ore x10"],
+    },
+    {
+      name: "Energy Amplifier Fruition",
+      type: "In-Game",
+      start: "2026-03-12T10:00:00Z",
+      end: "2026-03-25T04:00:00Z",
+      description:
+        "Use Energy Amplifier components to enhance your characters and complete combat challenges at higher difficulties for greater rewards.",
+      rewards: ["Primogems x420", "Mystic Enhancement Ore x20", "Mora x200000"],
+    },
+    {
       name: "Phase 2 Character Banner",
       type: "Update",
       start: "2026-03-17T07:00:00Z",

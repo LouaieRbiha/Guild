@@ -62,7 +62,10 @@ function EnemyRow({ enemy }: { enemy: AbyssEnemy }) {
   return (
     <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-white/3 hover:bg-white/6 transition-colors">
       <div className="flex items-center gap-2 min-w-0">
-        <ChevronRight className="h-3 w-3 text-guild-dim shrink-0" />
+        <span className={cn(
+          "w-2 h-2 rounded-full shrink-0",
+          enemy.element ? (ELEMENT_BAR_COLORS[enemy.element] ?? "bg-gray-500") : "bg-gray-600"
+        )} />
         <span className="text-sm text-foreground truncate">{enemy.name}</span>
         {enemy.element && <ElementBadge element={enemy.element} showIcon className="text-[10px] shrink-0" />}
       </div>
@@ -240,6 +243,45 @@ function FloorContent({ floor }: { floor: AbyssFloor }) {
           <p className="text-sm text-foreground/80">{floor.disorder}</p>
         </div>
       </div>
+
+      {/* Recommended Elements */}
+      {(() => {
+        const elements = new Set<string>();
+        for (const ch of floor.chambers) {
+          for (const e of [...ch.firstHalf, ...ch.secondHalf]) {
+            if (e.element) elements.add(e.element);
+          }
+        }
+        const counters: Record<string, string[]> = {
+          Pyro: ["Hydro"],
+          Hydro: ["Electro", "Cryo", "Dendro"],
+          Electro: ["Pyro", "Cryo"],
+          Cryo: ["Pyro"],
+          Dendro: ["Pyro"],
+          Geo: ["Geo", "Claymore" as string],
+        };
+        const recommended = new Set<string>();
+        for (const el of elements) {
+          for (const counter of (counters[el] || [])) {
+            recommended.add(counter);
+          }
+        }
+        if (recommended.size === 0) return null;
+        return (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs text-guild-muted font-medium">Bring:</span>
+            {[...recommended].map((el) => (
+              <Badge key={el} variant="outline" className={cn(
+                "text-[10px]",
+                ELEMENT_COLORS[el]?.text ?? "text-gray-400",
+                ELEMENT_COLORS[el]?.bg ?? "bg-gray-500/10",
+              )}>
+                {el}
+              </Badge>
+            ))}
+          </div>
+        );
+      })()}
 
       {/* Chambers */}
       <div className="space-y-4">

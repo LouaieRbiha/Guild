@@ -363,6 +363,13 @@ export default function ArtifactsPage() {
   );
 }
 
+// ── Helpers ────────────────────────────────────────────────────────────
+
+function getPieceIcons(setIcon: string): string[] {
+  const base = setIcon.replace(/_\d+$/, '_');
+  return [1, 2, 3, 4, 5].map((n) => `${YATTA_ASSETS}/${base}${n}.png`);
+}
+
 // ── Artifact Set Card ──────────────────────────────────────────────────
 
 interface ArtifactSetCardProps {
@@ -427,6 +434,21 @@ function ArtifactSetCard({ set }: ArtifactSetCardProps) {
               {set.name}
             </p>
             <RarityStars rarity={set.maxRarity} size="xs" className="mt-0.5" />
+            {/* Piece thumbnails */}
+            <div className="flex items-center gap-1 mt-1.5">
+              {getPieceIcons(set.icon).map((url, i) => (
+                <div key={i} className="relative w-6 h-6 rounded bg-white/10">
+                  <Image
+                    src={url}
+                    alt={`Piece ${i + 1}`}
+                    fill
+                    sizes="24px"
+                    className="object-contain p-0.5"
+                    unoptimized
+                  />
+                </div>
+              ))}
+            </div>
             {twoPcBonus && (
               <p className="text-[11px] text-gray-400 mt-1 line-clamp-1 leading-snug">
                 {twoPcBonus.label}: {twoPcBonus.description}

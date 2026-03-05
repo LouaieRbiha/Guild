@@ -388,35 +388,39 @@ export function HomeClient({
 
             {/* Weapon Banner Card */}
             {weaponBanner ? (
-              <Card className="overflow-hidden relative min-h-80 border-white/5 p-0 gap-0">
+              <Card className="overflow-hidden relative min-h-96 border-white/5 p-0 gap-0">
                 {/* Gradient background */}
                 <div className="absolute inset-0 bg-linear-to-br from-guild-accent/10 via-card to-guild-accent-2/10" />
 
-                {/* Background weapon icon — crossfade between featured weapons */}
+                {/* Large weapon splash art — crossfade between featured weapons */}
                 {featured5StarWeapons.length > 0 && (
-                  <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="absolute inset-0 flex items-center justify-end pr-4">
                     {featured5StarWeapons.map((weapon, idx) => (
                       <Image
                         key={weapon.id}
                         src={weaponIconUrl(weapon.id)}
                         alt={weapon.name}
-                        width={160}
-                        height={160}
+                        width={280}
+                        height={280}
+                        quality={100}
                         className={cn(
-                          "absolute object-contain transition-opacity duration-700",
-                          idx === activeWeaponIdx ? "opacity-20" : "opacity-0"
+                          "absolute object-contain transition-opacity duration-700 drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)]",
+                          idx === activeWeaponIdx ? "opacity-80" : "opacity-0"
                         )}
-                        sizes="160px"
+                        sizes="280px"
                         priority={idx === 0}
                       />
                     ))}
                   </div>
                 )}
 
-                <div className="relative z-10 p-6 flex flex-col justify-between h-full min-h-80">
+                {/* Light gradient overlay for text readability */}
+                <div className="absolute inset-0 bg-linear-to-r from-card via-card/60 to-transparent" />
+
+                <div className="relative z-10 p-6 flex flex-col justify-between h-full min-h-96">
                   {/* Top label + version */}
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-guild-muted">
+                    <span className="text-sm text-white/70 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
                       Epitome Invocation
                     </span>
                     {weaponBanner.version && (
@@ -433,23 +437,24 @@ export function HomeClient({
                           <Link
                             key={weapon.id}
                             href={`/weapons/${weapon.id}`}
-                            className="flex items-center gap-3 group/wname hover:opacity-90 transition-opacity"
+                            className="flex items-center gap-4 group/wname hover:opacity-90 transition-opacity"
                           >
                             <Image
                               src={weaponIconUrl(weapon.id)}
                               alt={weapon.name}
-                              width={40}
-                              height={40}
+                              width={56}
+                              height={56}
+                              quality={100}
                               className={cn(
-                                "object-contain transition-opacity duration-500",
+                                "object-contain transition-opacity duration-500 drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)]",
                                 idx === activeWeaponIdx ? "opacity-100" : "opacity-40"
                               )}
-                              sizes="40px"
+                              sizes="56px"
                             />
                             <div>
                               <h3
                                 className={cn(
-                                  "text-lg font-bold transition-all duration-500 group-hover/wname:text-guild-accent",
+                                  "text-xl font-bold transition-all duration-500 group-hover/wname:text-guild-accent drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]",
                                   idx === activeWeaponIdx
                                     ? "text-white"
                                     : "text-white/50"
@@ -462,7 +467,7 @@ export function HomeClient({
                           </Link>
                         ))
                       : weaponBanner.featured5Star.map((name) => (
-                          <h3 key={name} className="text-lg font-bold">
+                          <h3 key={name} className="text-xl font-bold drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
                             {name}
                           </h3>
                         ))}
@@ -487,7 +492,7 @@ export function HomeClient({
 
                   {/* Bottom: label + countdown */}
                   <div className="flex items-end justify-between">
-                    <span className="text-sm text-guild-muted">
+                    <span className="text-sm text-white/70 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
                       Weapon Event Wish
                     </span>
                     <Countdown
@@ -583,50 +588,53 @@ export function HomeClient({
                     </div>
                   </Card>
                 ) : weaponBanner ? (
-                  <Card className="overflow-hidden relative min-h-80 border-white/5 p-0 gap-0">
+                  <Card className="overflow-hidden relative min-h-96 border-white/5 p-0 gap-0">
                     <div className="absolute inset-0 bg-linear-to-br from-guild-accent/10 via-card to-guild-accent-2/10" />
                     {featured5StarWeapons.length > 0 && (
-                      <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="absolute inset-0 flex items-center justify-end pr-2">
                         {featured5StarWeapons.map((weapon, idx) => (
                           <Image
                             key={weapon.id}
                             src={weaponIconUrl(weapon.id)}
                             alt={weapon.name}
-                            width={160}
-                            height={160}
+                            width={200}
+                            height={200}
+                            quality={100}
                             className={cn(
-                              "absolute object-contain transition-opacity duration-700",
-                              idx === activeWeaponIdx ? "opacity-20" : "opacity-0"
+                              "absolute object-contain transition-opacity duration-700 drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)]",
+                              idx === activeWeaponIdx ? "opacity-80" : "opacity-0"
                             )}
-                            sizes="160px"
+                            sizes="200px"
                           />
                         ))}
                       </div>
                     )}
-                    <div className="relative z-10 p-6 flex flex-col justify-between h-full min-h-80">
+                    <div className="absolute inset-0 bg-linear-to-r from-card via-card/60 to-transparent" />
+                    <div className="relative z-10 p-6 flex flex-col justify-between h-full min-h-96">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-guild-muted">Epitome Invocation</span>
+                        <span className="text-sm text-white/70 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">Epitome Invocation</span>
                         {weaponBanner.version && (
                           <Badge className="bg-guild-accent-2/20 text-guild-accent-2 border-guild-accent-2/30">v{weaponBanner.version}</Badge>
                         )}
                       </div>
                       <div className="space-y-3 my-auto py-6">
                         {featured5StarWeapons.map((weapon, idx) => (
-                          <Link key={weapon.id} href={`/weapons/${weapon.id}`} className="flex items-center gap-3">
+                          <Link key={weapon.id} href={`/weapons/${weapon.id}`} className="flex items-center gap-4">
                             <Image
                               src={weaponIconUrl(weapon.id)}
                               alt={weapon.name}
-                              width={40}
-                              height={40}
+                              width={48}
+                              height={48}
+                              quality={100}
                               className={cn(
-                                "object-contain transition-opacity duration-500",
+                                "object-contain transition-opacity duration-500 drop-shadow-[0_2px_12px_rgba(0,0,0,0.5)]",
                                 idx === activeWeaponIdx ? "opacity-100" : "opacity-40"
                               )}
-                              sizes="40px"
+                              sizes="48px"
                             />
                             <div>
                               <h3 className={cn(
-                                "text-lg font-bold transition-all duration-500",
+                                "text-lg font-bold transition-all duration-500 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]",
                                 idx === activeWeaponIdx ? "text-white" : "text-white/50"
                               )}>{weapon.name}</h3>
                               <RarityStars rarity={weapon.rarity} size="xs" />
@@ -649,7 +657,7 @@ export function HomeClient({
                         )}
                       </div>
                       <div className="flex items-end justify-between">
-                        <span className="text-sm text-guild-muted">Weapon Event Wish</span>
+                        <span className="text-sm text-white/70 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">Weapon Event Wish</span>
                         <Countdown target={parseBannerDate(weaponBanner.end)} label="Ends in" />
                       </div>
                     </div>
