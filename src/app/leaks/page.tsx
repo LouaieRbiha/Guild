@@ -1,6 +1,6 @@
 "use client";
 
-import { Lock, Eye, EyeOff, AlertTriangle, ExternalLink, MessageCircle, Twitter, Users, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
+import { Lock, Eye, EyeOff, AlertTriangle, ExternalLink, MessageCircle, Twitter, Users, ChevronDown, ChevronUp, Sparkles, ArrowUp, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +19,7 @@ interface LeakEntry {
   date: string;
   version?: string;
   rarity?: number;
+  score?: number;
 }
 
 // ── Leak Data (curated from community) ───────────────────────────────
@@ -116,6 +117,62 @@ const LEAKS: LeakEntry[] = [
   },
 ];
 
+// ── API Types & Mapping ─────────────────────────────────────────────
+
+interface ApiLeakPost {
+  id: string;
+  title: string;
+  body: string;
+  source: string;
+  reliability: "reliable" | "questionable" | "speculative";
+  category: string;
+  imageUrl: string | null;
+  timestamp: number;
+  url: string;
+  score: number;
+  flair: string;
+}
+
+interface ApiLeaksResponse {
+  posts: ApiLeakPost[];
+  lastUpdated: number | null;
+}
+
+const API_RELIABILITY_MAP: Record<string, LeakEntry["reliability"]> = {
+  reliable: "reliable",
+  questionable: "sus",
+  speculative: "speculative",
+};
+
+const API_SEVERITY_MAP: Record<string, LeakEntry["severity"]> = {
+  reliable: "moderate",
+  questionable: "moderate",
+  speculative: "mild",
+};
+
+function formatTimestamp(ms: number): string {
+  return new Date(ms).toISOString().slice(0, 10);
+}
+
+function mapApiPostToEntry(post: ApiLeakPost): LeakEntry {
+  const validCategories = ["character", "weapon", "event", "story", "system", "banner"] as const;
+  const category = validCategories.includes(post.category as typeof validCategories[number])
+    ? (post.category as LeakEntry["category"])
+    : "system";
+
+  return {
+    id: `api-${post.id}`,
+    category,
+    title: post.title,
+    description: post.body,
+    source: "Reddit r/GI_Leaks",
+    reliability: API_RELIABILITY_MAP[post.reliability] || "speculative",
+    severity: API_SEVERITY_MAP[post.reliability] || "mild",
+    date: formatTimestamp(post.timestamp),
+    score: post.score,
+  };
+}
+
 // ── Community Sources ────────────────────────────────────────────────
 
 const COMMUNITY_SOURCES = [
@@ -180,6 +237,9 @@ export default function LeaksPage() {
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [filterReliability, setFilterReliability] = useState<string>("all");
   const [showSources, setShowSources] = useState(false);
+  const [leaks, setLeaks] = useState<LeakEntry[]>(LEAKS);
+  const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
 
   // Check settings for default state
   useEffect(() => {
@@ -196,6 +256,33 @@ export default function LeaksPage() {
     }
   }, []);
 
+  // Fetch leak data from API, fall back to hardcoded data
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchLeaks(): Promise<void> {
+      try {
+        const res = await fetch("/api/leaks");
+        if (!res.ok) return;
+
+        const data: ApiLeaksResponse = await res.json();
+        if (cancelled) return;
+
+        if (data.posts.length > 0) {
+          setLeaks(data.posts.map(mapApiPostToEntry));
+          setLastUpdated(data.lastUpdated);
+        }
+      } catch {
+        // API unavailable -- keep hardcoded fallback
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    fetchLeaks();
+    return () => { cancelled = true; };
+  }, []);
+
   const toggle = (id: string) =>
     setRevealed((p) => {
       const s = new Set(p);
@@ -204,10 +291,10 @@ export default function LeaksPage() {
       return s;
     });
 
-  const revealAll = () => setRevealed(new Set(LEAKS.map((l) => l.id)));
+  const revealAll = () => setRevealed(new Set(leaks.map((l) => l.id)));
   const hideAll = () => setRevealed(new Set());
 
-  const filtered = LEAKS.filter((l) => {
+  const filtered = leaks.filter((l) => {
     if (filterCategory !== "all" && l.category !== filterCategory) return false;
     if (filterReliability !== "all" && l.reliability !== filterReliability) return false;
     return true;
@@ -237,7 +324,7 @@ export default function LeaksPage() {
     );
   }
 
-  const categories = ["all", ...new Set(LEAKS.map((l) => l.category))];
+  const categories = ["all", ...new Set(leaks.map((l) => l.category))];
 
   return (
     <div className="space-y-6">
@@ -251,14 +338,25 @@ export default function LeaksPage() {
           <p className="text-sm text-yellow-400/60 mt-1">
             Content from beta/datamines. Not final. Click cards to reveal.
           </p>
+          {loading && (
+            <p className="text-xs text-guild-dim mt-1 flex items-center gap-1.5">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              Loading latest leaks...
+            </p>
+          )}
+          {!loading && lastUpdated && (
+            <p className="text-xs text-guild-dim mt-1">
+              Last updated {Math.round((Date.now() - lastUpdated) / 60000)} minutes ago
+            </p>
+          )}
         </div>
         <div className="flex gap-2">
           <button
-            onClick={revealed.size === LEAKS.length ? hideAll : revealAll}
+            onClick={revealed.size === leaks.length ? hideAll : revealAll}
             className="h-8 px-3 rounded-md bg-guild-elevated text-sm text-guild-muted hover:text-foreground transition-colors cursor-pointer flex items-center gap-1.5"
           >
-            {revealed.size === LEAKS.length ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-            {revealed.size === LEAKS.length ? "Hide All" : "Reveal All"}
+            {revealed.size === leaks.length ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+            {revealed.size === leaks.length ? "Hide All" : "Reveal All"}
           </button>
           <button
             onClick={() => setEnabled(false)}
@@ -377,6 +475,12 @@ export default function LeaksPage() {
                       <div className="flex items-center gap-3 mt-2">
                         <span className="text-xs text-guild-dim">Source: {leak.source}</span>
                         <span className="text-xs text-guild-dim">{leak.date}</span>
+                        {leak.score != null && leak.score > 0 && (
+                          <span className="text-xs text-guild-dim flex items-center gap-0.5">
+                            <ArrowUp className="h-3 w-3" />
+                            {leak.score.toLocaleString()}
+                          </span>
+                        )}
                       </div>
                     </div>
 

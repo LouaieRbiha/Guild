@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Radio,
   ExternalLink,
@@ -14,10 +14,13 @@ import {
   TrendingUp,
   Heart,
   ChevronDown,
+  Eye,
 } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -31,6 +34,17 @@ interface Creator {
   category: Category;
   description: string;
   url: string;
+}
+
+interface LiveStreamer {
+  name: string;
+  platform: "twitch" | "youtube";
+  title: string;
+  viewers: number;
+  thumbnail: string;
+  url: string;
+  startedAt: string;
+  profileImage: string;
 }
 
 // ── Data ─────────────────────────────────────────────────────────────────
@@ -202,6 +216,16 @@ type FilterValue = "all" | "youtube" | "twitch";
 export default function StreamersPage() {
   const [platformFilter, setPlatformFilter] = useState<FilterValue>("all");
   const [resourcesOpen, setResourcesOpen] = useState(false);
+  const [liveStreamers, setLiveStreamers] = useState<LiveStreamer[]>([]);
+  const [liveLoading, setLiveLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/streamers")
+      .then((res) => res.json())
+      .then((data: LiveStreamer[]) => setLiveStreamers(data))
+      .catch(() => setLiveStreamers([]))
+      .finally(() => setLiveLoading(false));
+  }, []);
 
   const filteredCreators =
     platformFilter === "all"
@@ -229,6 +253,108 @@ export default function StreamersPage() {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* ── Live Now ─────────────────────────────────────────────────── */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold flex items-center gap-2">
+          <span className="relative flex h-3 w-3">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+            <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500" />
+          </span>
+          Live Now
+        </h2>
+
+        {liveLoading && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Card
+                key={i}
+                className="border-white/5 p-0 gap-0 overflow-hidden"
+              >
+                <Skeleton className="w-full aspect-video" />
+                <CardContent className="p-3 space-y-2">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {!liveLoading && liveStreamers.length === 0 && (
+          <div className="text-center py-8 rounded-xl bg-guild-card border border-white/5">
+            <Tv className="mx-auto text-guild-dim mb-2" size={32} />
+            <p className="text-sm text-guild-muted">
+              No Genshin streams live right now
+            </p>
+          </div>
+        )}
+
+        {!liveLoading && liveStreamers.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {liveStreamers.map((streamer) => {
+              const platformCfg = PLATFORM_CONFIG[streamer.platform];
+              const PlatformIcon = platformCfg.icon;
+
+              return (
+                <a
+                  key={`${streamer.platform}-${streamer.name}`}
+                  href={streamer.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group block"
+                >
+                  <Card
+                    className={cn(
+                      "border-white/5 p-0 gap-0 overflow-hidden transition-all duration-300",
+                      "hover:border-guild-accent/30 hover:shadow-[0_0_24px_rgba(99,102,241,0.12)]",
+                      "hover:scale-[1.02]"
+                    )}
+                  >
+                    <div className="relative w-full aspect-video bg-guild-elevated">
+                      {streamer.thumbnail ? (
+                        <Image
+                          src={streamer.thumbnail}
+                          alt={streamer.title}
+                          fill
+                          className="object-cover"
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Play className="text-guild-dim" size={32} />
+                        </div>
+                      )}
+                      <Badge
+                        className={cn(
+                          "absolute top-2 left-2 text-[11px]",
+                          platformCfg.badgeBg,
+                          platformCfg.badgeText
+                        )}
+                      >
+                        <PlatformIcon size={12} className="mr-1" />
+                        {platformCfg.label}
+                      </Badge>
+                      {streamer.viewers > 0 && (
+                        <Badge className="absolute top-2 right-2 bg-black/60 text-white text-[11px]">
+                          <Eye size={12} className="mr-1" />
+                          {streamer.viewers.toLocaleString()}
+                        </Badge>
+                      )}
+                    </div>
+                    <CardContent className="p-3 space-y-1">
+                      <p className="text-sm font-medium leading-snug line-clamp-1 group-hover:text-guild-accent transition-colors">
+                        {streamer.title}
+                      </p>
+                      <p className="text-xs text-guild-muted">{streamer.name}</p>
+                    </CardContent>
+                  </Card>
+                </a>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* ── Platform Filters ────────────────────────────────────────── */}
