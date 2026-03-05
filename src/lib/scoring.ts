@@ -85,6 +85,8 @@ const ROASTS: Record<string, string[]> = {
     "Your artifacts have the structural integrity of wet cardboard.\nEvery single piece is wrong. The main stats are wrong. The substats are wrong. The set is wrong. YOU are wrong.",
     "Even the Adventurer set is looking at this build and feeling superior.\nThat's a 3★ set. Feeling embarrassed yet?",
     "I'm not even mad. I'm fascinated.\nHow do you play the game long enough to reach this point and still build like it's your first day?",
+    "With those substats, you'd need about 15,000 resin to match even an average build. That's 94 days of pure pain.",
+    "The chance of rolling this badly is actually impressive — roughly 0.3% of players have it this rough.",
   ],
   tragic: [
     "This build is a cry for help. Are you okay?\nBecause your artifacts definitely aren't. They need therapy and a complete overhaul.",
@@ -119,6 +121,8 @@ const ROASTS: Record<string, string[]> = {
     "I've seen worse. I've seen MUCH better. You're in the uncanny valley of builds.\nClose enough to good that it hurts. Far enough from good that it doesn't matter.",
     "This build runs on vibes and prayer.\nMainly prayer. Heavy, desperate prayer.",
     "The artifacts said 'we'll do the bare minimum' and they meant it.\nEvery substat did exactly one good roll and then gave up, just like you.",
+    "Your Sands has ATK% — a 26.68% drop rate. The fact that the substats still went to DEF is just Genshin being Genshin.",
+    "Statistically, you should have better crit rolls by now. The expected crit value at +20 is 28.3 CV. You're... not there.",
   ],
   solid: [
     "Okay, you actually put some work in. Respect.\nNot everyone can say that. Your character has a future.",
@@ -153,6 +157,8 @@ const ROASTS: Record<string, string[]> = {
     "This build is the final boss of showcases.\nOther players see this and close the game for the day. You've ruined their motivation.",
     "Theorycrafters are going to use your build as a benchmark.\nNot the character — YOUR specific artifacts. That's legacy.",
     "I need to sit down after seeing this. My artifacts just filed for divorce.\nThis is the build equivalent of a mic drop. There's nothing left to say.",
+    "Your crit ratio is in the top 5% of registered builds. The resin gods smiled upon you — approximately 8,000 resin worth of luck.",
+    "Most players need 40+ days to get artifacts this good. Either you're dedicated or you sold your soul to RNGesus.",
   ],
 };
 

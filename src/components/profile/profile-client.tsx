@@ -64,30 +64,42 @@ export function ProfileClient({ profile, rankings = {}, source = "enka" }: Profi
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       {/* Player Header */}
-      <div className="guild-card p-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">{profile.player.nickname}</h1>
-          <div className="flex items-center gap-4 mt-1 text-sm text-guild-muted">
-            <span>AR {profile.player.level}</span>
-            <span>WL {profile.player.worldLevel}</span>
-            <span className="font-mono">UID: {profile.uid}</span>
-            {profile.player.achievements && <span className="flex items-center gap-1"><TrophyIcon size={14} className="text-guild-gold" /> {profile.player.achievements}</span>}
-            {profile.player.abyssFloor && <span>Abyss {profile.player.abyssFloor}-{profile.player.abyssChamber}</span>}
-            {source === "akasha" && (
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-guild-gold/15 text-guild-gold">Akasha</span>
+      <div className="guild-card p-6 space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl sm:text-3xl font-bold">{profile.player.nickname}</h1>
+              {source === "akasha" && (
+                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-guild-gold/15 text-guild-gold uppercase tracking-wider">Akasha</span>
+              )}
+            </div>
+            {profile.player.signature && (
+              <p className="text-sm text-guild-muted mt-1 italic">&quot;{profile.player.signature}&quot;</p>
             )}
           </div>
-          {profile.player.signature && (
-            <p className="text-sm text-guild-muted mt-2 italic">&quot;{profile.player.signature}&quot;</p>
-          )}
+          <div className="flex gap-2">
+            <button className="h-9 px-4 rounded-md bg-guild-elevated hover:bg-white/10 text-sm flex items-center gap-2 transition-colors cursor-pointer">
+              <Share2 className="h-4 w-4" /> Share
+            </button>
+            <button className="h-9 px-4 rounded-md bg-guild-accent hover:bg-guild-accent/80 text-sm flex items-center gap-2 transition-colors cursor-pointer">
+              <Download className="h-4 w-4" /> Card
+            </button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <button className="h-9 px-4 rounded-md bg-guild-elevated hover:bg-white/10 text-sm flex items-center gap-2 transition-colors cursor-pointer">
-            <Share2 className="h-4 w-4" /> Share
-          </button>
-          <button className="h-9 px-4 rounded-md bg-guild-accent hover:bg-guild-accent/80 text-sm flex items-center gap-2 transition-colors cursor-pointer">
-            <Download className="h-4 w-4" /> Card
-          </button>
+        <div className="flex items-center gap-3 flex-wrap text-sm">
+          <span className="px-2.5 py-1 rounded-md bg-guild-elevated text-guild-accent font-semibold">AR {profile.player.level}</span>
+          <span className="px-2.5 py-1 rounded-md bg-guild-elevated text-guild-muted">WL {profile.player.worldLevel}</span>
+          <span className="px-2.5 py-1 rounded-md bg-guild-elevated font-mono text-guild-muted">{profile.uid}</span>
+          {profile.player.achievements && (
+            <span className="px-2.5 py-1 rounded-md bg-guild-gold/10 text-guild-gold flex items-center gap-1.5 font-medium">
+              <TrophyIcon size={14} /> {profile.player.achievements}
+            </span>
+          )}
+          {profile.player.abyssFloor && (
+            <span className="px-2.5 py-1 rounded-md bg-guild-elevated text-guild-muted">
+              Abyss {profile.player.abyssFloor}-{profile.player.abyssChamber}
+            </span>
+          )}
         </div>
       </div>
 
@@ -105,13 +117,13 @@ export function ProfileClient({ profile, rankings = {}, source = "enka" }: Profi
             )}
           >
             <div className={cn(
-              "w-12 h-12 rounded-full overflow-hidden",
+              "w-14 h-14 rounded-full overflow-hidden",
               c.rarity === 5 ? "ring-2 ring-guild-gold/50" : "ring-2 ring-guild-accent-2/50"
             )}>
               <CharImg
                 src={`${ENKA_UI}/${c.sideIcon}.png`}
                 alt={c.name}
-                size={48}
+                size={56}
               />
             </div>
             <span className="text-xs mt-1.5 font-medium truncate w-full text-center">{c.name}</span>
@@ -122,123 +134,123 @@ export function ProfileClient({ profile, rankings = {}, source = "enka" }: Profi
         ))}
       </div>
 
-      {/* Character + Artifacts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className={cn("guild-card p-5 space-y-4 bg-linear-to-br to-transparent", elBg[selected.element] || elBg.Unknown)}>
-          <div className="flex items-center gap-4">
-            <div className="w-20 h-20 rounded-lg overflow-hidden shrink-0 border border-white/10">
+      {/* Character Detail Card */}
+      <div className="guild-card overflow-hidden">
+        <div className="flex flex-col lg:flex-row">
+          {/* Left: Character splash art */}
+          <div className={cn(
+            "relative lg:w-2/5 min-h-64 lg:min-h-96 bg-linear-to-br to-transparent",
+            elBg[selected.element] || elBg.Unknown
+          )}>
+            <div className="absolute inset-0 flex items-center justify-center p-4">
               <CharImg
                 src={`${ENKA_UI}/${selected.icon}.png`}
                 alt={selected.name}
-                size={80}
+                size={200}
+                className="rounded-xl"
               />
             </div>
-            <div className="flex-1">
+            <div className="absolute bottom-0 inset-x-0 p-5 bg-linear-to-t from-guild-card via-guild-card/60 to-transparent">
               <div className="flex items-center gap-2">
-                <h2 className={cn("text-2xl font-bold", elColor[selected.element] || elColor.Unknown)}>{selected.name}</h2>
+                <h2 className={cn("text-2xl font-bold drop-shadow-lg", elColor[selected.element] || elColor.Unknown)}>{selected.name}</h2>
                 {(() => { const EI = ELEMENT_ICONS[selected.element]; return EI ? <EI size={22} /> : null; })()}
               </div>
-              <p className="text-sm text-guild-muted flex items-center gap-1.5">
-                Lv.{selected.level} · <ConstellationIcon size={12} className="text-guild-muted" />{selected.constellation} · {selected.talents.join("/")}
+              <p className="text-sm text-white/70 mt-0.5">
+                Lv.{selected.level} · C{selected.constellation} · {selected.talents.join("/")}
               </p>
               <div className="text-sm text-guild-gold mt-1">{"★".repeat(selected.rarity)}</div>
             </div>
           </div>
-          {/* Akasha Leaderboard Ranking */}
-          {ranking && (
-            <div className="border-t border-white/5 pt-3">
-              <div className="flex items-center gap-2 mb-2">
-                <Trophy size={14} className="text-guild-gold" />
-                <h3 className="text-sm font-medium text-guild-muted">Akasha Leaderboard</h3>
+
+          {/* Right: Stats panel */}
+          <div className="flex-1 p-5 space-y-5">
+            {/* Weapon */}
+            <div>
+              <h3 className="text-xs font-medium text-guild-muted uppercase tracking-wider mb-2">Weapon</h3>
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-guild-elevated border border-white/5">
+                {selected.weapon.icon && (
+                  <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10 shrink-0 bg-guild-card">
+                    <CharImg src={`${ENKA_UI}/${selected.weapon.icon}.png`} alt={selected.weapon.name} size={48} />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-guild-gold truncate">{selected.weapon.name}</p>
+                  <p className="text-xs text-guild-muted">R{selected.weapon.refinement} · Lv.{selected.weapon.level} · {"★".repeat(selected.weapon.rarity)}</p>
+                </div>
               </div>
-              <div className="bg-guild-elevated rounded-lg p-3 border border-white/5 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-guild-muted">{ranking.name || "Best Fit"}</span>
-                  <span className={cn(
-                    "text-xs font-bold px-2 py-0.5 rounded",
-                    ranking.outOf > 0 && (ranking.ranking / ranking.outOf) <= 0.01
-                      ? "bg-guild-gold/20 text-guild-gold"
-                      : ranking.outOf > 0 && (ranking.ranking / ranking.outOf) <= 0.10
-                        ? "bg-green-500/20 text-green-400"
-                        : "bg-guild-accent/20 text-guild-accent"
-                  )}>
-                    Top {ranking.outOf > 0 ? ((ranking.ranking / ranking.outOf) * 100).toFixed(1) : "?"}%
-                  </span>
+            </div>
+
+            {/* Akasha Ranking */}
+            {ranking && (
+              <div>
+                <h3 className="text-xs font-medium text-guild-muted uppercase tracking-wider mb-2">Akasha Leaderboard</h3>
+                <div className="p-3 rounded-lg bg-guild-elevated border border-white/5 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-guild-muted flex items-center gap-1.5">
+                      <Trophy size={12} className="text-guild-gold" />
+                      {ranking.name || "Best Fit"}
+                    </span>
+                    <span className={cn(
+                      "text-xs font-bold px-2 py-0.5 rounded",
+                      ranking.outOf > 0 && (ranking.ranking / ranking.outOf) <= 0.01
+                        ? "bg-guild-gold/20 text-guild-gold"
+                        : ranking.outOf > 0 && (ranking.ranking / ranking.outOf) <= 0.10
+                          ? "bg-green-500/20 text-green-400"
+                          : "bg-guild-accent/20 text-guild-accent"
+                    )}>
+                      Top {ranking.outOf > 0 ? ((ranking.ranking / ranking.outOf) * 100).toFixed(1) : "?"}%
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-guild-muted font-mono">#{ranking.ranking.toLocaleString()} / {ranking.outOf.toLocaleString()}</span>
+                    <span className="text-guild-gold font-mono font-bold">{Math.round(ranking.result).toLocaleString()}</span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-guild-muted font-mono">#{ranking.ranking.toLocaleString()} / {ranking.outOf.toLocaleString()}</span>
-                  <span className="text-guild-gold font-mono font-bold">{Math.round(ranking.result).toLocaleString()}</span>
-                </div>
-                {ranking.details && (
-                  <p className="text-[10px] text-guild-dim">{ranking.details}</p>
+              </div>
+            )}
+
+            {/* Artifact rows */}
+            <div>
+              <h3 className="text-xs font-medium text-guild-muted uppercase tracking-wider mb-2">Artifacts</h3>
+              <div className="grid grid-cols-1 gap-2">
+                {selected.artifacts.map((a, i) => {
+                  const s = artifactScores[i];
+                  const SI = SLOT_ICONS[a.slot];
+                  return (
+                    <div key={a.slot} className="flex items-center gap-3 p-2.5 rounded-lg bg-guild-elevated border border-white/5">
+                      {a.icon && (
+                        <div className="w-9 h-9 rounded overflow-hidden shrink-0 bg-guild-card">
+                          <CharImg src={`${ENKA_UI}/${a.icon}.png`} alt={a.slot} size={36} />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          {SI && <SI size={12} className="text-guild-muted shrink-0" />}
+                          <span className="text-xs font-medium text-guild-gold truncate">{a.mainStat}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-0.5">
+                          {a.substats.map((sub) => (
+                            <span key={sub.name} className="text-[10px] text-guild-muted">
+                              {sub.name} <span className="font-mono">{sub.value}</span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <span className={cn("text-sm font-bold font-mono", scoreColor(s))}>{grade(s)}</span>
+                        <div className="w-12 h-1.5 bg-white/5 rounded-full overflow-hidden mt-1">
+                          <div className={cn("h-full rounded-full", barColor(s))} style={{ width: `${s}%` }} />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                {selected.artifacts.length === 0 && (
+                  <p className="text-sm text-guild-dim py-4 text-center">No artifacts equipped</p>
                 )}
               </div>
             </div>
-          )}
-          <div className="border-t border-white/5 pt-4">
-            <h3 className="text-sm font-medium text-guild-muted mb-2">Weapon</h3>
-            <div className="flex items-center gap-3">
-              {selected.weapon.icon && (
-                <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10 shrink-0 bg-guild-elevated">
-                  <CharImg
-                    src={`${ENKA_UI}/${selected.weapon.icon}.png`}
-                    alt={selected.weapon.name}
-                    size={48}
-                  />
-                </div>
-              )}
-              <div className="flex-1">
-                <p className="font-medium text-guild-gold">{selected.weapon.name}</p>
-                <p className="text-sm text-guild-muted">R{selected.weapon.refinement} · Lv.{selected.weapon.level}</p>
-              </div>
-              <div className="w-8 h-8 rounded bg-guild-gold/10 flex items-center justify-center">
-                <span className="text-guild-gold text-sm">{"★".repeat(selected.weapon.rarity).slice(0,3)}</span>
-              </div>
-            </div>
           </div>
-        </div>
-
-        <div className="lg:col-span-2 guild-card p-5 space-y-4">
-          <h3 className="text-sm font-medium text-guild-muted flex items-center gap-2">
-            Artifacts
-          </h3>
-          {selected.artifacts.length > 0 ? (
-            <div className="grid grid-cols-5 gap-2">
-              {selected.artifacts.map((a, i) => {
-                const s = artifactScores[i];
-                return (
-                  <div key={a.slot} className="bg-guild-elevated rounded-lg p-3 space-y-2 border border-white/5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-guild-muted flex items-center gap-1">
-                        {(() => { const SI = SLOT_ICONS[a.slot]; return SI ? <SI size={14} className="text-guild-muted" /> : null; })()}
-                        {a.slot}
-                      </span>
-                      <span className={cn("text-xs font-bold", scoreColor(s))}>{grade(s)}</span>
-                    </div>
-                    {a.icon && (
-                      <div className="flex justify-center">
-                        <CharImg src={`${ENKA_UI}/${a.icon}.png`} alt={a.slot} size={36} />
-                      </div>
-                    )}
-                    <div className="text-xs font-medium text-guild-gold">{a.mainStat}</div>
-                    <div className="space-y-0.5">
-                      {a.substats.map((sub) => (
-                        <div key={sub.name} className="text-[10px] text-guild-muted flex justify-between">
-                          <span>{sub.name}</span>
-                          <span className="font-mono">{sub.value}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                      <div className={cn("h-full rounded-full", barColor(s))} style={{ width: `${s}%` }} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="text-sm text-guild-dim">No artifacts equipped</p>
-          )}
         </div>
       </div>
 
