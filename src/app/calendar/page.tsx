@@ -386,7 +386,7 @@ function EventCard({ event, status }: EventCardProps) {
   return (
     <div
       className={cn(
-        "relative rounded-xl border border-white/5 border-l-4 p-5 space-y-3",
+        "rounded-xl border border-white/5 border-l-4 p-5 space-y-3",
         "transition-all duration-200 hover:border-white/10",
         config.border,
         status === "ended"
@@ -394,7 +394,7 @@ function EventCard({ event, status }: EventCardProps) {
           : "bg-guild-card hover:bg-[#2a2d4a]",
       )}
     >
-      {/* Header: type badge + countdown/status */}
+      {/* Header: type badge + primo badge + countdown/status */}
       <div className="flex items-center justify-between gap-3">
         <Badge
           variant="secondary"
@@ -404,31 +404,40 @@ function EventCard({ event, status }: EventCardProps) {
           {event.type}
         </Badge>
 
-        {status === "active" && (
-          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-guild-success">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-guild-success opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-guild-success" />
+        <div className="flex items-center gap-2">
+          {primoCount > 0 && status !== "ended" && (
+            <span className="flex items-center gap-1 text-xs font-bold text-guild-gold bg-guild-gold/10 rounded-full px-2 py-0.5">
+              <Sparkles size={10} />
+              {primoCount}
             </span>
-            Live
-          </span>
-        )}
+          )}
 
-        {status === "upcoming" && (
-          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-guild-gold">
-            <Clock size={12} />
-            In {daysUntil(event.start)} day
-            {daysUntil(event.start) !== 1 ? "s" : ""}
-          </span>
-        )}
+          {status === "active" && (
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-guild-success">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-guild-success opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-guild-success" />
+              </span>
+              Live
+            </span>
+          )}
 
-        {status === "ended" && (
-          <span className="text-xs font-medium text-guild-dim">Ended</span>
-        )}
+          {status === "upcoming" && (
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-guild-gold">
+              <Clock size={12} />
+              In {daysUntil(event.start)} day
+              {daysUntil(event.start) !== 1 ? "s" : ""}
+            </span>
+          )}
+
+          {status === "ended" && (
+            <span className="text-xs font-medium text-guild-dim">Ended</span>
+          )}
+        </div>
       </div>
 
       {/* Event name */}
-      <h3 className="text-base font-bold leading-snug">{event.name}</h3>
+      <h3 className="text-base font-bold leading-snug line-clamp-1">{event.name}</h3>
 
       {/* Date range */}
       <div className="flex items-center gap-2 text-sm text-guild-muted">
@@ -468,13 +477,6 @@ function EventCard({ event, status }: EventCardProps) {
         </div>
       )}
 
-      {/* Primo highlight for active/upcoming events with primos */}
-      {primoCount > 0 && status !== "ended" && (
-        <div className="absolute top-4 right-4 flex items-center gap-1 text-xs font-bold text-guild-gold bg-guild-gold/10 rounded-full px-2 py-0.5">
-          <Sparkles size={10} />
-          {primoCount}
-        </div>
-      )}
     </div>
   );
 }
@@ -513,7 +515,7 @@ function EventSection({
       </button>
 
       {expanded && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {events.map(({ event, status }) => (
             <EventCard key={event.name} event={event} status={status} />
           ))}
@@ -529,7 +531,7 @@ function PermanentCard({ event }: { event: GameEvent }) {
   return (
     <div className="bg-guild-card rounded-xl border border-white/5 border-l-4 border-l-slate-500 p-4 space-y-2 transition-all duration-200 hover:border-white/10 hover:bg-[#2a2d4a]">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-sm font-bold">{event.name}</h3>
+        <h3 className="text-sm font-bold line-clamp-1">{event.name}</h3>
         <Badge
           variant="secondary"
           className="bg-slate-500/20 text-slate-400 border-0 text-[10px]"
