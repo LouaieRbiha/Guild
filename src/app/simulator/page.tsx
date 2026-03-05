@@ -398,7 +398,7 @@ export default function SimulatorPage() {
 								<div className='grid grid-cols-3 gap-3'>
 									<div className='rounded-lg bg-guild-elevated p-3 border border-white/5'>
 										<div className='text-[10px] text-guild-dim uppercase tracking-wider'>
-											Base 5&#9733; Rate
+											Base 5★ Rate
 										</div>
 										<div className='text-sm font-mono text-amber-400 mt-1'>
 											0.6%
@@ -489,19 +489,19 @@ export default function SimulatorPage() {
 									<div className='h-px bg-white/5' />
 
 									<StatRow
-										label='5&#9733; Obtained'
+										label='5★ Obtained'
 										value={wishStats.fiveStarCount}
 										labelClass='text-amber-400'
 										valueClass='text-amber-400'
 									/>
 									<StatRow
-										label='4&#9733; Obtained'
+										label='4★ Obtained'
 										value={wishStats.fourStarCount}
 										labelClass='text-purple-400'
 										valueClass='text-purple-400'
 									/>
 									<StatRow
-										label='Avg 5&#9733; Pity'
+										label='Avg 5★ Pity'
 										value={
 											wishStats.fiveStarCount > 0 ? wishStats.avgPity : '\u2014'
 										}
@@ -678,7 +678,7 @@ export default function SimulatorPage() {
 										{wishStats.fiveStarCount > 0 && (
 											<div className='space-y-1.5 pt-2'>
 												<div className='text-xs text-guild-dim font-medium uppercase tracking-wider'>
-													5&#9733; Log
+													5★ Log
 												</div>
 												<div className='flex flex-wrap gap-2'>
 													{wishStats.fiveStars.map((r, i) => (
