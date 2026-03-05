@@ -2,6 +2,7 @@ import cron from "node-cron";
 import { refreshYattaCache } from "./jobs/cache";
 import { scrapeRedditLeaks } from "./jobs/leaks";
 import { pollStreamers } from "./jobs/streamers";
+import { scrapeKQMGuides } from "./jobs/guides";
 
 console.log("[Worker] Starting Guild worker process...");
 
@@ -31,5 +32,14 @@ scrapeRedditLeaks().catch(console.error);
 
 // Run streamer poll on startup
 pollStreamers().catch(console.error);
+
+// Every 24 hours at 6am: scrape KQM guides
+cron.schedule("0 6 * * *", async () => {
+  console.log("[Worker] Running KQM guide scraper...");
+  await scrapeKQMGuides();
+});
+
+// Run KQM guide scrape on startup
+scrapeKQMGuides().catch(console.error);
 
 console.log("[Worker] Cron jobs scheduled.");
