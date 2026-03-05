@@ -85,6 +85,7 @@ export default function HomePage() {
       featured5StarChars={featured5StarChars}
       featured4StarChars={featured4StarChars}
       featured5StarWeapons={featured5StarWeapons}
+      allCharacters={ALL_CHARACTERS}
     />
   );
 }

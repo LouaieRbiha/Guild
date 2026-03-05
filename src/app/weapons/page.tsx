@@ -59,7 +59,7 @@ export default function WeaponsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIdx, setSelectedIdx] = useState(-1);
-  const [sortBy, setSortBy] = useState<SortOption>("newest");
+  const [sortBy, setSortBy] = useState<SortOption>("rarity");
   const [showSortMenu, setShowSortMenu] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const sortRef = useRef<HTMLDivElement>(null);
@@ -106,7 +106,10 @@ export default function WeaponsPage() {
       case "name-za":
         return arr.sort((a, b) => b.name.localeCompare(a.name));
       case "rarity":
-        return arr.sort((a, b) => b.rarity - a.rarity);
+        return arr.sort((a, b) => {
+          if (b.rarity !== a.rarity) return b.rarity - a.rarity;
+          return Number(b.id) - Number(a.id);
+        });
       case "type":
         return arr.sort((a, b) => (TYPE_ORDER[a.type] ?? 99) - (TYPE_ORDER[b.type] ?? 99));
       default:

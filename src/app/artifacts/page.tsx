@@ -10,9 +10,43 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RarityStars } from "@/components/shared";
-import { Search, X, RotateCcw, ChevronDown } from "lucide-react";
+import { Search, X, RotateCcw, ChevronDown, LayoutGrid, Castle } from "lucide-react";
+
+// ── Domain Data ────────────────────────────────────────────────────────
+
+interface ArtifactDomainInfo {
+  name: string;
+  location: string;
+  sets: string[]; // set names that drop from this domain
+}
+
+const ARTIFACT_DOMAIN_MAP: ArtifactDomainInfo[] = [
+  { name: "Momiji-Dyed Court", location: "Inazuma", sets: ["Emblem of Severed Fate", "Shimenawa's Reminiscence"] },
+  { name: "Spire of Solitary Enlightenment", location: "Sumeru", sets: ["Deepwood Memories", "Gilded Dreams"] },
+  { name: "Denouement of Sin", location: "Fontaine", sets: ["Golden Troupe", "Marechaussee Hunter"] },
+  { name: "Sanctum of Rainbow Spirits", location: "Natlan", sets: ["Obsidian Codex", "Scroll of the Hero of Cinder City"] },
+  { name: "Domain of Guyun", location: "Liyue", sets: ["Archaic Petra", "Retracing Bolide"] },
+  { name: "Valley of Remembrance", location: "Mondstadt", sets: ["Viridescent Venerer", "Maiden Beloved"] },
+  { name: "Ridge Watch", location: "Liyue", sets: ["Husk of Opulent Dreams", "Ocean-Hued Clam"] },
+  { name: "Slumbering Court", location: "Inazuma", sets: ["Vermillion Hereafter", "Echoes of an Offering"] },
+  { name: "Peak of Vindagnyr", location: "Mondstadt", sets: ["Blizzard Strayer", "Heart of Depth"] },
+  { name: "Midsummer Courtyard", location: "Mondstadt", sets: ["Thundering Fury", "Thundersoother"] },
+  { name: "Hidden Palace of Zhou Formula", location: "Liyue", sets: ["Crimson Witch of Flames", "Lavawalker"] },
+  { name: "Clear Pool and Mountain Cavern", location: "Liyue", sets: ["Noblesse Oblige", "Bloodstained Chivalry"] },
+];
+
+const LOCATION_COLORS: Record<string, string> = {
+  Mondstadt: "text-cyan-400",
+  Liyue: "text-amber-400",
+  Inazuma: "text-purple-400",
+  Sumeru: "text-green-400",
+  Fontaine: "text-blue-400",
+  Natlan: "text-red-400",
+};
 
 // ── Types ──────────────────────────────────────────────────────────────
+
+type ViewMode = "domains" | "all";
 
 interface ArtifactSet {
   id: number;
@@ -111,6 +145,7 @@ export default function ArtifactsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("domains");
   const sortRef = useRef<HTMLDivElement>(null);
 
   // Fetch data
@@ -188,9 +223,38 @@ export default function ArtifactsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Artifact Sets</h1>
-        <span className="text-base text-guild-muted">
-          {loading ? "..." : `${filtered.length} / ${sets.length} sets`}
-        </span>
+        <div className="flex items-center gap-3">
+          {/* View mode toggle */}
+          <div className="flex rounded-lg border border-white/10 overflow-hidden">
+            <button
+              onClick={() => setViewMode("domains")}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors",
+                viewMode === "domains"
+                  ? "bg-guild-accent/20 text-guild-accent"
+                  : "text-guild-muted hover:text-white hover:bg-white/5"
+              )}
+            >
+              <Castle className="h-3.5 w-3.5" />
+              Domains
+            </button>
+            <button
+              onClick={() => setViewMode("all")}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors border-l border-white/10",
+                viewMode === "all"
+                  ? "bg-guild-accent/20 text-guild-accent"
+                  : "text-guild-muted hover:text-white hover:bg-white/5"
+              )}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+              All Sets
+            </button>
+          </div>
+          <span className="text-base text-guild-muted">
+            {loading ? "..." : `${filtered.length} / ${sets.length} sets`}
+          </span>
+        </div>
       </div>
 
       {/* Sticky Filter Bar */}
@@ -339,7 +403,7 @@ export default function ArtifactsPage() {
       )}
 
       {/* Artifact Grid */}
-      {!loading && !error && sorted.length > 0 && (
+      {!loading && !error && sorted.length > 0 && viewMode === "all" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {sorted.map((set) => (
             <ArtifactSetCard key={set.id} set={set} />
@@ -347,8 +411,13 @@ export default function ArtifactsPage() {
         </div>
       )}
 
+      {/* Domain View */}
+      {!loading && !error && sets.length > 0 && viewMode === "domains" && (
+        <DomainCardsSection sets={sets} searchFilter={debouncedSearch} rarityFilter={rarity} />
+      )}
+
       {/* Empty State */}
-      {!loading && !error && sorted.length === 0 && sets.length > 0 && (
+      {!loading && !error && sorted.length === 0 && sets.length > 0 && viewMode === "all" && (
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <div className="text-5xl opacity-30">&#x1F50D;</div>
           <p className="text-lg text-muted-foreground">No artifact sets match your filters.</p>
@@ -370,6 +439,201 @@ function getPieceIcons(setIcon: string): string[] {
   return [1, 2, 3, 4, 5].map((n) => `${YATTA_ASSETS}/${base}${n}.png`);
 }
 
+// ── Domain Cards Section ───────────────────────────────────────────────
+
+interface DomainCardsSectionProps {
+  sets: ArtifactSet[];
+  searchFilter: string;
+  rarityFilter: number;
+}
+
+function DomainCardsSection({ sets, searchFilter, rarityFilter }: DomainCardsSectionProps) {
+  // Build a lookup from set name to set data
+  const setsByName = new Map<string, ArtifactSet>();
+  for (const s of sets) {
+    setsByName.set(s.name, s);
+  }
+
+  // Filter domains based on search and rarity filters
+  const filteredDomains = ARTIFACT_DOMAIN_MAP.filter((domain) => {
+    const domainSets = domain.sets.map((name) => setsByName.get(name)).filter(Boolean) as ArtifactSet[];
+    if (domainSets.length === 0) return false;
+
+    // If rarity filter is active, at least one set must match
+    if (rarityFilter && !domainSets.some((s) => s.maxRarity === rarityFilter)) return false;
+
+    // If search filter is active, domain name, location, or at least one set name must match
+    if (searchFilter) {
+      const q = searchFilter.toLowerCase();
+      const matchesDomain = domain.name.toLowerCase().includes(q) || domain.location.toLowerCase().includes(q);
+      const matchesSet = domainSets.some((s) => s.name.toLowerCase().includes(q));
+      if (!matchesDomain && !matchesSet) return false;
+    }
+
+    return true;
+  });
+
+  // Also find sets that are NOT in any domain
+  const domainSetNames = new Set(ARTIFACT_DOMAIN_MAP.flatMap((d) => d.sets));
+  const undomainedSets = sets.filter((s) => {
+    if (domainSetNames.has(s.name)) return false;
+    if (rarityFilter && s.maxRarity !== rarityFilter) return false;
+    if (searchFilter && !s.name.toLowerCase().includes(searchFilter.toLowerCase())) return false;
+    return true;
+  });
+
+  return (
+    <div className="space-y-8">
+      {/* Domain cards */}
+      {filteredDomains.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-guild-muted flex items-center gap-2">
+            <Castle className="h-4 w-4" />
+            Artifact Domains
+            <span className="text-sm font-normal">({filteredDomains.length})</span>
+          </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {filteredDomains.map((domain) => (
+              <DomainCard key={domain.name} domain={domain} setsByName={setsByName} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Un-domained sets (overworld / event sets) */}
+      {undomainedSets.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-guild-muted flex items-center gap-2">
+            <LayoutGrid className="h-4 w-4" />
+            Other Sets
+            <span className="text-sm font-normal">({undomainedSets.length})</span>
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {undomainedSets.map((set) => (
+              <ArtifactSetCard key={set.id} set={set} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Empty state for domain view */}
+      {filteredDomains.length === 0 && undomainedSets.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="text-5xl opacity-30">&#x1F3EF;</div>
+          <p className="text-lg text-muted-foreground">No domains or sets match your filters.</p>
+          <p className="text-sm text-muted-foreground/60">Try adjusting your search or removing some filters.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Domain Card ────────────────────────────────────────────────────────
+
+interface DomainCardProps {
+  domain: ArtifactDomainInfo;
+  setsByName: Map<string, ArtifactSet>;
+}
+
+function DomainCard({ domain, setsByName }: DomainCardProps) {
+  const domainSets = domain.sets.map((name) => setsByName.get(name)).filter(Boolean) as ArtifactSet[];
+  const locationColor = LOCATION_COLORS[domain.location] || "text-muted-foreground";
+
+  return (
+    <Card className="overflow-hidden border-white/8 hover:border-white/15 transition-all duration-300 p-0 group">
+      {/* Domain header */}
+      <div className="px-4 pt-4 pb-3 border-b border-white/5 bg-gradient-to-r from-white/[0.03] to-transparent">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-bold text-white text-sm">{domain.name}</h3>
+            <p className={cn("text-xs mt-0.5", locationColor)}>{domain.location}</p>
+          </div>
+          <div className="flex -space-x-3">
+            {domainSets.map((set) => (
+              <div
+                key={set.id}
+                className="relative w-10 h-10 rounded-full bg-guild-elevated border-2 border-background overflow-hidden"
+              >
+                <Image
+                  src={`${YATTA_ASSETS}/${set.icon}.png`}
+                  alt={set.name}
+                  fill
+                  sizes="40px"
+                  className="object-contain p-0.5"
+                  unoptimized
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Sets in this domain */}
+      <div className="divide-y divide-white/5">
+        {domainSets.map((set) => {
+          const gradient = RARITY_GRADIENT[set.maxRarity] || RARITY_GRADIENT[3];
+          const twoPc = set.bonuses.find((b) => b.label === "2-Piece" || b.label === "1-Piece");
+          const fourPc = set.bonuses.find((b) => b.label === "4-Piece");
+
+          return (
+            <Link key={set.id} href={`/artifacts/${set.id}`} className="block">
+              <div className="flex gap-3 p-3 hover:bg-white/[0.03] transition-colors">
+                {/* Set icon */}
+                <div className={cn("relative w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-gradient-to-br", gradient)}>
+                  <Image
+                    src={`${YATTA_ASSETS}/${set.icon}.png`}
+                    alt={set.name}
+                    fill
+                    sizes="64px"
+                    className="object-contain p-1 drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]"
+                    unoptimized
+                  />
+                </div>
+
+                {/* Set details */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-white truncate">{set.name}</p>
+                    <RarityStars rarity={set.maxRarity} size="xs" />
+                  </div>
+
+                  {/* Piece thumbnails row */}
+                  <div className="flex items-center gap-1 mt-1">
+                    {getPieceIcons(set.icon).map((url, i) => (
+                      <div key={i} className="relative w-5 h-5 rounded bg-white/10 shrink-0">
+                        <Image
+                          src={url}
+                          alt={`Piece ${i + 1}`}
+                          fill
+                          sizes="20px"
+                          className="object-contain p-0.5"
+                          unoptimized
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Set bonuses */}
+                  {twoPc && (
+                    <p className="text-[11px] text-gray-400 mt-1 line-clamp-1 leading-snug">
+                      <span className="text-gray-300 font-medium">{twoPc.label}:</span> {twoPc.description}
+                    </p>
+                  )}
+                  {fourPc && (
+                    <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-1 leading-snug">
+                      <span className="text-gray-400 font-medium">{fourPc.label}:</span> {fourPc.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+
 // ── Artifact Set Card ──────────────────────────────────────────────────
 
 interface ArtifactSetCardProps {
@@ -383,6 +647,7 @@ function ArtifactSetCard({ set }: ArtifactSetCardProps) {
   const shimmer = RARITY_SHIMMER[set.maxRarity] || RARITY_SHIMMER[3];
   const border = RARITY_BORDER[set.maxRarity] || RARITY_BORDER[3];
   const twoPcBonus = set.bonuses.find((b) => b.label === "2-Piece" || b.label === "1-Piece");
+  const fourPcBonus = set.bonuses.find((b) => b.label === "4-Piece");
 
   return (
     <Link href={`/artifacts/${set.id}`}>
@@ -451,7 +716,12 @@ function ArtifactSetCard({ set }: ArtifactSetCardProps) {
             </div>
             {twoPcBonus && (
               <p className="text-[11px] text-gray-400 mt-1 line-clamp-1 leading-snug">
-                {twoPcBonus.label}: {twoPcBonus.description}
+                <span className="text-gray-300 font-medium">{twoPcBonus.label}:</span> {twoPcBonus.description}
+              </p>
+            )}
+            {fourPcBonus && (
+              <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-1 leading-snug">
+                <span className="text-gray-400 font-medium">{fourPcBonus.label}:</span> {fourPcBonus.description}
               </p>
             )}
           </div>

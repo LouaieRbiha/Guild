@@ -237,6 +237,15 @@ export function CharacterDetailClient({ detail, entry }: Props) {
 	const VisionComp = ELEMENT_ICONS[detail.element];
 	const gachaUrl = charGachaUrl(entry.id);
 
+	const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+	function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+		const rect = e.currentTarget.getBoundingClientRect();
+		const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+		const y = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+		setMousePos({ x, y });
+	}
+
 	return (
 		<div className='space-y-6 pb-12'>
 			{/* Back nav */}
@@ -252,7 +261,8 @@ export function CharacterDetailClient({ detail, entry }: Props) {
 				<div className='relative flex flex-col md:flex-row'>
 					{/* Character art */}
 					<div
-						className={`relative w-full md:w-80 h-80 md:h-auto ${colors.bg} shrink-0`}
+						className={`relative w-full md:w-80 h-96 md:h-auto ${colors.bg} shrink-0 overflow-hidden`}
+						onMouseMove={handleMouseMove}
 					>
 						<Image
 							src={gachaUrl}
@@ -262,6 +272,10 @@ export function CharacterDetailClient({ detail, entry }: Props) {
 							priority={true}
 							quality={100}
 							sizes='(max-width: 768px) 100vw, 320px'
+							style={{
+								transform: `translate(${mousePos.x * -8}px, ${mousePos.y * -8}px) scale(1.05)`,
+								transition: 'transform 0.15s ease-out',
+							}}
 							onLoad={() => {
 								// Hero art loaded
 							}}

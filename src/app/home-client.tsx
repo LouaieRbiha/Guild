@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -129,6 +129,7 @@ interface HomeClientProps {
   featured5StarChars: CharacterEntry[];
   featured4StarChars: CharacterEntry[];
   featured5StarWeapons: BannerWeaponInfo[];
+  allCharacters: CharacterEntry[];
 }
 
 // ── Component ────────────────────────────────────────────────────────────
@@ -139,11 +140,14 @@ export function HomeClient({
   featured5StarChars,
   featured4StarChars,
   featured5StarWeapons,
+  allCharacters,
 }: HomeClientProps) {
   const [uid, setUid] = useState("");
   const [activeBannerIdx, setActiveBannerIdx] = useState(0);
   const [activeCharIdx, setActiveCharIdx] = useState(0);
   const [activeWeaponIdx, setActiveWeaponIdx] = useState(0);
+  const [search, setSearch] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
   const router = useRouter();
 
   const go = () => {
@@ -187,6 +191,19 @@ export function HomeClient({
 
   // Today's farmable talent books
   const todaysBooks = getTodaysTalentBooks();
+
+  // Global search results
+  const searchResults = useMemo(() => {
+    if (!search.trim() || search.trim().length < 2) return [];
+    const q = search.toLowerCase();
+    const results: Array<{ name: string; type: string; href: string; element?: string }> = [];
+    for (const c of allCharacters) {
+      if (c.name.toLowerCase().includes(q)) {
+        results.push({ name: c.name, type: "character", href: `/database/${c.id}`, element: c.element });
+      }
+    }
+    return results.slice(0, 8);
+  }, [search, allCharacters]);
   const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const todayName = dayNames[new Date().getDay()];
 
@@ -234,6 +251,37 @@ export function HomeClient({
             <p className="text-sm text-guild-muted mt-3">
               Paste a Genshin UID to view builds, stats, and more
             </p>
+
+            {/* Global Search */}
+            <div className="max-w-md mx-auto mt-4 relative">
+              <Input
+                type="text"
+                placeholder="Search characters, weapons, artifacts..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
+                className="h-11 bg-guild-card/50 border-white/10 text-sm"
+              />
+              {searchFocused && searchResults.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 rounded-lg bg-guild-card border border-white/10 shadow-xl z-50 overflow-hidden">
+                  {searchResults.map((r) => (
+                    <Link
+                      key={r.href}
+                      href={r.href}
+                      className="flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition-colors"
+                    >
+                      <span className="text-xs text-guild-muted capitalize w-16">{r.type}</span>
+                      <span className="text-sm font-medium">{r.name}</span>
+                      {r.element && (() => {
+                        const EIcon = ELEMENT_ICONS[r.element];
+                        return EIcon ? <EIcon size={14} /> : null;
+                      })()}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>
