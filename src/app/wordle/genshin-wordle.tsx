@@ -1,6 +1,5 @@
 'use client';
 
-import { ALL_CHARACTERS } from '@/lib/characters';
 import { cn } from '@/lib/utils';
 import { Clock, HelpCircle, X, Trophy, Share2, Check, Delete } from 'lucide-react';
 import { useState, useCallback, useMemo, useEffect } from 'react';
@@ -10,9 +9,64 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 const WORD_LENGTH = 5;
 const MAX_GUESSES = 6;
 
-const VALID_WORDS: string[] = ALL_CHARACTERS
-	.filter((c) => c.name.length === WORD_LENGTH && !c.name.includes(' '))
-	.map((c) => c.name.toUpperCase());
+const VALID_WORDS: string[] = [
+	'ABOUT', 'ABOVE', 'AFTER', 'AGAIN', 'APPLE', 'BEACH', 'BEGIN', 'BIBLE', 'BLACK', 'BLANK',
+	'BLAST', 'BLAZE', 'BLEED', 'BLEND', 'BLIND', 'BLOCK', 'BLOOD', 'BLOWN', 'BOARD', 'BOOST',
+	'BRAIN', 'BRAND', 'BRAVE', 'BREAD', 'BREAK', 'BREED', 'BRICK', 'BRIEF', 'BRING', 'BROAD',
+	'BROKE', 'BROWN', 'BRUSH', 'BUILD', 'BURST', 'BUYER', 'CABIN', 'CANDY', 'CARGO', 'CARRY',
+	'CATCH', 'CAUSE', 'CHAIN', 'CHAIR', 'CHAOS', 'CHARM', 'CHASE', 'CHEAP', 'CHECK', 'CHESS',
+	'CHIEF', 'CHILD', 'CHINA', 'CHOSE', 'CIVIL', 'CLAIM', 'CLASS', 'CLEAN', 'CLEAR', 'CLIMB',
+	'CLOCK', 'CLONE', 'CLOSE', 'CLOUD', 'COACH', 'COAST', 'CORAL', 'COULD', 'COUNT', 'COURT',
+	'COVER', 'CRAFT', 'CRANE', 'CRASH', 'CRAZY', 'CREAM', 'CRIME', 'CROSS', 'CROWD', 'CROWN',
+	'CRUSH', 'CURVE', 'CYCLE', 'DAILY', 'DANCE', 'DEATH', 'DELAY', 'DEMON', 'DEPTH', 'DEVIL',
+	'DIRTY', 'DOUBT', 'DRAFT', 'DRAIN', 'DRAMA', 'DRANK', 'DRAWN', 'DREAM', 'DRESS', 'DRIED',
+	'DRILL', 'DRINK', 'DRIVE', 'DYING', 'EAGER', 'EARLY', 'EARTH', 'EIGHT', 'ELECT', 'ELITE',
+	'EMPTY', 'ENEMY', 'ENJOY', 'ENTER', 'EQUAL', 'EVENT', 'EVERY', 'EXACT', 'EXIST', 'EXTRA',
+	'FAINT', 'FAIRY', 'FAITH', 'FALSE', 'FEAST', 'FENCE', 'FEWER', 'FIBER', 'FIELD', 'FIFTH',
+	'FIFTY', 'FIGHT', 'FINAL', 'FIRST', 'FIXED', 'FLAME', 'FLASH', 'FLESH', 'FLOAT', 'FLOOD',
+	'FLOOR', 'FLOUR', 'FLUID', 'FLUTE', 'FOCUS', 'FORCE', 'FORGE', 'FORTH', 'FOUND', 'FRAME',
+	'FRANK', 'FRAUD', 'FRESH', 'FRONT', 'FROST', 'FRUIT', 'FULLY', 'GHOST', 'GIANT', 'GIVEN',
+	'GLASS', 'GLOBE', 'GLORY', 'GOING', 'GRACE', 'GRADE', 'GRAIN', 'GRAND', 'GRANT', 'GRASS',
+	'GRAVE', 'GREAT', 'GREEN', 'GRIND', 'GROSS', 'GROUP', 'GROWN', 'GUARD', 'GUESS', 'GUIDE',
+	'GUILT', 'HAPPY', 'HARSH', 'HAVEN', 'HEART', 'HEAVY', 'HENCE', 'HORSE', 'HOTEL', 'HOUSE',
+	'HUMAN', 'HUMOR', 'IDEAL', 'IMAGE', 'INDEX', 'INNER', 'INPUT', 'IRONY', 'ISSUE', 'IVORY',
+	'JEWEL', 'JOINT', 'JUDGE', 'JUICE', 'KNOCK', 'KNOWN', 'LABEL', 'LARGE', 'LASER', 'LATER',
+	'LAUGH', 'LAYER', 'LEARN', 'LEAST', 'LEAVE', 'LEGAL', 'LEVEL', 'LIGHT', 'LIMIT', 'LINEN',
+	'LIVER', 'LOBBY', 'LOCAL', 'LOGIC', 'LOOSE', 'LOVER', 'LOWER', 'LUCKY', 'LUNCH', 'MAGIC',
+	'MAJOR', 'MAKER', 'MANOR', 'MARCH', 'MARRY', 'MATCH', 'MAYOR', 'MEDIA', 'MERCY', 'METAL',
+	'MIGHT', 'MINOR', 'MINUS', 'MIXED', 'MODEL', 'MONEY', 'MONTH', 'MORAL', 'MOTOR', 'MOUNT',
+	'MOUTH', 'MOVIE', 'MUSIC', 'NAIVE', 'NERVE', 'NEVER', 'NIGHT', 'NOBLE', 'NOISE', 'NORTH',
+	'NOTED', 'NOVEL', 'NURSE', 'OCEAN', 'OFFER', 'OFTEN', 'ORBIT', 'ORDER', 'OTHER', 'OUTER',
+	'OWNED', 'OWNER', 'OXIDE', 'PAINT', 'PANEL', 'PANIC', 'PAPER', 'PARTY', 'PATCH', 'PAUSE',
+	'PEACE', 'PEARL', 'PENNY', 'PHASE', 'PHONE', 'PHOTO', 'PIANO', 'PIECE', 'PILOT', 'PITCH',
+	'PLACE', 'PLAIN', 'PLANE', 'PLANT', 'PLATE', 'PLAZA', 'PLEAD', 'POINT', 'POUND', 'POWER',
+	'PRESS', 'PRICE', 'PRIDE', 'PRIME', 'PRINT', 'PRIOR', 'PRIZE', 'PROOF', 'PROUD', 'PROVE',
+	'PROXY', 'PULSE', 'PUNCH', 'PURSE', 'QUEEN', 'QUEST', 'QUICK', 'QUIET', 'QUOTA', 'QUOTE',
+	'RADAR', 'RADIO', 'RAISE', 'RALLY', 'RANGE', 'RAPID', 'RATIO', 'REACH', 'REACT', 'READY',
+	'REALM', 'REBEL', 'REFER', 'REIGN', 'RELAX', 'REPLY', 'RIGHT', 'RIGID', 'RISKY', 'RIVAL',
+	'RIVER', 'ROBIN', 'ROBOT', 'ROCKY', 'ROGER', 'ROUGH', 'ROUND', 'ROUTE', 'ROYAL', 'RURAL',
+	'SAINT', 'SALAD', 'SAUCE', 'SCALE', 'SCENE', 'SCOPE', 'SCORE', 'SENSE', 'SERVE', 'SEVEN',
+	'SHALL', 'SHAME', 'SHAPE', 'SHARE', 'SHARP', 'SHELF', 'SHELL', 'SHIFT', 'SHINE', 'SHIRT',
+	'SHOCK', 'SHOOT', 'SHORT', 'SHOUT', 'SIGHT', 'SILLY', 'SINCE', 'SIXTH', 'SIXTY', 'SIZED',
+	'SKILL', 'SLASH', 'SLAVE', 'SLEEP', 'SLICE', 'SLIDE', 'SLOPE', 'SMALL', 'SMART', 'SMELL',
+	'SMILE', 'SMOKE', 'SNAKE', 'SOLAR', 'SOLID', 'SOLVE', 'SORRY', 'SOUND', 'SOUTH', 'SPACE',
+	'SPARE', 'SPEAK', 'SPEED', 'SPEND', 'SPILL', 'SPINE', 'SPLIT', 'SPOKE', 'SPRAY', 'SQUAD',
+	'STACK', 'STAFF', 'STAGE', 'STAIN', 'STAKE', 'STALE', 'STALL', 'STAMP', 'STAND', 'STARK',
+	'START', 'STATE', 'STAYS', 'STEAM', 'STEEL', 'STEEP', 'STEER', 'STERN', 'STICK', 'STILL',
+	'STOCK', 'STONE', 'STOOD', 'STORE', 'STORM', 'STORY', 'STOVE', 'STRIP', 'STUCK', 'STUDY',
+	'STUFF', 'STYLE', 'SUGAR', 'SUITE', 'SUNNY', 'SUPER', 'SURGE', 'SWAMP', 'SWEAR', 'SWEET',
+	'SWEPT', 'SWIFT', 'SWING', 'SWORD', 'SWORE', 'SWUNG', 'TABLE', 'TASTE', 'TEACH', 'TEETH',
+	'THEME', 'THICK', 'THING', 'THINK', 'THIRD', 'THOSE', 'THREE', 'THREW', 'THROW', 'TIGER',
+	'TIGHT', 'TIMER', 'TIRED', 'TITLE', 'TODAY', 'TOTAL', 'TOUCH', 'TOUGH', 'TOWER', 'TOXIC',
+	'TRACE', 'TRACK', 'TRADE', 'TRAIL', 'TRAIN', 'TRAIT', 'TRASH', 'TREAT', 'TREND', 'TRIAL',
+	'TRIBE', 'TRICK', 'TRIED', 'TROOP', 'TRUCK', 'TRULY', 'TRUMP', 'TRUNK', 'TRUST', 'TRUTH',
+	'TUMOR', 'TWICE', 'TWIST', 'ULTRA', 'UNCLE', 'UNDER', 'UNION', 'UNITE', 'UNITY', 'UNTIL',
+	'UPPER', 'UPSET', 'URBAN', 'USAGE', 'USUAL', 'VALID', 'VALUE', 'VIDEO', 'VIGOR', 'VIRUS',
+	'VISIT', 'VITAL', 'VIVID', 'VOCAL', 'VOICE', 'VOTER', 'WAGES', 'WASTE', 'WATCH', 'WATER',
+	'WEIGH', 'WHEEL', 'WHERE', 'WHICH', 'WHILE', 'WHITE', 'WHOLE', 'WHOSE', 'WOMAN', 'WORLD',
+	'WORRY', 'WORSE', 'WORST', 'WORTH', 'WOULD', 'WOUND', 'WRIST', 'WRITE', 'WROTE', 'YACHT',
+	'YIELD', 'YOUNG', 'YOUTH', 'ZONES',
+];
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -37,7 +91,7 @@ function getDailyWord(): string {
 		today.getFullYear() * 10000 +
 		(today.getMonth() + 1) * 100 +
 		today.getDate();
-	// Use a different offset than Genshindle to get a different word
+	// Simple deterministic daily word selection
 	const idx = (seed * 7 + 13) % VALID_WORDS.length;
 	return VALID_WORDS[idx];
 }
@@ -47,7 +101,7 @@ function getDailyDateKey(): string {
 	const yyyy = today.getFullYear();
 	const mm = String(today.getMonth() + 1).padStart(2, '0');
 	const dd = String(today.getDate()).padStart(2, '0');
-	return `genshin-wordle-${yyyy}-${mm}-${dd}`;
+	return `wordle-${yyyy}-${mm}-${dd}`;
 }
 
 function getTimeUntilMidnight(): { hours: number; minutes: number; seconds: number } {
@@ -196,8 +250,8 @@ export default function GenshinWordle() {
 			showInvalid('Not enough letters');
 			return;
 		}
-		if (!VALID_WORDS.includes(currentGuess)) {
-			showInvalid('Not a valid character name');
+		if (!/^[A-Z]+$/.test(currentGuess)) {
+			showInvalid('Only letters A-Z allowed');
 			return;
 		}
 		if (guesses.includes(currentGuess)) {
@@ -252,7 +306,7 @@ export default function GenshinWordle() {
 	const handleShare = useCallback(async () => {
 		const lines: string[] = [];
 		const result = won ? `${guesses.length}/${MAX_GUESSES}` : `X/${MAX_GUESSES}`;
-		lines.push(`Genshin Wordle ${result}`);
+		lines.push(`Wordle ${result}`);
 		lines.push('');
 
 		for (const results of evaluatedGuesses) {
@@ -301,9 +355,9 @@ export default function GenshinWordle() {
 			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div>
-					<h2 className="text-xl font-bold">Genshin Wordle</h2>
+					<h2 className="text-xl font-bold">Wordle</h2>
 					<p className="text-xs text-guild-muted mt-0.5">
-						Guess the 5-letter character name
+						Guess the 5-letter word
 					</p>
 				</div>
 				<button
@@ -323,7 +377,7 @@ export default function GenshinWordle() {
 							{guesses.length}/{MAX_GUESSES}
 						</span>
 						<span className="text-guild-dim text-xs">
-							({VALID_WORDS.length} characters)
+							({VALID_WORDS.length} words)
 						</span>
 					</div>
 					{gameFinished && (
@@ -521,7 +575,7 @@ export default function GenshinWordle() {
 						</div>
 						<div className="space-y-3 text-sm text-guild-muted">
 							<p>
-								Guess the 5-letter Genshin Impact character name in {MAX_GUESSES} tries.
+								Guess any 5-letter English word in {MAX_GUESSES} tries.
 							</p>
 							<p>
 								After each guess, the tiles will change color to show how close
@@ -532,25 +586,21 @@ export default function GenshinWordle() {
 									<div className="w-9 h-9 rounded-md bg-emerald-500/80 border border-emerald-400/60 flex items-center justify-center text-sm font-bold text-white">
 										A
 									</div>
-									<span>Correct letter, correct position</span>
+									<span>Green = correct letter and position</span>
 								</div>
 								<div className="flex items-center gap-3">
 									<div className="w-9 h-9 rounded-md bg-amber-500/80 border border-amber-400/60 flex items-center justify-center text-sm font-bold text-white">
 										B
 									</div>
-									<span>Correct letter, wrong position</span>
+									<span>Yellow = letter is in the word but wrong position</span>
 								</div>
 								<div className="flex items-center gap-3">
 									<div className="w-9 h-9 rounded-md bg-guild-elevated border border-guild-border flex items-center justify-center text-sm font-bold text-guild-dim">
 										C
 									</div>
-									<span>Letter not in the word</span>
+									<span>Gray = letter is not in the word</span>
 								</div>
 							</div>
-							<p className="text-guild-dim text-xs pt-1">
-								Only 5-letter character names are valid guesses.
-								The word pool includes: {VALID_WORDS.map((w) => w.charAt(0) + w.slice(1).toLowerCase()).join(', ')}.
-							</p>
 						</div>
 					</div>
 				</>

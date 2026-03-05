@@ -167,7 +167,7 @@ export default function WeaponsPage() {
             </button>
           )}
           {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute z-50 top-full left-0 right-0 mt-1 rounded-lg bg-guild-elevated border border-white/10 shadow-2xl shadow-black/60 overflow-hidden">
+            <div className="absolute z-50 top-full left-0 right-0 mt-1 rounded-lg bg-guild-elevated border border-guild-border shadow-2xl shadow-black/60 overflow-hidden">
               {suggestions.map((w, i) => (
                 <Link
                   key={w.id}
@@ -217,7 +217,7 @@ export default function WeaponsPage() {
                 "cursor-pointer transition-all select-none",
                 type === w
                   ? "bg-guild-accent/20 text-guild-accent border-guild-accent/30"
-                  : "bg-guild-elevated text-guild-muted border-white/5 hover:border-white/10"
+                  : "bg-guild-elevated text-guild-muted border-guild-border/50 hover:border-guild-border"
               )}
             >
               {w}
@@ -238,8 +238,8 @@ export default function WeaponsPage() {
                   ? r === 5 ? "bg-amber-500/20 text-amber-400 border-amber-500/30"
                   : r === 4 ? "bg-purple-500/20 text-purple-400 border-purple-500/30"
                   : r === 3 ? "bg-blue-500/20 text-blue-400 border-blue-500/30"
-                  : "bg-white/10 text-white border-white/20"
-                  : "bg-guild-elevated text-guild-muted border-white/5 hover:border-white/10"
+                  : "bg-guild-accent/15 text-guild-accent border-guild-accent/30"
+                  : "bg-guild-elevated text-guild-muted border-guild-border/50 hover:border-guild-border"
               )}
             >
               {r === 0 ? "All" : `${r}\u2605`}
@@ -259,7 +259,7 @@ export default function WeaponsPage() {
               <ChevronDown className="h-3 w-3" />
             </Button>
             {showSortMenu && (
-              <div className="absolute z-50 right-0 top-full mt-1 w-44 rounded-lg bg-guild-elevated border border-white/10 shadow-2xl shadow-black/60 overflow-hidden">
+              <div className="absolute z-50 right-0 top-full mt-1 w-44 rounded-lg bg-guild-elevated border border-guild-border shadow-2xl shadow-black/60 overflow-hidden">
                 {(Object.keys(SORT_LABELS) as SortOption[]).map((opt) => (
                   <button
                     key={opt}

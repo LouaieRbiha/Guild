@@ -225,7 +225,7 @@ export default function ArtifactsPage() {
         <h1 className="text-3xl font-bold">Artifact Sets</h1>
         <div className="flex items-center gap-3">
           {/* View mode toggle */}
-          <div className="flex rounded-lg border border-white/10 overflow-hidden">
+          <div className="flex rounded-lg border border-guild-border overflow-hidden">
             <button
               onClick={() => setViewMode("domains")}
               className={cn(
@@ -241,7 +241,7 @@ export default function ArtifactsPage() {
             <button
               onClick={() => setViewMode("all")}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors border-l border-white/10",
+                "flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors border-l border-guild-border",
                 viewMode === "all"
                   ? "bg-guild-accent/20 text-guild-accent"
                   : "text-guild-muted hover:text-white hover:bg-white/5"
@@ -282,7 +282,7 @@ export default function ArtifactsPage() {
         {/* Rarity Filter + Sort */}
         <div className="flex gap-2 items-center flex-wrap">
           {[0, 5, 4, 3].map((r) => {
-            let activeStyle = "bg-white/10 text-white border-white/20";
+            let activeStyle = "bg-guild-accent/15 text-guild-accent border-guild-accent/30";
             if (r === 5) activeStyle = "bg-amber-500/20 text-amber-400 border-amber-500/30";
             else if (r === 4) activeStyle = "bg-purple-500/20 text-purple-400 border-purple-500/30";
             else if (r === 3) activeStyle = "bg-blue-500/20 text-blue-400 border-blue-500/30";
@@ -296,7 +296,7 @@ export default function ArtifactsPage() {
                   "cursor-pointer transition-all select-none",
                   rarity === r
                     ? activeStyle
-                    : "bg-guild-elevated text-guild-muted border-white/5 hover:border-white/10"
+                    : "bg-guild-elevated text-guild-muted border-guild-border/50 hover:border-guild-border"
                 )}
               >
                 {r === 0 ? "All" : `${r}\u2605`}
@@ -317,7 +317,7 @@ export default function ArtifactsPage() {
               <ChevronDown className="h-3 w-3" />
             </Button>
             {showSortMenu && (
-              <div className="absolute z-50 right-0 top-full mt-1 w-44 rounded-lg bg-guild-elevated border border-white/10 shadow-2xl shadow-black/60 overflow-hidden">
+              <div className="absolute z-50 right-0 top-full mt-1 w-44 rounded-lg bg-guild-elevated border border-guild-border shadow-2xl shadow-black/60 overflow-hidden">
                 {(Object.keys(SORT_LABELS) as SortOption[]).map((opt) => (
                   <button
                     key={opt}
