@@ -123,8 +123,11 @@ export function cleanDescription(desc: string): string {
   // Remove {LAYOUT_MOBILE#...} blocks (keep PC content)
   cleaned = cleaned.replace(/\{LAYOUT_MOBILE#[^}]*\}/g, "");
   cleaned = cleaned.replace(/\{LAYOUT_PC#([^}]*)\}/g, "$1");
-  // Remove {link#...} references
-  cleaned = cleaned.replace(/\{link#[^}]*\}/g, "");
+  // Handle {LINK#id}text{/LINK} — keep the text, remove the tags (case-insensitive)
+  cleaned = cleaned.replace(/\{LINK#[^}]*\}([\s\S]*?)\{\/LINK\}/gi, "$1");
+  // Remove any remaining unclosed link tags
+  cleaned = cleaned.replace(/\{link#[^}]*\}/gi, "");
+  cleaned = cleaned.replace(/\{\/link\}/gi, "");
   // Remove {color#...} / {/color} tags
   cleaned = cleaned.replace(/\{color[^}]*\}/g, "");
   cleaned = cleaned.replace(/\{\/color\}/g, "");
