@@ -186,6 +186,17 @@ export interface Weapon {
   icon: string;
 }
 
+export interface CombatStats {
+  maxHP: number;
+  atk: number;
+  def: number;
+  critRate: number;      // as percentage, e.g. 75.0
+  critDMG: number;       // as percentage, e.g. 150.0
+  energyRecharge: number; // as percentage, e.g. 130.0
+  elementalMastery: number;
+  dmgBonus: { element: string; value: number } | null; // highest elemental/physical DMG bonus
+}
+
 export interface Character {
   id: string;
   name: string;
@@ -198,6 +209,7 @@ export interface Character {
   artifacts: Artifact[];
   icon: string;
   sideIcon: string;
+  combatStats: CombatStats;
 }
 
 export interface EnkaProfile {
@@ -319,6 +331,7 @@ interface EnkaApiEquip {
 interface EnkaApiAvatar {
   avatarId: number;
   propMap?: Record<string, { val?: string }>;
+  fightPropMap?: Record<string, number>;
   talentIdList?: unknown[];
   equipList?: EnkaApiEquip[];
   skillLevelMap?: Record<string, number>;
@@ -352,6 +365,43 @@ function parseEnkaResponse(data: EnkaApiResponse, uid: string, loc: Record<strin
   }
 
   return { player, characters, uid };
+}
+
+// ── Combat Stats Parser ─────────────────────────────────────────────────
+
+const DMG_BONUS_PROPS: Record<string, string> = {
+  "30": "Physical",
+  "40": "Pyro",
+  "41": "Electro",
+  "42": "Hydro",
+  "43": "Dendro",
+  "44": "Anemo",
+  "45": "Geo",
+  "46": "Cryo",
+};
+
+function parseCombatStats(fightPropMap: Record<string, number> | undefined): CombatStats {
+  const fp = fightPropMap || {};
+
+  // Find the highest elemental/physical DMG bonus
+  let dmgBonus: { element: string; value: number } | null = null;
+  for (const [propId, element] of Object.entries(DMG_BONUS_PROPS)) {
+    const val = fp[propId] || 0;
+    if (val > 0 && (dmgBonus === null || val > dmgBonus.value)) {
+      dmgBonus = { element, value: parseFloat((val * 100).toFixed(1)) };
+    }
+  }
+
+  return {
+    maxHP: Math.round(fp["2000"] || 0),
+    atk: Math.round(fp["2001"] || 0),
+    def: Math.round(fp["2002"] || 0),
+    critRate: parseFloat(((fp["20"] || 0) * 100).toFixed(1)),
+    critDMG: parseFloat(((fp["22"] || 0) * 100).toFixed(1)),
+    energyRecharge: parseFloat(((fp["23"] || 0) * 100).toFixed(1)),
+    elementalMastery: Math.round(fp["28"] || 0),
+    dmgBonus,
+  };
 }
 
 function parseCharacter(avatar: EnkaApiAvatar, loc: Record<string, string>, charStore: Record<string, CharStoreEntry>): Character | null {
@@ -448,6 +498,7 @@ function parseCharacter(avatar: EnkaApiAvatar, loc: Record<string, string>, char
     artifacts,
     icon,
     sideIcon,
+    combatStats: parseCombatStats(avatar.fightPropMap),
   };
 }
 

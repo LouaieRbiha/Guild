@@ -37,7 +37,7 @@ const EXAMPLE_UIDS = [
 
 export default function ProfileIndex() {
   return (
-    <div className="min-h-screen text-white pb-16">
+    <div className="min-h-screen text-foreground pb-16">
       {/* ── Hero Section ──────────────────────────────────────────────── */}
       <section className="pt-20 pb-14 px-6">
         <div className="max-w-3xl mx-auto text-center space-y-6">
@@ -75,7 +75,7 @@ export default function ProfileIndex() {
           {FEATURES.map((feature) => (
             <Card
               key={feature.title}
-              className="border-white/5 transition-all duration-300 hover:border-guild-accent/20 hover:shadow-[0_0_24px_rgba(99,102,241,0.08)]"
+              className="border-guild-border transition-all duration-300 hover:border-guild-accent/20 hover:shadow-[0_0_24px_rgba(99,102,241,0.08)]"
             >
               <CardContent className="p-5 space-y-3">
                 <div className="w-10 h-10 rounded-lg bg-guild-accent/10 flex items-center justify-center text-guild-accent">

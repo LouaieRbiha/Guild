@@ -56,7 +56,7 @@ function highlightValues(desc: string, prevDesc?: string): React.ReactNode {
     result.push(
       <span
         key={match.index}
-        className={cn("font-bold", changed ? "text-green-400" : "text-white")}
+        className={cn("font-bold", changed ? "text-green-400" : "text-foreground")}
       >
         {val}
       </span>
@@ -81,7 +81,7 @@ interface Props {
 export function WeaponDetailClient({ detail, entry }: Props) {
   const [selectedRef, setSelectedRef] = useState(0);
   const colors = RARITY_COLORS[detail.rarity] || RARITY_COLORS[4];
-  const substatColor = SUBSTAT_COLORS[detail.substat] || "text-gray-300";
+  const substatColor = SUBSTAT_COLORS[detail.substat] || "text-guild-muted";
 
   // Format substat value
   const isPercent = ["CRIT Rate", "CRIT DMG", "ATK%", "HP%", "DEF%", "Energy Recharge", "Physical DMG Bonus"].includes(detail.substat);
@@ -92,14 +92,14 @@ export function WeaponDetailClient({ detail, entry }: Props) {
       {/* Back nav */}
       <Link
         href="/weapons"
-        className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors group"
+        className="inline-flex items-center gap-2 text-sm text-guild-muted hover:text-foreground transition-colors group"
       >
         <ArrowLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
         Back to Weapons
       </Link>
 
       {/* Hero section - full-width with large weapon art */}
-      <div className="relative rounded-xl overflow-hidden border border-white/5">
+      <div className="relative rounded-xl overflow-hidden border border-guild-border/30">
         {/* Background gradient based on rarity */}
         <div className={cn("absolute inset-0 bg-linear-to-r", RARITY_HERO_BG[detail.rarity] || RARITY_HERO_BG[4])} />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_50%,rgba(255,255,255,0.03),transparent_70%)]" />
@@ -128,7 +128,7 @@ export function WeaponDetailClient({ detail, entry }: Props) {
               <Badge variant="outline" className={cn("mb-2 text-xs", colors.text, colors.border, colors.bg)}>
                 {detail.type}
               </Badge>
-              <h1 className="text-3xl lg:text-4xl font-bold text-white tracking-tight">{detail.name}</h1>
+              <h1 className="text-3xl lg:text-4xl font-bold text-foreground tracking-tight">{detail.name}</h1>
               <div className="mt-1.5 flex items-center justify-center lg:justify-start">
                 <RarityStars rarity={detail.rarity} size="md" />
               </div>
@@ -138,30 +138,30 @@ export function WeaponDetailClient({ detail, entry }: Props) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg mx-auto lg:mx-0">
               {/* Base ATK */}
               {detail.baseAtk > 0 ? (
-                <Card className={cn("bg-black/30 backdrop-blur-sm border-white/5 border-l-2", colors.border)}>
+                <Card className={cn("bg-guild-elevated/50 backdrop-blur-sm border-guild-border/30 border-l-2", colors.border)}>
                   <CardContent className="p-3.5">
                     <div className="flex items-center gap-2 mb-1.5">
                       <Swords className={cn("h-4 w-4", colors.text)} />
-                      <span className="text-xs text-gray-400 uppercase tracking-wide">Base ATK</span>
+                      <span className="text-xs text-guild-muted uppercase tracking-wide">Base ATK</span>
                     </div>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold text-white">{detail.baseAtkMax}</span>
-                      <span className="text-xs text-gray-500">at Lv 90</span>
+                      <span className="text-2xl font-bold text-foreground">{detail.baseAtkMax}</span>
+                      <span className="text-xs text-guild-dim">at Lv 90</span>
                     </div>
-                    <span className="text-[11px] text-gray-500">Lv 1: {detail.baseAtk}</span>
+                    <span className="text-[11px] text-guild-dim">Lv 1: {detail.baseAtk}</span>
                   </CardContent>
                 </Card>
               ) : (
-                <Card className="bg-black/30 backdrop-blur-sm border-white/5 col-span-full">
+                <Card className="bg-guild-elevated/50 backdrop-blur-sm border-guild-border/30 col-span-full">
                   <CardContent className="p-3.5">
-                    <p className="text-gray-500 text-sm italic">Natlan morph weapon — stats inherited from the base form.</p>
+                    <p className="text-guild-dim text-sm italic">Natlan morph weapon — stats inherited from the base form.</p>
                   </CardContent>
                 </Card>
               )}
 
               {/* Substat */}
               {detail.substat !== "None" && detail.substatValue > 0 && (
-                <Card className={cn("bg-black/30 backdrop-blur-sm border-white/5 border-l-2", colors.border)}>
+                <Card className={cn("bg-guild-elevated/50 backdrop-blur-sm border-guild-border/30 border-l-2", colors.border)}>
                   <CardContent className="p-3.5">
                     <div className="flex items-center gap-2 mb-1.5">
                       <TrendingUp className={cn("h-4 w-4", substatColor)} />
@@ -169,9 +169,9 @@ export function WeaponDetailClient({ detail, entry }: Props) {
                     </div>
                     <div className="flex items-baseline gap-2">
                       <span className={cn("text-2xl font-bold", substatColor)}>{fmtSub(detail.substatValueMax)}</span>
-                      <span className="text-xs text-gray-500">at Lv 90</span>
+                      <span className="text-xs text-guild-dim">at Lv 90</span>
                     </div>
-                    <span className="text-[11px] text-gray-500">Lv 1: {fmtSub(detail.substatValue)}</span>
+                    <span className="text-[11px] text-guild-dim">Lv 1: {fmtSub(detail.substatValue)}</span>
                   </CardContent>
                 </Card>
               )}
@@ -185,7 +185,7 @@ export function WeaponDetailClient({ detail, entry }: Props) {
                   <span className={cn("font-semibold text-base", colors.text)}>{detail.passiveName}</span>
                 </div>
                 {detail.passiveDesc && (
-                  <p className="text-sm text-gray-300 leading-relaxed">
+                  <p className="text-sm text-guild-muted leading-relaxed">
                     {highlightValues(detail.passiveDesc)}
                   </p>
                 )}
@@ -197,7 +197,7 @@ export function WeaponDetailClient({ detail, entry }: Props) {
 
       {/* Tab navigation */}
       <Tabs defaultValue="refinements" className="w-full">
-        <TabsList className="w-full bg-guild-card border border-white/5">
+        <TabsList className="w-full bg-guild-card border border-guild-border/30">
           {detail.refinements.length > 0 && (
             <TabsTrigger value="refinements" className="flex-1 gap-1.5">
               <Sparkles className="h-3.5 w-3.5" />
@@ -218,7 +218,7 @@ export function WeaponDetailClient({ detail, entry }: Props) {
         <TabsContent value="refinements">
           {detail.refinements.length > 0 ? (
             <div className="guild-card p-6 space-y-5">
-              <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+              <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
                 <Sparkles className={cn("h-5 w-5", colors.text)} />
                 {detail.passiveName}
               </h2>
@@ -232,7 +232,7 @@ export function WeaponDetailClient({ detail, entry }: Props) {
                       "px-4 py-2 rounded-lg text-sm font-semibold transition-all border",
                       selectedRef === r.rank - 1
                         ? cn(colors.bg, colors.text, colors.border)
-                        : "bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 border-transparent"
+                        : "bg-foreground/5 text-guild-muted hover:text-foreground hover:bg-foreground/10 border-transparent"
                     )}
                     onClick={() => setSelectedRef(r.rank - 1)}
                   >
@@ -251,7 +251,7 @@ export function WeaponDetailClient({ detail, entry }: Props) {
                     </Badge>
                   )}
                 </div>
-                <p className="text-base text-gray-200 leading-relaxed">
+                <p className="text-base text-guild-muted leading-relaxed">
                   {highlightValues(
                     detail.refinements[selectedRef]?.description || "",
                     selectedRef > 0 ? detail.refinements[selectedRef - 1]?.description : undefined
@@ -261,7 +261,7 @@ export function WeaponDetailClient({ detail, entry }: Props) {
 
               {/* All refinements comparison - always visible */}
               <div className="space-y-1.5">
-                <p className="text-sm text-gray-400 font-medium mb-3">All Refinement Levels</p>
+                <p className="text-sm text-guild-muted font-medium mb-3">All Refinement Levels</p>
                 {detail.refinements.map((r, i) => (
                   <button
                     key={r.rank}
@@ -269,14 +269,14 @@ export function WeaponDetailClient({ detail, entry }: Props) {
                       "w-full text-left p-4 rounded-lg border transition-all",
                       selectedRef === i
                         ? cn(colors.bg, colors.border)
-                        : "bg-black/20 border-white/5 hover:border-white/10"
+                        : "bg-guild-elevated/50 border-guild-border/30 hover:border-guild-border"
                     )}
                     onClick={() => setSelectedRef(i)}
                   >
-                    <span className={cn("font-bold mr-3 text-sm", selectedRef === i ? colors.text : "text-gray-500")}>
+                    <span className={cn("font-bold mr-3 text-sm", selectedRef === i ? colors.text : "text-guild-dim")}>
                       R{r.rank}
                     </span>
-                    <span className="text-sm text-gray-300 leading-relaxed">
+                    <span className="text-sm text-guild-muted leading-relaxed">
                       {highlightValues(r.description, i > 0 ? detail.refinements[i - 1]?.description : undefined)}
                     </span>
                   </button>
@@ -286,7 +286,7 @@ export function WeaponDetailClient({ detail, entry }: Props) {
           ) : (
             <div className="guild-card p-8 text-center">
               <Sparkles className="h-8 w-8 text-gray-600 mx-auto mb-3" />
-              <p className="text-gray-500 text-base">This weapon has no passive ability.</p>
+              <p className="text-guild-dim text-base">This weapon has no passive ability.</p>
             </div>
           )}
         </TabsContent>
@@ -299,7 +299,7 @@ export function WeaponDetailClient({ detail, entry }: Props) {
         {/* Lore Tab */}
         <TabsContent value="lore">
           <div className="guild-card p-6 space-y-5">
-            <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+            <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
               <BookOpen className={cn("h-5 w-5", colors.text)} />
               Weapon Story
             </h2>
@@ -323,7 +323,7 @@ export function WeaponDetailClient({ detail, entry }: Props) {
             {/* Lore description */}
             {detail.description && (
               <blockquote className={cn("border-l-2 pl-4 py-2", colors.border)}>
-                <p className="text-base text-gray-300 leading-relaxed italic whitespace-pre-line">
+                <p className="text-base text-guild-muted leading-relaxed italic whitespace-pre-line">
                   {detail.description}
                 </p>
               </blockquote>
@@ -337,9 +337,9 @@ export function WeaponDetailClient({ detail, entry }: Props) {
 
 function InfoItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-black/20 rounded-lg p-3 border border-white/5">
-      <p className="text-xs text-gray-500 uppercase tracking-wide mb-0.5">{label}</p>
-      <p className="text-sm font-medium text-white">{value}</p>
+    <div className="bg-guild-elevated/50 rounded-lg p-3 border border-guild-border/30">
+      <p className="text-xs text-guild-dim uppercase tracking-wide mb-0.5">{label}</p>
+      <p className="text-sm font-medium text-foreground">{value}</p>
     </div>
   );
 }
@@ -383,15 +383,15 @@ function WeaponMaterialsTab({ detail, colors }: { detail: WeaponDetail; colors: 
 
   return (
     <div className="guild-card p-6 space-y-5">
-      <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+      <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
         <TrendingUp className={cn("h-5 w-5", colors.text)} />
         Ascension Materials
       </h2>
 
       {/* Level range selector */}
-      <div className="bg-black/20 rounded-lg p-5 border border-white/5 space-y-4">
+      <div className="bg-guild-elevated/50 rounded-lg p-5 border border-guild-border/30 space-y-4">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-400 font-medium">Level Range</span>
+          <span className="text-sm text-guild-muted font-medium">Level Range</span>
           <div className="flex items-center gap-2">
             <input
               type="number"
@@ -402,9 +402,9 @@ function WeaponMaterialsTab({ detail, colors }: { detail: WeaponDetail; colors: 
                 const v = Math.max(1, Math.min(range[1], Number(e.target.value) || 1));
                 setRange([v, range[1]]);
               }}
-              className="w-14 text-center text-sm font-bold bg-white/5 border border-white/10 rounded-md py-1.5 text-white focus:outline-none focus:border-guild-accent"
+              className="w-14 text-center text-sm font-bold bg-foreground/5 border border-foreground/10 rounded-md py-1.5 text-foreground focus:outline-none focus:border-guild-accent"
             />
-            <span className="text-gray-500 text-sm font-medium">→</span>
+            <span className="text-guild-dim text-sm font-medium">→</span>
             <input
               type="number"
               min={range[0]}
@@ -414,7 +414,7 @@ function WeaponMaterialsTab({ detail, colors }: { detail: WeaponDetail; colors: 
                 const v = Math.max(range[0], Math.min(90, Number(e.target.value) || 90));
                 setRange([range[0], v]);
               }}
-              className="w-14 text-center text-sm font-bold bg-white/5 border border-white/10 rounded-md py-1.5 text-white focus:outline-none focus:border-guild-accent"
+              className="w-14 text-center text-sm font-bold bg-foreground/5 border border-foreground/10 rounded-md py-1.5 text-foreground focus:outline-none focus:border-guild-accent"
             />
           </div>
         </div>
@@ -428,7 +428,7 @@ function WeaponMaterialsTab({ detail, colors }: { detail: WeaponDetail; colors: 
           step={1}
           minStepsBetweenThumbs={1}
         >
-          <SliderPrimitive.Track className="relative h-1.5 grow rounded-full bg-white/10">
+          <SliderPrimitive.Track className="relative h-1.5 grow rounded-full bg-foreground/10">
             <SliderPrimitive.Range className={cn("absolute h-full rounded-full", colors.bg.replace("/20", "/60"))} />
           </SliderPrimitive.Track>
           <SliderPrimitive.Thumb
@@ -461,8 +461,8 @@ function WeaponMaterialsTab({ detail, colors }: { detail: WeaponDetail; colors: 
                   else if (lv > range[0]) setRange([range[0], lv]);
                 }}
                 className={cn(
-                  "absolute text-[10px] -translate-x-1/2 transition-colors cursor-pointer hover:text-white",
-                  isInRange ? "text-white/70" : "text-white/20"
+                  "absolute text-[10px] -translate-x-1/2 transition-colors cursor-pointer hover:text-foreground",
+                  isInRange ? "text-foreground/70" : "text-foreground/20"
                 )}
                 style={{ left: `${pct}%` }}
               >
@@ -476,12 +476,12 @@ function WeaponMaterialsTab({ detail, colors }: { detail: WeaponDetail; colors: 
       {/* Materials display */}
       {range[0] === range[1] ? (
         <div className="text-center py-8">
-          <p className="text-gray-500 text-sm">Drag the slider to see materials needed.</p>
+          <p className="text-guild-dim text-sm">Drag the slider to see materials needed.</p>
         </div>
       ) : materials.length > 0 ? (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <p className="text-base font-semibold text-white flex items-center gap-2">
+            <p className="text-base font-semibold text-foreground flex items-center gap-2">
               Lv {range[0]} → {range[1]}
             </p>
             {mora > 0 && (
@@ -498,7 +498,7 @@ function WeaponMaterialsTab({ detail, colors }: { detail: WeaponDetail; colors: 
         </div>
       ) : (
         <div className="text-center py-8">
-          <p className="text-gray-500 text-sm">No ascension materials needed for this range.</p>
+          <p className="text-guild-dim text-sm">No ascension materials needed for this range.</p>
         </div>
       )}
     </div>

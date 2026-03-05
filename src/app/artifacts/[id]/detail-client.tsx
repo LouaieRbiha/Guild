@@ -79,14 +79,14 @@ export function ArtifactDetailClient({ detail }: Props) {
       {/* Back nav */}
       <Link
         href="/artifacts"
-        className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors group"
+        className="inline-flex items-center gap-2 text-sm text-guild-muted hover:text-foreground transition-colors group"
       >
         <ArrowLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
         Back to Artifact Sets
       </Link>
 
       {/* Hero section */}
-      <div className="relative rounded-xl overflow-hidden border border-white/5">
+      <div className="relative rounded-xl overflow-hidden border border-guild-border/30">
         <div className={cn("absolute inset-0 bg-linear-to-r", RARITY_HERO_BG[detail.maxRarity] || RARITY_HERO_BG[4])} />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_50%,rgba(255,255,255,0.03),transparent_70%)]" />
 
@@ -117,7 +117,7 @@ export function ArtifactDetailClient({ detail }: Props) {
               <Badge variant="outline" className={cn("mb-2 text-xs", colors.text, colors.border, colors.bg)}>
                 Artifact Set
               </Badge>
-              <h1 className="text-3xl lg:text-4xl font-bold text-white tracking-tight">{detail.name}</h1>
+              <h1 className="text-3xl lg:text-4xl font-bold text-foreground tracking-tight">{detail.name}</h1>
               <div className="mt-1.5 flex items-center justify-center lg:justify-start">
                 <RarityStars rarity={detail.maxRarity} size="md" />
               </div>
@@ -128,7 +128,7 @@ export function ArtifactDetailClient({ detail }: Props) {
               {twoPcBonus && (
                 <div className="flex items-start gap-2">
                   <Shield className={cn("h-4 w-4 mt-0.5 shrink-0", colors.text)} />
-                  <p className="text-sm text-gray-300 leading-relaxed">
+                  <p className="text-sm text-guild-muted leading-relaxed">
                     <span className={cn("font-semibold", colors.text)}>{twoPcBonus.label}: </span>
                     {twoPcBonus.description}
                   </p>
@@ -137,7 +137,7 @@ export function ArtifactDetailClient({ detail }: Props) {
               {fourPcBonus && (
                 <div className="flex items-start gap-2">
                   <Crown className={cn("h-4 w-4 mt-0.5 shrink-0", colors.text)} />
-                  <p className="text-sm text-gray-300 leading-relaxed">
+                  <p className="text-sm text-guild-muted leading-relaxed">
                     <span className={cn("font-semibold", colors.text)}>{fourPcBonus.label}: </span>
                     {fourPcBonus.description}
                   </p>
@@ -151,7 +151,7 @@ export function ArtifactDetailClient({ detail }: Props) {
       {/* Set bonuses section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {twoPcBonus && (
-          <Card className={cn("bg-black/30 backdrop-blur-sm border-white/5 border-l-2", colors.border)}>
+          <Card className={cn("bg-guild-elevated/50 backdrop-blur-sm border-guild-border/30 border-l-2", colors.border)}>
             <CardContent className="p-5">
               <div className="flex items-center gap-2 mb-3">
                 <Shield className={cn("h-5 w-5", colors.text)} />
@@ -159,14 +159,14 @@ export function ArtifactDetailClient({ detail }: Props) {
                   {twoPcBonus.label} Bonus
                 </span>
               </div>
-              <p className="text-base text-gray-300 leading-relaxed">
+              <p className="text-base text-guild-muted leading-relaxed">
                 {twoPcBonus.description}
               </p>
             </CardContent>
           </Card>
         )}
         {fourPcBonus && (
-          <Card className={cn("bg-black/30 backdrop-blur-sm border-white/5 border-l-2", colors.border)}>
+          <Card className={cn("bg-guild-elevated/50 backdrop-blur-sm border-guild-border/30 border-l-2", colors.border)}>
             <CardContent className="p-5">
               <div className="flex items-center gap-2 mb-3">
                 <Crown className={cn("h-5 w-5", colors.text)} />
@@ -174,7 +174,7 @@ export function ArtifactDetailClient({ detail }: Props) {
                   {fourPcBonus.label} Bonus
                 </span>
               </div>
-              <p className="text-base text-gray-300 leading-relaxed">
+              <p className="text-base text-guild-muted leading-relaxed">
                 {fourPcBonus.description}
               </p>
             </CardContent>
@@ -184,7 +184,7 @@ export function ArtifactDetailClient({ detail }: Props) {
 
       {/* Artifact pieces grid */}
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+        <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
           <BookOpen className={cn("h-5 w-5", colors.text)} />
           Artifact Pieces
         </h2>
@@ -225,7 +225,7 @@ function ArtifactPieceCard({ piece, rarity, expanded, onToggle }: ArtifactPieceC
       <button
         onClick={onToggle}
         className={cn(
-          "group relative overflow-hidden rounded-xl border border-white/5 bg-guild-card hover:border-white/10 transition-all text-left",
+          "group relative overflow-hidden rounded-xl border border-guild-border/30 bg-guild-card hover:border-guild-border transition-all text-left",
           expanded && "rounded-b-none border-b-0"
         )}
       >
@@ -243,7 +243,7 @@ function ArtifactPieceCard({ piece, rarity, expanded, onToggle }: ArtifactPieceC
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
-                <span className="text-lg font-bold text-white/30">{abbr}</span>
+                <span className="text-lg font-bold text-foreground/30">{abbr}</span>
               </div>
             )}
           </div>

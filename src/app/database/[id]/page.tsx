@@ -4,6 +4,10 @@ import { ALL_CHARACTERS } from "@/lib/characters";
 import { CharacterDetailClient } from "./detail-client";
 import { notFound } from "next/navigation";
 
+export function generateStaticParams() {
+  return ALL_CHARACTERS.map((c) => ({ id: c.id }));
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const char = ALL_CHARACTERS.find((c) => c.id === id);

@@ -78,7 +78,7 @@ export default function TierListPage() {
                   ? role === "All"
                     ? "bg-white/10 text-white border-white/20"
                     : ROLE_COLORS[role]
-                  : "bg-guild-elevated text-guild-muted border-white/5 hover:border-white/10"
+                  : "bg-guild-elevated text-guild-muted border-white/10 hover:border-white/20"
               )}
             >
               {role}
@@ -135,12 +135,12 @@ export default function TierListPage() {
                       <div
                         className={cn(
                           "flex flex-col items-center gap-1 rounded-lg p-2 w-[72px] sm:w-[80px] transition-colors",
-                          "bg-guild-elevated/50 hover:bg-guild-elevated border border-transparent hover:border-white/10"
+                          "bg-guild-elevated/50 hover:bg-guild-elevated border border-transparent hover:border-guild-border"
                         )}
                         title={entry.notes || entry.name}
                       >
                         {/* Icon */}
-                        <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden bg-black/40">
+                        <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden bg-guild-elevated/50">
                           <Image
                             src={charIconUrl(char.id)}
                             alt={char.name}
@@ -157,7 +157,7 @@ export default function TierListPage() {
                         </div>
 
                         {/* Name */}
-                        <p className="text-[10px] sm:text-xs font-medium text-center text-white/90 leading-tight line-clamp-2 w-full">
+                        <p className="text-[10px] sm:text-xs font-medium text-center text-foreground/90 leading-tight line-clamp-2 w-full">
                           {char.name}
                         </p>
 

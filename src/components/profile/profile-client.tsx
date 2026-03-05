@@ -300,6 +300,69 @@ export function ProfileClient({
 							</div>
 						</div>
 
+						{/* Combat Stats */}
+						{selected.combatStats && (
+							<div>
+								<h3 className='text-xs font-medium text-guild-muted uppercase tracking-wider mb-2'>
+									Combat Stats
+								</h3>
+								<div className='grid grid-cols-2 sm:grid-cols-3 gap-1.5'>
+									<div className='flex items-center justify-between p-2 rounded-md bg-guild-elevated border border-white/5'>
+										<span className='text-[11px] text-guild-muted'>Max HP</span>
+										<span className='text-sm font-mono font-semibold text-white'>
+											{selected.combatStats.maxHP.toLocaleString()}
+										</span>
+									</div>
+									<div className='flex items-center justify-between p-2 rounded-md bg-guild-elevated border border-white/5'>
+										<span className='text-[11px] text-guild-muted'>ATK</span>
+										<span className='text-sm font-mono font-semibold text-white'>
+											{selected.combatStats.atk.toLocaleString()}
+										</span>
+									</div>
+									<div className='flex items-center justify-between p-2 rounded-md bg-guild-elevated border border-white/5'>
+										<span className='text-[11px] text-guild-muted'>DEF</span>
+										<span className='text-sm font-mono font-semibold text-white'>
+											{selected.combatStats.def.toLocaleString()}
+										</span>
+									</div>
+									<div className='flex items-center justify-between p-2 rounded-md bg-guild-elevated border border-white/5'>
+										<span className='text-[11px] text-amber-400'>CRIT Rate</span>
+										<span className='text-sm font-mono font-semibold text-amber-400'>
+											{selected.combatStats.critRate.toFixed(1)}%
+										</span>
+									</div>
+									<div className='flex items-center justify-between p-2 rounded-md bg-guild-elevated border border-white/5'>
+										<span className='text-[11px] text-amber-400'>CRIT DMG</span>
+										<span className='text-sm font-mono font-semibold text-amber-400'>
+											{selected.combatStats.critDMG.toFixed(1)}%
+										</span>
+									</div>
+									<div className='flex items-center justify-between p-2 rounded-md bg-guild-elevated border border-white/5'>
+										<span className='text-[11px] text-green-400'>ER</span>
+										<span className='text-sm font-mono font-semibold text-green-400'>
+											{selected.combatStats.energyRecharge.toFixed(1)}%
+										</span>
+									</div>
+									<div className='flex items-center justify-between p-2 rounded-md bg-guild-elevated border border-white/5'>
+										<span className='text-[11px] text-teal-400'>EM</span>
+										<span className='text-sm font-mono font-semibold text-teal-400'>
+											{selected.combatStats.elementalMastery.toLocaleString()}
+										</span>
+									</div>
+									{selected.combatStats.dmgBonus && (
+										<div className='flex items-center justify-between p-2 rounded-md bg-guild-elevated border border-white/5 col-span-2'>
+											<span className='text-[11px] text-guild-accent'>
+												{selected.combatStats.dmgBonus.element} DMG
+											</span>
+											<span className='text-sm font-mono font-semibold text-guild-accent'>
+												+{selected.combatStats.dmgBonus.value.toFixed(1)}%
+											</span>
+										</div>
+									)}
+								</div>
+							</div>
+						)}
+
 						{/* Akasha Ranking */}
 						{ranking && (
 							<div>

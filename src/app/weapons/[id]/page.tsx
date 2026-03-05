@@ -4,6 +4,10 @@ import { ALL_WEAPONS } from "@/lib/weapons";
 import { WeaponDetailClient } from "./detail-client";
 import { notFound } from "next/navigation";
 
+export function generateStaticParams() {
+  return ALL_WEAPONS.map((w) => ({ id: String(w.id) }));
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const weapon = ALL_WEAPONS.find((w) => String(w.id) === id);

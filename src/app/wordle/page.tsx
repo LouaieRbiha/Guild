@@ -4,7 +4,7 @@ import { ALL_CHARACTERS, charIconUrl, ELEMENT_ICONS } from '@/lib/characters';
 import type { CharacterEntry } from '@/lib/characters';
 import { CHARACTER_META } from '@/data/character-meta';
 import { cn } from '@/lib/utils';
-import { Clock, HelpCircle, X, Trophy, Target } from 'lucide-react';
+import { Clock, HelpCircle, X, Trophy, Target, BarChart3, Share2, Check } from 'lucide-react';
 import Image from 'next/image';
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 
@@ -92,6 +92,54 @@ function compareGuess(
 	};
 }
 
+// ── Stats ────────────────────────────────────────────────────────────
+
+interface GenshindleStats {
+	gamesPlayed: number;
+	gamesWon: number;
+	currentStreak: number;
+	maxStreak: number;
+	guessDistribution: number[];
+	lastRecordedDate?: string;
+}
+
+const DEFAULT_STATS: GenshindleStats = {
+	gamesPlayed: 0,
+	gamesWon: 0,
+	currentStreak: 0,
+	maxStreak: 0,
+	guessDistribution: [0, 0, 0, 0, 0, 0, 0, 0],
+};
+
+function loadStats(): GenshindleStats {
+	try {
+		const raw = localStorage.getItem('genshindle-stats');
+		if (raw) {
+			const parsed = JSON.parse(raw);
+			return {
+				...DEFAULT_STATS,
+				...parsed,
+				guessDistribution:
+					Array.isArray(parsed.guessDistribution) &&
+					parsed.guessDistribution.length === 8
+						? parsed.guessDistribution
+						: [...DEFAULT_STATS.guessDistribution],
+			};
+		}
+	} catch {
+		// Ignore
+	}
+	return { ...DEFAULT_STATS, guessDistribution: [...DEFAULT_STATS.guessDistribution] };
+}
+
+function saveStats(stats: GenshindleStats) {
+	try {
+		localStorage.setItem('genshindle-stats', JSON.stringify(stats));
+	} catch {
+		// Ignore
+	}
+}
+
 // ── Match colors ──────────────────────────────────────────────────────
 
 const MATCH_BG: Record<MatchResult, string> = {
@@ -103,7 +151,7 @@ const MATCH_BG: Record<MatchResult, string> = {
 const MATCH_BORDER: Record<MatchResult, string> = {
 	correct: 'border-emerald-400/60',
 	partial: 'border-amber-400/60',
-	wrong: 'border-white/5',
+	wrong: 'border-guild-border',
 };
 
 // ── Component ─────────────────────────────────────────────────────────
@@ -116,6 +164,9 @@ export default function WordlePage() {
 	const [highlightIndex, setHighlightIndex] = useState(-1);
 	const [gameOver, setGameOver] = useState(false);
 	const [showHelp, setShowHelp] = useState(false);
+	const [showStats, setShowStats] = useState(false);
+	const [showCopied, setShowCopied] = useState(false);
+	const [stats, setStats] = useState<GenshindleStats>(() => ({ ...DEFAULT_STATS, guessDistribution: [...DEFAULT_STATS.guessDistribution] }));
 	const inputRef = useRef<HTMLInputElement>(null);
 	const suggestionsRef = useRef<HTMLDivElement>(null);
 	const [countdown, setCountdown] = useState(() => getTimeUntilMidnight());
@@ -170,6 +221,43 @@ export default function WordlePage() {
 
 	const won = guesses.some((g) => g.character.name === answer.name);
 
+	// Load stats from localStorage on mount
+	useEffect(() => {
+		setStats(loadStats());
+	}, []);
+
+	// Record stats when game finishes (win or loss)
+	useEffect(() => {
+		if (!won && !gameOver) return;
+
+		const dateKey = getDailyDateKey();
+		const currentStats = loadStats();
+		if (currentStats.lastRecordedDate === dateKey) {
+			// Already recorded today, just sync state
+			setStats(currentStats);
+			return;
+		}
+
+		const updated = { ...currentStats, guessDistribution: [...currentStats.guessDistribution] };
+		updated.gamesPlayed += 1;
+		updated.lastRecordedDate = dateKey;
+
+		if (won) {
+			updated.gamesWon += 1;
+			updated.currentStreak += 1;
+			updated.maxStreak = Math.max(updated.maxStreak, updated.currentStreak);
+			const idx = guesses.length - 1;
+			if (idx >= 0 && idx < 8) {
+				updated.guessDistribution[idx] += 1;
+			}
+		} else {
+			updated.currentStreak = 0;
+		}
+
+		saveStats(updated);
+		setStats(updated);
+	}, [won, gameOver, guesses.length]);
+
 	const suggestions = useMemo(() => {
 		if (!inputValue.trim()) return [];
 		const q = inputValue.toLowerCase();
@@ -199,6 +287,37 @@ export default function WordlePage() {
 		},
 		[answer, gameOver, won, guessedNames, guesses.length],
 	);
+
+	const handleShare = useCallback(async () => {
+		const lines: string[] = [];
+		const result = won ? `${guesses.length}/8` : 'X/8';
+		lines.push(`Genshindle ${result}`);
+		lines.push('');
+
+		for (const guess of guesses) {
+			const m = guess.matches;
+			const row = [
+				m.gender === 'correct' ? '\u{1F7E9}' : '\u{1F7E5}',
+				m.element === 'correct' ? '\u{1F7E9}' : '\u{1F7E5}',
+				m.weapon === 'correct' ? '\u{1F7E9}' : '\u{1F7E5}',
+				m.region === 'correct' ? '\u{1F7E9}' : '\u{1F7E5}',
+				m.rarity === 'correct' ? '\u{1F7E9}' : '\u{1F7E5}',
+				m.release === 'correct' ? '\u{1F7E9}' : '\u{1F7E5}',
+			].join('');
+			lines.push(row);
+		}
+
+		lines.push('');
+		lines.push('guild.app/wordle');
+
+		try {
+			await navigator.clipboard.writeText(lines.join('\n'));
+			setShowCopied(true);
+			setTimeout(() => setShowCopied(false), 2000);
+		} catch {
+			// Clipboard API not available
+		}
+	}, [guesses, won]);
 
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === 'ArrowDown') {
@@ -268,8 +387,14 @@ export default function WordlePage() {
 				</div>
 				<div className="flex items-center gap-2">
 					<button
+						onClick={() => setShowStats(true)}
+						className="h-9 w-9 rounded-lg bg-guild-elevated hover:bg-foreground/10 flex items-center justify-center transition-colors cursor-pointer"
+					>
+						<BarChart3 className="h-4 w-4 text-guild-muted" />
+					</button>
+					<button
 						onClick={() => setShowHelp(true)}
-						className="h-9 w-9 rounded-lg bg-guild-elevated hover:bg-white/10 flex items-center justify-center transition-colors cursor-pointer"
+						className="h-9 w-9 rounded-lg bg-guild-elevated hover:bg-foreground/10 flex items-center justify-center transition-colors cursor-pointer"
 					>
 						<HelpCircle className="h-4 w-4 text-guild-muted" />
 					</button>
@@ -292,7 +417,7 @@ export default function WordlePage() {
 						<div className="flex items-center gap-2 text-sm text-guild-muted">
 							<Clock className="h-3.5 w-3.5" />
 							<span>Next in</span>
-							<span className="font-mono font-bold text-white">
+							<span className="font-mono font-bold text-foreground">
 								{String(countdown.hours).padStart(2, '0')}:
 								{String(countdown.minutes).padStart(2, '0')}:
 								{String(countdown.seconds).padStart(2, '0')}
@@ -311,12 +436,28 @@ export default function WordlePage() {
 					</h2>
 					<p className="text-sm text-guild-muted mt-1">
 						You found{' '}
-						<span className="text-white font-semibold">
+						<span className="text-foreground font-semibold">
 							{answer.name}
 						</span>{' '}
 						in {guesses.length} guess
 						{guesses.length !== 1 ? 'es' : ''}
 					</p>
+					<div className="flex items-center justify-center gap-3 mt-4">
+						<button
+							onClick={handleShare}
+							className="flex items-center gap-2 px-4 py-2 rounded-lg bg-guild-accent hover:bg-guild-accent/80 text-white text-sm font-medium transition-colors cursor-pointer"
+						>
+							<Share2 className="h-4 w-4" />
+							Share
+						</button>
+						<button
+							onClick={() => setShowStats(true)}
+							className="flex items-center gap-2 px-4 py-2 rounded-lg bg-guild-elevated hover:bg-foreground/10 text-sm font-medium transition-colors cursor-pointer"
+						>
+							<BarChart3 className="h-4 w-4" />
+							Stats
+						</button>
+					</div>
 					<p className="text-xs text-guild-dim mt-3">
 						Next character in{' '}
 						<span className="font-mono text-guild-muted">
@@ -334,10 +475,26 @@ export default function WordlePage() {
 					</h2>
 					<p className="text-sm text-guild-muted mt-1">
 						The answer was{' '}
-						<span className="text-white font-semibold">
+						<span className="text-foreground font-semibold">
 							{answer.name}
 						</span>
 					</p>
+					<div className="flex items-center justify-center gap-3 mt-4">
+						<button
+							onClick={handleShare}
+							className="flex items-center gap-2 px-4 py-2 rounded-lg bg-guild-accent hover:bg-guild-accent/80 text-white text-sm font-medium transition-colors cursor-pointer"
+						>
+							<Share2 className="h-4 w-4" />
+							Share
+						</button>
+						<button
+							onClick={() => setShowStats(true)}
+							className="flex items-center gap-2 px-4 py-2 rounded-lg bg-guild-elevated hover:bg-foreground/10 text-sm font-medium transition-colors cursor-pointer"
+						>
+							<BarChart3 className="h-4 w-4" />
+							Stats
+						</button>
+					</div>
 					<p className="text-xs text-guild-dim mt-3">
 						Next character in{' '}
 						<span className="font-mono text-guild-muted">
@@ -364,14 +521,14 @@ export default function WordlePage() {
 						onFocus={() => setShowSuggestions(true)}
 						onKeyDown={handleKeyDown}
 						placeholder="Type a character name..."
-						className="w-full h-12 px-4 rounded-xl bg-guild-card border border-white/10 text-white placeholder:text-guild-dim focus:outline-none focus:border-guild-accent/50 focus:ring-1 focus:ring-guild-accent/30 transition-all"
+						className="w-full h-12 px-4 rounded-xl bg-guild-card border border-guild-border text-foreground placeholder:text-guild-dim focus:outline-none focus:border-guild-accent/50 focus:ring-1 focus:ring-guild-accent/30 transition-all"
 					/>
 
 					{/* Suggestions dropdown */}
 					{showSuggestions && suggestions.length > 0 && (
 						<div
 							ref={suggestionsRef}
-							className="absolute z-30 top-full mt-1 left-0 right-0 bg-guild-card border border-white/10 rounded-xl overflow-hidden shadow-2xl shadow-black/50"
+							className="absolute z-30 top-full mt-1 left-0 right-0 bg-guild-card border border-guild-border rounded-xl overflow-hidden shadow-2xl shadow-black/50"
 						>
 							{suggestions.map((char, i) => {
 								const meta = CHARACTER_META[char.name];
@@ -384,7 +541,7 @@ export default function WordlePage() {
 											'w-full flex items-center gap-3 px-4 py-2.5 transition-colors cursor-pointer text-left',
 											i === highlightIndex
 												? 'bg-guild-accent/20'
-												: 'hover:bg-white/5',
+												: 'hover:bg-foreground/5',
 										)}
 									>
 										<div className="w-8 h-8 rounded-full overflow-hidden bg-guild-elevated shrink-0">
@@ -458,7 +615,7 @@ export default function WordlePage() {
 											guess.character.name ===
 												answer.name
 												? 'bg-emerald-500/80 border-emerald-400/60'
-												: 'bg-guild-elevated border-white/5',
+												: 'bg-guild-elevated border-guild-border',
 										)}
 										style={{
 											animationDelay: `${rowIdx * 50}ms`,
@@ -543,6 +700,95 @@ export default function WordlePage() {
 				</div>
 			)}
 
+			{/* Stats modal */}
+			{showStats && (
+				<>
+					<div
+						className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+						onClick={() => setShowStats(false)}
+					/>
+					<div className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-md mx-auto guild-card p-6 space-y-5">
+						<div className="flex items-center justify-between">
+							<h3 className="text-lg font-bold">Statistics</h3>
+							<button
+								onClick={() => setShowStats(false)}
+								className="p-1 hover:bg-foreground/5 rounded-lg cursor-pointer"
+							>
+								<X className="h-4 w-4" />
+							</button>
+						</div>
+
+						{/* Summary stats */}
+						<div className="grid grid-cols-4 gap-3 text-center">
+							<div>
+								<div className="text-2xl font-bold">{stats.gamesPlayed}</div>
+								<div className="text-[10px] text-guild-muted uppercase tracking-wider">Played</div>
+							</div>
+							<div>
+								<div className="text-2xl font-bold">
+									{stats.gamesPlayed > 0
+										? Math.round((stats.gamesWon / stats.gamesPlayed) * 100)
+										: 0}
+								</div>
+								<div className="text-[10px] text-guild-muted uppercase tracking-wider">Win %</div>
+							</div>
+							<div>
+								<div className="text-2xl font-bold">{stats.currentStreak}</div>
+								<div className="text-[10px] text-guild-muted uppercase tracking-wider">Streak</div>
+							</div>
+							<div>
+								<div className="text-2xl font-bold">{stats.maxStreak}</div>
+								<div className="text-[10px] text-guild-muted uppercase tracking-wider">Max Streak</div>
+							</div>
+						</div>
+
+						{/* Guess distribution */}
+						<div className="space-y-2">
+							<h4 className="text-sm font-semibold text-guild-muted">Guess Distribution</h4>
+							<div className="space-y-1.5">
+								{stats.guessDistribution.map((count, i) => {
+									const maxCount = Math.max(...stats.guessDistribution, 1);
+									const pct = (count / maxCount) * 100;
+									const isCurrentGuess = won && guesses.length === i + 1;
+									return (
+										<div key={i} className="flex items-center gap-2">
+											<span className="text-xs font-mono text-guild-muted w-3 text-right shrink-0">
+												{i + 1}
+											</span>
+											<div className="flex-1 h-5 relative">
+												<div
+													className={cn(
+														'h-full rounded-sm flex items-center justify-end px-1.5 transition-all duration-500',
+														isCurrentGuess
+															? 'bg-emerald-500/80'
+															: 'bg-guild-elevated',
+													)}
+													style={{
+														width: `${Math.max(pct, 8)}%`,
+													}}
+												>
+													<span className="text-[10px] font-bold">
+														{count}
+													</span>
+												</div>
+											</div>
+										</div>
+									);
+								})}
+							</div>
+						</div>
+					</div>
+				</>
+			)}
+
+			{/* Copied toast */}
+			{showCopied && (
+				<div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/90 text-white text-sm font-medium shadow-lg shadow-black/30 animate-in fade-in slide-in-from-bottom-4 duration-300">
+					<Check className="h-4 w-4" />
+					Copied to clipboard!
+				</div>
+			)}
+
 			{/* Help modal */}
 			{showHelp && (
 				<>
@@ -555,7 +801,7 @@ export default function WordlePage() {
 							<h3 className="text-lg font-bold">How to Play</h3>
 							<button
 								onClick={() => setShowHelp(false)}
-								className="p-1 hover:bg-white/5 rounded-lg cursor-pointer"
+								className="p-1 hover:bg-foreground/5 rounded-lg cursor-pointer"
 							>
 								<X className="h-4 w-4" />
 							</button>
@@ -575,11 +821,11 @@ export default function WordlePage() {
 									<span>Correct match</span>
 								</div>
 								<div className="flex items-center gap-3">
-									<div className="w-8 h-8 rounded bg-red-500/30 border border-white/5" />
+									<div className="w-8 h-8 rounded bg-red-500/30 border border-guild-border" />
 									<span>Wrong</span>
 								</div>
 								<div className="flex items-center gap-3">
-									<div className="w-8 h-8 rounded bg-red-500/30 border border-white/5 flex items-center justify-center text-xs">
+									<div className="w-8 h-8 rounded bg-red-500/30 border border-guild-border flex items-center justify-center text-xs">
 										▲
 									</div>
 									<span>
@@ -587,7 +833,7 @@ export default function WordlePage() {
 									</span>
 								</div>
 								<div className="flex items-center gap-3">
-									<div className="w-8 h-8 rounded bg-red-500/30 border border-white/5 flex items-center justify-center text-xs">
+									<div className="w-8 h-8 rounded bg-red-500/30 border border-guild-border flex items-center justify-center text-xs">
 										▼
 									</div>
 									<span>
@@ -635,7 +881,7 @@ function GuessCell({
 				'flex flex-col items-center justify-center p-2 rounded-lg border text-center transition-all duration-300',
 				visible
 					? cn(MATCH_BG[match], MATCH_BORDER[match])
-					: 'bg-guild-elevated border-white/5 scale-90 opacity-0',
+					: 'bg-guild-elevated border-guild-border scale-90 opacity-0',
 			)}
 		>
 			{visible && (

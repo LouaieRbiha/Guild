@@ -7,10 +7,14 @@ import {
 	ChevronRight,
 	Dices,
 	ExternalLink,
+	Gamepad2,
 	Gift,
 	Map,
 	Shield,
 	Swords,
+	Trophy,
+	Tv,
+	User,
 	Users,
 } from 'lucide-react';
 import Image from 'next/image';
@@ -125,6 +129,30 @@ const NAV_CARDS = [
 		icon: Dices,
 		title: 'Simulator',
 		description: 'Wish simulator to test your luck for free',
+	},
+	{
+		href: '/tierlist',
+		icon: Trophy,
+		title: 'Tier List',
+		description: 'Character rankings and tier list for all roles',
+	},
+	{
+		href: '/streamers',
+		icon: Tv,
+		title: 'Streamers',
+		description: 'Live Genshin content creators and streamers',
+	},
+	{
+		href: '/wordle',
+		icon: Gamepad2,
+		title: 'Wordle',
+		description: 'Daily Genshin character guessing game',
+	},
+	{
+		href: '/profile',
+		icon: User,
+		title: 'Profile',
+		description: 'Look up any player profile by UID',
 	},
 ];
 
@@ -276,7 +304,7 @@ export function HomeClient({
 	const todayName = dayNames[new Date().getDay()];
 
 	return (
-		<div className='min-h-screen text-white'>
+		<div className='min-h-screen text-foreground'>
 			{/* ── 1. Hero Section ─────────────────────────────────────────── */}
 			<section className='pt-8 sm:pt-16 pb-8 sm:pb-12 px-4 sm:px-6'>
 				<div className='max-w-6xl mx-auto text-center space-y-8'>
@@ -294,7 +322,7 @@ export function HomeClient({
 					<div className='max-w-md mx-auto'>
 						<div className='relative'>
 							<div className='absolute -inset-1 rounded-2xl bg-linear-to-r from-guild-accent/30 via-guild-accent-2/20 to-guild-accent/30 blur-lg animate-pulse-glow' />
-							<Card className='relative border-white/10 p-0 gap-0'>
+							<Card className='relative border-guild-border p-0 gap-0'>
 								<CardContent className='p-4'>
 									<div className='flex items-center gap-3'>
 										<Input
@@ -350,7 +378,7 @@ export function HomeClient({
 						<div className='hidden md:grid md:grid-cols-2 gap-4'>
 							{/* Character Banner Card */}
 							{charBanner ? (
-								<Card className='overflow-hidden relative min-h-96 border-white/5 p-0 gap-0'>
+								<Card className='overflow-hidden relative min-h-96 border-guild-border/50 p-0 gap-0'>
 									{/* Background splash art — crossfade between featured chars */}
 									{featured5StarChars.map((char, idx) => {
 										const url = charGachaUrl(char.id);
@@ -375,7 +403,7 @@ export function HomeClient({
 									<div className='relative z-10 p-6 flex flex-col justify-between h-full min-h-96'>
 										{/* Top label + version */}
 										<div className='flex items-center justify-between'>
-											<span className='text-sm text-white/70 drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]'>
+											<span className='text-sm text-guild-muted drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]'>
 												Character Event Wish
 											</span>
 											{charBanner.version && (
@@ -398,8 +426,8 @@ export function HomeClient({
 																className={cn(
 																	'text-2xl font-bold transition-all duration-500 group-hover/name:text-guild-accent drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]',
 																	idx === activeCharIdx
-																		? 'text-white scale-105 origin-left'
-																		: 'text-white/50',
+																		? 'text-foreground scale-105 origin-left'
+																		: 'text-foreground/50',
 																)}
 															>
 																{char.name}
@@ -423,7 +451,7 @@ export function HomeClient({
 																'h-1.5 rounded-full transition-all duration-300',
 																idx === activeCharIdx
 																	? 'w-5 bg-guild-accent'
-																	: 'w-1.5 bg-white/25 hover:bg-white/40',
+																	: 'w-1.5 bg-foreground/25 hover:bg-foreground/40',
 															)}
 														/>
 													))}
@@ -440,7 +468,7 @@ export function HomeClient({
 														href={`/database/${char.id}`}
 														className='flex items-center gap-1.5 group/four hover:opacity-90 transition-opacity'
 													>
-														<div className='w-8 h-8 rounded-full overflow-hidden border border-white/20 relative shrink-0'>
+														<div className='w-8 h-8 rounded-full overflow-hidden border border-guild-border relative shrink-0'>
 															<Image
 																src={charIconUrl(char.id)}
 																alt={char.name}
@@ -449,7 +477,7 @@ export function HomeClient({
 																sizes='32px'
 															/>
 														</div>
-														<span className='text-xs text-guild-muted hidden sm:inline group-hover/four:text-white transition-colors'>
+														<span className='text-xs text-guild-muted hidden sm:inline group-hover/four:text-foreground transition-colors'>
 															{char.name}
 														</span>
 													</Link>
@@ -463,7 +491,7 @@ export function HomeClient({
 									</div>
 								</Card>
 							) : (
-								<Card className='overflow-hidden relative min-h-80 border-white/5 p-0 gap-0'>
+								<Card className='overflow-hidden relative min-h-80 border-guild-border/50 p-0 gap-0'>
 									<div className='absolute inset-0 bg-linear-to-br from-guild-accent/10 via-card to-guild-accent-2/10' />
 									<div className='relative z-10 flex flex-col items-center justify-center h-full min-h-80 gap-3'>
 										<PrimogemIcon className='text-guild-muted' size={40} />
@@ -479,7 +507,7 @@ export function HomeClient({
 
 							{/* Weapon Banner Card */}
 							{weaponBanner ? (
-								<Card className='overflow-hidden relative min-h-96 border-white/5 p-0 gap-0'>
+								<Card className='overflow-hidden relative min-h-96 border-guild-border/50 p-0 gap-0'>
 									{/* Gradient background */}
 									<div className='absolute inset-0 bg-linear-to-br from-guild-accent/10 via-card to-guild-accent-2/10' />
 
@@ -512,7 +540,7 @@ export function HomeClient({
 									<div className='relative z-10 p-6 flex flex-col justify-between h-full min-h-96'>
 										{/* Top label + version */}
 										<div className='flex items-center justify-between'>
-											<span className='text-sm text-white/70 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]'>
+											<span className='text-sm text-guild-muted drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]'>
 												Epitome Invocation
 											</span>
 											{weaponBanner.version && (
@@ -549,8 +577,8 @@ export function HomeClient({
 																	className={cn(
 																		'text-xl font-bold transition-all duration-500 group-hover/wname:text-guild-accent drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]',
 																		idx === activeWeaponIdx
-																			? 'text-white'
-																			: 'text-white/50',
+																			? 'text-foreground'
+																			: 'text-foreground/50',
 																	)}
 																>
 																	{weapon.name}
@@ -578,7 +606,7 @@ export function HomeClient({
 																'h-1.5 rounded-full transition-all duration-300',
 																idx === activeWeaponIdx
 																	? 'w-5 bg-guild-accent-2'
-																	: 'w-1.5 bg-white/25 hover:bg-white/40',
+																	: 'w-1.5 bg-foreground/25 hover:bg-foreground/40',
 															)}
 														/>
 													))}
@@ -588,7 +616,7 @@ export function HomeClient({
 
 										{/* Bottom: label + countdown */}
 										<div className='flex items-end justify-between'>
-											<span className='text-sm text-white/70 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]'>
+											<span className='text-sm text-guild-muted drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]'>
 												Weapon Event Wish
 											</span>
 											<Countdown
@@ -599,7 +627,7 @@ export function HomeClient({
 									</div>
 								</Card>
 							) : (
-								<Card className='overflow-hidden relative min-h-80 border-white/5 p-0 gap-0'>
+								<Card className='overflow-hidden relative min-h-80 border-guild-border/50 p-0 gap-0'>
 									<div className='absolute inset-0 bg-linear-to-br from-guild-accent-2/10 via-card to-guild-accent/10' />
 									<div className='relative z-10 flex flex-col items-center justify-center h-full min-h-80 gap-3'>
 										<Swords className='text-guild-muted' size={40} />
@@ -618,7 +646,7 @@ export function HomeClient({
 						<div className='md:hidden relative'>
 							<div className='overflow-hidden rounded-xl'>
 								{activeBannerIdx === 0 && charBanner ? (
-									<Card className='overflow-hidden relative min-h-96 border-white/5 p-0 gap-0'>
+									<Card className='overflow-hidden relative min-h-96 border-guild-border/50 p-0 gap-0'>
 										{featured5StarChars.map((char, idx) => {
 											const url = charGachaUrl(char.id);
 											return (
@@ -659,8 +687,8 @@ export function HomeClient({
 															className={cn(
 																'text-2xl font-bold transition-all duration-500 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]',
 																idx === activeCharIdx
-																	? 'text-white scale-105 origin-left'
-																	: 'text-white/50',
+																	? 'text-foreground scale-105 origin-left'
+																	: 'text-foreground/50',
 															)}
 														>
 															{char.name}
@@ -678,7 +706,7 @@ export function HomeClient({
 																	'h-1.5 rounded-full transition-all duration-300',
 																	idx === activeCharIdx
 																		? 'w-5 bg-guild-accent'
-																		: 'w-1.5 bg-white/25 hover:bg-white/40',
+																		: 'w-1.5 bg-foreground/25 hover:bg-foreground/40',
 																)}
 															/>
 														))}
@@ -693,7 +721,7 @@ export function HomeClient({
 															href={`/database/${char.id}`}
 															className='flex items-center gap-1.5'
 														>
-															<div className='w-8 h-8 rounded-full overflow-hidden border border-white/20 relative shrink-0'>
+															<div className='w-8 h-8 rounded-full overflow-hidden border border-guild-border relative shrink-0'>
 																<Image
 																	src={charIconUrl(char.id)}
 																	alt={char.name}
@@ -712,7 +740,7 @@ export function HomeClient({
 										</div>
 									</Card>
 								) : weaponBanner ? (
-									<Card className='overflow-hidden relative min-h-96 border-white/5 p-0 gap-0'>
+									<Card className='overflow-hidden relative min-h-96 border-guild-border/50 p-0 gap-0'>
 										<div className='absolute inset-0 bg-linear-to-br from-guild-accent/10 via-card to-guild-accent-2/10' />
 										{featured5StarWeapons.length > 0 && (
 											<div className='absolute inset-0 flex items-center justify-end pr-2'>
@@ -737,7 +765,7 @@ export function HomeClient({
 										<div className='absolute inset-0 bg-linear-to-r from-card via-card/60 to-transparent' />
 										<div className='relative z-10 p-6 flex flex-col justify-between h-full min-h-96'>
 											<div className='flex items-center justify-between'>
-												<span className='text-sm text-white/70 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]'>
+												<span className='text-sm text-guild-muted drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]'>
 													Epitome Invocation
 												</span>
 												{weaponBanner.version && (
@@ -771,8 +799,8 @@ export function HomeClient({
 																className={cn(
 																	'text-lg font-bold transition-all duration-500 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]',
 																	idx === activeWeaponIdx
-																		? 'text-white'
-																		: 'text-white/50',
+																		? 'text-foreground'
+																		: 'text-foreground/50',
 																)}
 															>
 																{weapon.name}
@@ -791,7 +819,7 @@ export function HomeClient({
 																	'h-1.5 rounded-full transition-all duration-300',
 																	idx === activeWeaponIdx
 																		? 'w-5 bg-guild-accent-2'
-																		: 'w-1.5 bg-white/25 hover:bg-white/40',
+																		: 'w-1.5 bg-foreground/25 hover:bg-foreground/40',
 																)}
 															/>
 														))}
@@ -799,7 +827,7 @@ export function HomeClient({
 												)}
 											</div>
 											<div className='flex items-end justify-between'>
-												<span className='text-sm text-white/70 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]'>
+												<span className='text-sm text-guild-muted drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]'>
 													Weapon Event Wish
 												</span>
 												<Countdown
@@ -821,7 +849,7 @@ export function HomeClient({
 												(i) => (i - 1 + bannerCount) % bannerCount,
 											)
 										}
-										className='p-1.5 rounded-full bg-white/5 hover:bg-white/10 transition-colors'
+										className='p-1.5 rounded-full bg-guild-elevated/50 hover:bg-guild-elevated transition-colors'
 									>
 										<ChevronLeft className='h-4 w-4 text-guild-muted' />
 									</button>
@@ -834,14 +862,14 @@ export function HomeClient({
 													'w-2 h-2 rounded-full transition-all',
 													activeBannerIdx === i
 														? 'bg-guild-accent w-6'
-														: 'bg-white/20 hover:bg-white/40',
+														: 'bg-foreground/20 hover:bg-foreground/40',
 												)}
 											/>
 										))}
 									</div>
 									<button
 										onClick={nextBanner}
-										className='p-1.5 rounded-full bg-white/5 hover:bg-white/10 transition-colors'
+										className='p-1.5 rounded-full bg-guild-elevated/50 hover:bg-guild-elevated transition-colors'
 									>
 										<ChevronRight className='h-4 w-4 text-guild-muted' />
 									</button>
@@ -858,7 +886,7 @@ export function HomeClient({
 			{/* ── Today's Farming ────────────────────────────────────────── */}
 			<section className='px-6 pb-12'>
 				<div className='max-w-6xl mx-auto'>
-					<Card className='border-white/5 p-0 gap-0'>
+					<Card className='border-guild-border/50 p-0 gap-0'>
 						<CardContent className='px-5 py-4'>
 							<div className='flex flex-col sm:flex-row sm:items-center gap-3'>
 								<div className='flex items-center gap-2 shrink-0'>
@@ -868,7 +896,7 @@ export function HomeClient({
 									</span>
 									<Badge
 										variant='outline'
-										className='text-xs text-guild-muted border-white/10'
+										className='text-xs text-guild-muted border-guild-border'
 									>
 										{todayName}
 									</Badge>
@@ -903,7 +931,7 @@ export function HomeClient({
 					<div className='grid grid-cols-2 md:grid-cols-3 gap-4'>
 						{NAV_CARDS.map((item) => (
 							<Link key={item.href} href={item.href} className='group'>
-								<Card className='h-full border-white/5 transition-all duration-300 hover:border-guild-accent/30 hover:shadow-[0_0_20px_rgba(99,102,241,0.1)]'>
+								<Card className='h-full border-guild-border/50 transition-all duration-300 hover:border-guild-accent/30 hover:shadow-[0_0_20px_rgba(99,102,241,0.1)]'>
 									<CardContent className='flex flex-col gap-3 p-5'>
 										<div className='w-10 h-10 rounded-lg bg-guild-accent/10 flex items-center justify-center text-guild-accent group-hover:bg-guild-accent/20 transition-colors'>
 											<item.icon size={22} />
@@ -943,7 +971,7 @@ export function HomeClient({
 								>
 									<Card
 										className={cn(
-											'relative aspect-3/4 overflow-hidden p-0 gap-0 border-white/5',
+											'relative aspect-3/4 overflow-hidden p-0 gap-0 border-guild-border/50',
 											'transition-all duration-300 hover:scale-105 hover:shadow-lg',
 											ELEMENT_GLOW[char.element] ||
 												'hover:border-guild-accent/50',
@@ -964,7 +992,7 @@ export function HomeClient({
 										/>
 
 										{/* Bottom gradient */}
-										<div className='absolute inset-0 bg-linear-to-t from-[#1a1b2e] via-transparent to-transparent' />
+										<div className='absolute inset-0 bg-linear-to-t from-background via-transparent to-transparent' />
 
 										{/* Element icon (top-right) */}
 										{Icon && (

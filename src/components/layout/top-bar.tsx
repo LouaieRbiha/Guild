@@ -4,11 +4,10 @@ import { ELEMENT_ICONS } from '@/components/icons/genshin-icons';
 import { ALL_CHARACTERS } from '@/lib/characters';
 import { cn } from '@/lib/utils';
 import { ALL_WEAPONS } from '@/lib/weapons';
-import { Eye, EyeOff, Monitor, Moon, Search, Settings, Sun, X } from 'lucide-react';
+import { Eye, EyeOff, Monitor, Moon, Search, Settings, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useTheme } from 'next-themes';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // ── Settings Storage ─────────────────────────────────────────────────
@@ -62,8 +61,6 @@ export function TopBar() {
 	const [search, setSearch] = useState('');
 	const [searchFocused, setSearchFocused] = useState(false);
 	const router = useRouter();
-	const { theme, setTheme } = useTheme();
-	const [mounted, setMounted] = useState(false);
 
 	const searchResults = useMemo(() => {
 		if (!search.trim() || search.trim().length < 2) return [];
@@ -105,8 +102,6 @@ export function TopBar() {
 	useEffect(() => {
 		setSettings(loadSettings());
 	}, []);
-
-	useEffect(() => setMounted(true), []);
 
 	const updateSetting = useCallback(
 		<K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
@@ -225,15 +220,6 @@ export function TopBar() {
 							Lookup
 						</button>
 					</div>
-					{mounted && (
-						<button
-							onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-							className='h-9 w-9 rounded-xl bg-guild-elevated/50 hover:bg-guild-elevated flex items-center justify-center transition-colors cursor-pointer'
-							title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-						>
-							{theme === 'dark' ? <Sun size={18} className='text-guild-muted' /> : <Moon size={18} className='text-guild-muted' />}
-						</button>
-					)}
 					<button
 						onClick={() => setShowSettings(!showSettings)}
 						className={cn(

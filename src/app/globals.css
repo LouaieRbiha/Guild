@@ -58,28 +58,6 @@
   --radius-4xl: calc(var(--radius) + 16px);
 }
 
-:root {
-  --color-background: #F8FAFC;
-  --color-foreground: #1a1b2e;
-  --color-guild-bg: #F8FAFC;
-  --color-guild-card: #FFFFFF;
-  --color-guild-elevated: #F1F5F9;
-  --color-guild-border: #E2E8F0;
-  --color-guild-muted: #64748B;
-  --color-guild-dim: #94A3B8;
-}
-
-.dark {
-  --color-background: #1a1b2e;
-  --color-foreground: #F8FAFC;
-  --color-guild-bg: #1a1b2e;
-  --color-guild-card: #252841;
-  --color-guild-elevated: #2d3054;
-  --color-guild-border: #363b5e;
-  --color-guild-muted: #94A3B8;
-  --color-guild-dim: #64748B;
-}
-
 body {
   background: var(--color-guild-bg);
   color: var(--color-foreground);
@@ -104,41 +82,6 @@ body {
 
 :root {
   --radius: 0.625rem;
-  --background: 210 40% 98%;
-  --foreground: 222 47% 11%;
-  --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
-  --primary: 239 84% 67%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 210 40% 96%;
-  --secondary-foreground: 222 47% 11%;
-  --muted: 210 40% 96%;
-  --muted-foreground: 215 16% 47%;
-  --accent: 210 40% 96%;
-  --accent-foreground: 222 47% 11%;
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 214 32% 91%;
-  --input: 214 32% 91%;
-  --ring: 239 84% 67%;
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: #F8FAFC;
-  --sidebar-foreground: #1a1b2e;
-  --sidebar-primary: #6366F1;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F1F5F9;
-  --sidebar-accent-foreground: #1a1b2e;
-  --sidebar-border: #E2E8F0;
-  --sidebar-ring: #6366F1;
-}
-
-.dark {
   --background: 232 27% 14%;
   --foreground: 210 40% 98%;
   --card: 233 26% 20%;
@@ -158,6 +101,11 @@ body {
   --border: 231 21% 29%;
   --input: 231 21% 29%;
   --ring: 239 84% 67%;
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: #1a1b2e;
   --sidebar-foreground: #F8FAFC;
   --sidebar-primary: #6366F1;

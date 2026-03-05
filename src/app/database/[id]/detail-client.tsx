@@ -196,7 +196,7 @@ function estimateConstellationImpact(
 
 	return {
 		label: 'UTILITY',
-		color: 'text-gray-400',
+		color: 'text-guild-muted',
 		detail: 'Utility or situational benefit',
 	};
 }
@@ -214,7 +214,7 @@ const TALENT_COLORS: Record<string, string> = {
 };
 
 const TALENT_BADGE_STYLES: Record<string, string> = {
-	'Normal Attack': 'bg-gray-500/20 text-gray-300 border-gray-500/30',
+	'Normal Attack': 'bg-gray-500/20 text-guild-muted border-gray-500/30',
 	'Elemental Skill': 'bg-blue-500/20 text-blue-400 border-blue-500/30',
 	'Elemental Burst': 'bg-purple-500/20 text-purple-400 border-purple-500/30',
 };
@@ -254,7 +254,7 @@ export function CharacterDetailClient({ detail, entry }: Props) {
 			{/* Back nav */}
 			<Link
 				href='/database'
-				className='inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors'
+				className='inline-flex items-center gap-2 text-sm text-guild-muted hover:text-foreground transition-colors'
 			>
 				&larr; Back to Characters
 			</Link>
@@ -286,8 +286,8 @@ export function CharacterDetailClient({ detail, entry }: Props) {
 								(e.target as HTMLImageElement).src = charIconUrl(entry.id);
 							}}
 						/>
-						<div className='absolute inset-0 bg-linear-to-r from-transparent to-[#111827] hidden md:block' />
-						<div className='absolute inset-0 bg-linear-to-t from-[#111827] to-transparent md:hidden' />
+						<div className='absolute inset-0 bg-linear-to-r from-transparent to-background hidden md:block' />
+						<div className='absolute inset-0 bg-linear-to-t from-background to-transparent md:hidden' />
 					</div>
 
 					{/* Info */}
@@ -295,7 +295,7 @@ export function CharacterDetailClient({ detail, entry }: Props) {
 						<div className='flex items-center gap-3'>
 							{VisionComp && <VisionComp className='w-8 h-8' />}
 							<div>
-								<h1 className='text-3xl font-bold text-white'>{detail.name}</h1>
+								<h1 className='text-3xl font-bold text-foreground'>{detail.name}</h1>
 								{detail.title && (
 									<p className={`text-sm ${colors.text} italic`}>
 										{detail.title}
@@ -309,7 +309,7 @@ export function CharacterDetailClient({ detail, entry }: Props) {
 							<ElementBadge element={detail.element} />
 							<Badge
 								variant='outline'
-								className='text-gray-300 border-gray-600'
+								className='text-guild-muted border-guild-border'
 							>
 								{detail.weapon}
 							</Badge>
@@ -320,55 +320,55 @@ export function CharacterDetailClient({ detail, entry }: Props) {
 						<div className='grid grid-cols-2 md:grid-cols-3 gap-3'>
 							<Card
 								className={cn(
-									'bg-black/20 border-white/5 border-l-2',
+									'bg-guild-elevated/50 border-guild-border/30 border-l-2',
 									colors.border,
 								)}
 							>
 								<CardContent className='p-3'>
 									<p className='text-xs text-muted-foreground'>Region</p>
-									<p className='font-medium text-white'>{detail.region}</p>
+									<p className='font-medium text-foreground'>{detail.region}</p>
 								</CardContent>
 							</Card>
 							<Card
 								className={cn(
-									'bg-black/20 border-white/5 border-l-2',
+									'bg-guild-elevated/50 border-guild-border/30 border-l-2',
 									colors.border,
 								)}
 							>
 								<CardContent className='p-3'>
 									<p className='text-xs text-muted-foreground'>Affiliation</p>
-									<p className='font-medium text-white'>
+									<p className='font-medium text-foreground'>
 										{detail.affiliation || '\u2014'}
 									</p>
 								</CardContent>
 							</Card>
 							<Card
 								className={cn(
-									'bg-black/20 border-white/5 border-l-2',
+									'bg-guild-elevated/50 border-guild-border/30 border-l-2',
 									colors.border,
 								)}
 							>
 								<CardContent className='p-3'>
 									<p className='text-xs text-muted-foreground'>Birthday</p>
-									<p className='font-medium text-white'>{detail.birthday}</p>
+									<p className='font-medium text-foreground'>{detail.birthday}</p>
 								</CardContent>
 							</Card>
 							<Card
 								className={cn(
-									'bg-black/20 border-white/5 border-l-2',
+									'bg-guild-elevated/50 border-guild-border/30 border-l-2',
 									colors.border,
 								)}
 							>
 								<CardContent className='p-3'>
 									<p className='text-xs text-muted-foreground'>Constellation</p>
-									<p className='font-medium text-white'>
+									<p className='font-medium text-foreground'>
 										{detail.constellation || '\u2014'}
 									</p>
 								</CardContent>
 							</Card>
 							<Card
 								className={cn(
-									'bg-black/20 border-white/5 border-l-2',
+									'bg-guild-elevated/50 border-guild-border/30 border-l-2',
 									colors.border,
 								)}
 							>
@@ -376,27 +376,27 @@ export function CharacterDetailClient({ detail, entry }: Props) {
 									<p className='text-xs text-muted-foreground'>
 										Ascension Stat
 									</p>
-									<p className='font-medium text-white'>
+									<p className='font-medium text-foreground'>
 										{detail.ascensionStat}
 									</p>
 								</CardContent>
 							</Card>
 							<Card
 								className={cn(
-									'bg-black/20 border-white/5 border-l-2',
+									'bg-guild-elevated/50 border-guild-border/30 border-l-2',
 									colors.border,
 								)}
 							>
 								<CardContent className='p-3'>
 									<p className='text-xs text-muted-foreground'>Released</p>
-									<p className='font-medium text-white'>{detail.release}</p>
+									<p className='font-medium text-foreground'>{detail.release}</p>
 								</CardContent>
 							</Card>
 						</div>
 
 						{/* Voice actors */}
 						{detail.cv.EN && (
-							<div className='text-sm text-gray-500 space-x-4'>
+							<div className='text-sm text-guild-dim space-x-4'>
 								<span>EN: {detail.cv.EN}</span>
 								{detail.cv.JP && <span>JP: {detail.cv.JP}</span>}
 							</div>
@@ -410,7 +410,7 @@ export function CharacterDetailClient({ detail, entry }: Props) {
 
 			{/* Tab navigation */}
 			<Tabs defaultValue='talents' className='w-full'>
-				<TabsList className='w-full bg-[#0D1117]'>
+				<TabsList className='w-full bg-guild-card'>
 					<TabsTrigger value='talents' className='flex-1'>
 						Talents
 					</TabsTrigger>
@@ -464,11 +464,11 @@ function TalentsTab({
 		<div className='space-y-8'>
 			{/* Section header: Combat Talents */}
 			<div className='space-y-2'>
-				<h2 className='text-2xl font-bold text-white flex items-center gap-3'>
+				<h2 className='text-2xl font-bold text-foreground flex items-center gap-3'>
 					<span className={colors.text}>&#9876;</span> Combat Talents
 				</h2>
 				<div className={`h-0.5 rounded-full ${colors.bg}`} />
-				<p className='text-base text-gray-400'>
+				<p className='text-base text-guild-muted'>
 					Recommended priority: Level all to 8+, then focus on the most
 					impactful talent first
 				</p>
@@ -478,7 +478,7 @@ function TalentsTab({
 				{detail.talents.map((talent, i) => {
 					const isExpanded = expanded === `talent-${i}`;
 					const priorityLabel = TALENT_PRIORITY[talent.type] || talent.type;
-					const borderColor = TALENT_COLORS[talent.type] || 'border-gray-600';
+					const borderColor = TALENT_COLORS[talent.type] || 'border-guild-border';
 					const badgeStyle =
 						TALENT_BADGE_STYLES[talent.type] ||
 						`${colors.bg} ${colors.text} ${colors.border}`;
@@ -486,7 +486,7 @@ function TalentsTab({
 					return (
 						<div
 							key={i}
-							className={`guild-card p-4 cursor-pointer transition-all hover:bg-white/5 border-l-4 ${borderColor}`}
+							className={`guild-card p-4 cursor-pointer transition-all hover:bg-foreground/5 border-l-4 ${borderColor}`}
 							onClick={() => setExpanded(isExpanded ? null : `talent-${i}`)}
 						>
 							<div className='flex items-center gap-4'>
@@ -496,27 +496,27 @@ function TalentsTab({
 										alt={talent.name}
 										width={64}
 										height={64}
-										className='rounded-lg bg-black/30'
+										className='rounded-lg bg-guild-elevated/50'
 										sizes='64px'
 										fetchPriority='low'
 									/>
 								)}
 								<div className='flex-1'>
 									<div className='flex items-center gap-2 flex-wrap'>
-										<span className='text-white font-semibold text-xl'>
+										<span className='text-foreground font-semibold text-xl'>
 											{talent.name}
 										</span>
 										<Badge className={badgeStyle}>{priorityLabel}</Badge>
 									</div>
-									<p className='text-base text-gray-400'>{talent.type}</p>
+									<p className='text-base text-guild-muted'>{talent.type}</p>
 								</div>
-								<span className='text-gray-500 text-lg'>
+								<span className='text-guild-dim text-lg'>
 									{isExpanded ? '\u25B2' : '\u25BC'}
 								</span>
 							</div>
 							{isExpanded && (
-								<div className='mt-4 pt-4 border-t border-white/10'>
-									<p className='text-base text-gray-300 whitespace-pre-line leading-relaxed'>
+								<div className='mt-4 pt-4 border-t border-guild-border'>
+									<p className='text-base text-guild-muted whitespace-pre-line leading-relaxed'>
 										<HighlightNumbers
 											text={cleanDescription(talent.description)}
 											color={colors.text}
@@ -529,13 +529,13 @@ function TalentsTab({
 				})}
 			</div>
 
-			<Separator className='my-2 bg-white/10' />
+			<Separator className='my-2 bg-foreground/10' />
 
 			{/* Section header: Passive Talents */}
 			{detail.passives.length > 0 && (
 				<div className='space-y-6'>
 					<div className='space-y-2'>
-						<h2 className='text-2xl font-bold text-white flex items-center gap-3'>
+						<h2 className='text-2xl font-bold text-foreground flex items-center gap-3'>
 							<span className='text-amber-400'>&#10022;</span> Passive Talents
 						</h2>
 						<div className='h-0.5 rounded-full bg-amber-500/20' />
@@ -547,7 +547,7 @@ function TalentsTab({
 							return (
 								<div
 									key={i}
-									className='guild-card p-4 cursor-pointer transition-all hover:bg-white/5 border-l-4 border-amber-600/50'
+									className='guild-card p-4 cursor-pointer transition-all hover:bg-foreground/5 border-l-4 border-amber-600/50'
 									onClick={() =>
 										setExpanded(isExpanded ? null : `passive-${i}`)
 									}
@@ -559,23 +559,23 @@ function TalentsTab({
 												alt={passive.name}
 												width={64}
 												height={64}
-												className='rounded-lg bg-black/30'
+												className='rounded-lg bg-guild-elevated/50'
 												sizes='64px'
 											/>
 										)}
 										<div className='flex-1'>
-											<span className='text-white font-semibold text-xl'>
+											<span className='text-foreground font-semibold text-xl'>
 												{passive.name}
 											</span>
-											<p className='text-base text-gray-400'>{passive.type}</p>
+											<p className='text-base text-guild-muted'>{passive.type}</p>
 										</div>
-										<span className='text-gray-500 text-lg'>
+										<span className='text-guild-dim text-lg'>
 											{isExpanded ? '\u25B2' : '\u25BC'}
 										</span>
 									</div>
 									{isExpanded && (
-										<div className='mt-4 pt-4 border-t border-white/10'>
-											<p className='text-base text-gray-300 whitespace-pre-line leading-relaxed'>
+										<div className='mt-4 pt-4 border-t border-guild-border'>
+											<p className='text-base text-guild-muted whitespace-pre-line leading-relaxed'>
 												<HighlightNumbers
 													text={cleanDescription(passive.description)}
 													color='text-amber-400'
@@ -606,7 +606,7 @@ function ConstellationsTab({
 	return (
 		<div className='space-y-6'>
 			<div className='space-y-2'>
-				<h2 className='text-2xl font-bold text-white flex items-center gap-3'>
+				<h2 className='text-2xl font-bold text-foreground flex items-center gap-3'>
 					<ConstellationIcon className={`w-7 h-7 ${colors.text}`} />
 					Constellations &mdash; {detail.constellation}
 				</h2>
@@ -619,7 +619,7 @@ function ConstellationsTab({
 					const impact = estimateConstellationImpact(c.description, c.index);
 
 					return (
-						<Card key={c.index} className='bg-black/20 border-white/5'>
+						<Card key={c.index} className='bg-guild-elevated/50 border-guild-border/30'>
 							<CardContent className='p-5'>
 								<div className='flex gap-5'>
 									{/* Left: C# number + icon */}
@@ -656,18 +656,18 @@ function ConstellationsTab({
 									{/* Middle: Name + description */}
 									<div className='flex-1 min-w-0'>
 										<div className='flex items-center gap-3 flex-wrap mb-2'>
-											<h3 className='text-lg font-bold text-white'>{c.name}</h3>
+											<h3 className='text-lg font-bold text-foreground'>{c.name}</h3>
 											<Badge
 												variant='outline'
 												className={cn(
 													impact.color,
-													'bg-white/5 border-white/10 font-bold',
+													'bg-foreground/5 border-guild-border font-bold',
 												)}
 											>
 												{impact.label}
 											</Badge>
 										</div>
-										<p className='text-base text-gray-300 whitespace-pre-line leading-relaxed mb-3'>
+										<p className='text-base text-guild-muted whitespace-pre-line leading-relaxed mb-3'>
 											<HighlightNumbers
 												text={cleanDescription(c.description)}
 												color={colors.text}
@@ -681,13 +681,13 @@ function ConstellationsTab({
 												colors.border,
 											)}
 										>
-											<span className='text-base font-semibold text-white'>
+											<span className='text-base font-semibold text-foreground'>
 												Impact:
 											</span>
 											<span className={`text-base font-bold ${impact.color}`}>
 												{impact.label}
 											</span>
-											<span className='text-base text-gray-400'>
+											<span className='text-base text-guild-muted'>
 												&mdash; {impact.detail}
 											</span>
 										</div>
@@ -766,7 +766,7 @@ function RangeSlider({
 	return (
 		<div className='space-y-4'>
 			<div className='flex items-center justify-between'>
-				<span className='text-base text-gray-400'>{label}</span>
+				<span className='text-base text-guild-muted'>{label}</span>
 				<div className='flex items-center gap-3'>
 					<div className='flex items-center gap-1.5'>
 						<input
@@ -781,9 +781,9 @@ function RangeSlider({
 								);
 								onChange([v, value[1]]);
 							}}
-							className='w-14 text-center text-sm font-bold bg-white/5 border border-white/10 rounded-md py-1 text-white focus:outline-none focus:border-guild-accent'
+							className='w-14 text-center text-sm font-bold bg-foreground/5 border border-guild-border rounded-md py-1 text-foreground focus:outline-none focus:border-guild-accent'
 						/>
-						<span className='text-gray-500 text-base'>&rarr;</span>
+						<span className='text-guild-dim text-base'>&rarr;</span>
 						<input
 							type='number'
 							min={value[0]}
@@ -796,7 +796,7 @@ function RangeSlider({
 								);
 								onChange([value[0], v]);
 							}}
-							className='w-14 text-center text-sm font-bold bg-white/5 border border-white/10 rounded-md py-1 text-white focus:outline-none focus:border-guild-accent'
+							className='w-14 text-center text-sm font-bold bg-foreground/5 border border-guild-border rounded-md py-1 text-foreground focus:outline-none focus:border-guild-accent'
 						/>
 					</div>
 				</div>
@@ -811,7 +811,7 @@ function RangeSlider({
 				step={1}
 				minStepsBetweenThumbs={1}
 			>
-				<SliderPrimitive.Track className='relative h-1.5 grow rounded-full bg-white/10'>
+				<SliderPrimitive.Track className='relative h-1.5 grow rounded-full bg-foreground/10'>
 					<SliderPrimitive.Range className='absolute h-full rounded-full bg-guild-accent/60' />
 				</SliderPrimitive.Track>
 				<SliderPrimitive.Thumb
@@ -842,7 +842,7 @@ function RangeSlider({
 								else if (lv > value[0]) onChange([value[0], lv]);
 							}}
 							className={`absolute text-[10px] -translate-x-1/2 transition-colors cursor-pointer
-                ${isInRange ? 'text-white/70' : 'text-white/20'} hover:text-white`}
+                ${isInRange ? 'text-foreground/70' : 'text-foreground/20'} hover:text-foreground`}
 							style={{ left: `${pct}%` }}
 						>
 							{lv}
@@ -919,7 +919,7 @@ function MaterialsTab({
 			{/* Ascension Materials */}
 			<div className='space-y-4'>
 				<div className='space-y-2'>
-					<h2 className='text-2xl font-bold text-white flex items-center gap-3'>
+					<h2 className='text-2xl font-bold text-foreground flex items-center gap-3'>
 						<span className={colors.text}>&#11014;</span> Ascension Materials
 					</h2>
 					<div className={`h-0.5 rounded-full ${colors.bg}`} />
@@ -936,13 +936,13 @@ function MaterialsTab({
 				</div>
 
 				{ascRange[0] === ascRange[1] ? (
-					<p className='text-gray-500 text-base'>
+					<p className='text-guild-dim text-base'>
 						Drag the slider to see materials needed.
 					</p>
 				) : ascMaterials.length > 0 ? (
 					<div className='guild-card p-4'>
 						<div className='flex items-center justify-between mb-4'>
-							<p className='text-lg font-semibold text-white'>
+							<p className='text-lg font-semibold text-foreground'>
 								Lv {ascRange[0]} &rarr; {ascRange[1]}
 							</p>
 							{ascMora > 0 && (
@@ -958,7 +958,7 @@ function MaterialsTab({
 						</div>
 					</div>
 				) : (
-					<p className='text-gray-500 text-base'>
+					<p className='text-guild-dim text-base'>
 						No ascension materials needed for this range.
 					</p>
 				)}
@@ -967,13 +967,13 @@ function MaterialsTab({
 			{/* Talent Materials */}
 			<div className='space-y-4'>
 				<div className='space-y-2'>
-					<h2 className='text-2xl font-bold text-white flex items-center gap-3'>
+					<h2 className='text-2xl font-bold text-foreground flex items-center gap-3'>
 						<span className={colors.text}>&#128214;</span> Talent Level-Up
 						Materials
 					</h2>
 					<div className={`h-0.5 rounded-full ${colors.bg}`} />
 				</div>
-				<p className='text-base text-gray-400'>
+				<p className='text-base text-guild-muted'>
 					Per talent &mdash; multiply by number of talents you&apos;re leveling
 				</p>
 
@@ -988,12 +988,12 @@ function MaterialsTab({
 				</div>
 
 				{talentRange[0] === talentRange[1] ? (
-					<p className='text-gray-500 text-base'>
+					<p className='text-guild-dim text-base'>
 						Drag the slider to see materials needed.
 					</p>
 				) : talentMaterials.length > 0 ? (
 					<div className='guild-card p-4'>
-						<p className='text-lg font-semibold text-white mb-4'>
+						<p className='text-lg font-semibold text-foreground mb-4'>
 							Talent Lv {talentRange[0]} &rarr; {talentRange[1]}
 						</p>
 						<div className='flex flex-wrap gap-4 justify-start'>
@@ -1003,7 +1003,7 @@ function MaterialsTab({
 						</div>
 					</div>
 				) : (
-					<p className='text-gray-500 text-base'>
+					<p className='text-guild-dim text-base'>
 						No talent materials needed for this range.
 					</p>
 				)}
@@ -1013,7 +1013,7 @@ function MaterialsTab({
 			{talentBookSchedule.length > 0 && (
 				<div className='space-y-4'>
 					<div className='space-y-2'>
-						<h2 className='text-2xl font-bold text-white flex items-center gap-3'>
+						<h2 className='text-2xl font-bold text-foreground flex items-center gap-3'>
 							<span className={colors.text}>&#128197;</span> Farming Schedule
 						</h2>
 						<div className={`h-0.5 rounded-full ${colors.bg}`} />
@@ -1025,7 +1025,7 @@ function MaterialsTab({
 							return (
 								<div key={schedule.materialName} className='space-y-3'>
 									<div className='flex items-center justify-between'>
-										<p className='text-base font-semibold text-white'>
+										<p className='text-base font-semibold text-foreground'>
 											{schedule.materialName}
 										</p>
 										{isOpenToday ? (
@@ -1060,7 +1060,7 @@ function MaterialsTab({
 															? 'bg-green-500/20 text-green-400 border-green-500/40 font-bold'
 															: isScheduled
 																? `${colors.bg} ${colors.text} ${colors.border}`
-																: 'bg-black/20 text-gray-600 border-white/5',
+																: 'bg-guild-elevated/50 text-guild-dim border-guild-border/30',
 													)}
 												>
 													{day.substring(0, 3)}
@@ -1083,13 +1083,13 @@ function LoreTab({ detail }: { detail: CharacterDetail }) {
 		<div className='space-y-6'>
 			{/* Story */}
 			<div className='guild-card p-6 space-y-4'>
-				<h2 className='text-2xl font-bold text-white'>Story</h2>
+				<h2 className='text-2xl font-bold text-foreground'>Story</h2>
 				{detail.description ? (
-					<p className='text-base text-gray-300 leading-relaxed'>
+					<p className='text-base text-guild-muted leading-relaxed'>
 						{detail.description}
 					</p>
 				) : (
-					<p className='text-base text-gray-500 italic'>
+					<p className='text-base text-guild-dim italic'>
 						No story data available for this character yet.
 					</p>
 				)}
@@ -1097,7 +1097,7 @@ function LoreTab({ detail }: { detail: CharacterDetail }) {
 
 			{/* Character info card */}
 			<div className='guild-card p-6'>
-				<h2 className='text-2xl font-bold text-white mb-4'>Character Info</h2>
+				<h2 className='text-2xl font-bold text-foreground mb-4'>Character Info</h2>
 				<div className='grid grid-cols-2 md:grid-cols-3 gap-4'>
 					<DetailCard label='Real Name' value={detail.name} />
 					<DetailCard label='Title' value={detail.title || '\u2014'} />
@@ -1120,36 +1120,36 @@ function LoreTab({ detail }: { detail: CharacterDetail }) {
 			{/* Voice actors -- more prominent */}
 			{detail.cv.EN && (
 				<div className='guild-card p-6'>
-					<h2 className='text-2xl font-bold text-white mb-4'>Voice Actors</h2>
+					<h2 className='text-2xl font-bold text-foreground mb-4'>Voice Actors</h2>
 					<div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-						<Card className='bg-black/20 border-white/5'>
+						<Card className='bg-guild-elevated/50 border-guild-border/30'>
 							<CardContent className='p-4'>
-								<p className='text-sm text-gray-500 mb-1'>English (EN)</p>
-								<p className='text-lg font-semibold text-white'>
+								<p className='text-sm text-guild-dim mb-1'>English (EN)</p>
+								<p className='text-lg font-semibold text-foreground'>
 									{detail.cv.EN}
 								</p>
 							</CardContent>
 						</Card>
-						<Card className='bg-black/20 border-white/5'>
+						<Card className='bg-guild-elevated/50 border-guild-border/30'>
 							<CardContent className='p-4'>
-								<p className='text-sm text-gray-500 mb-1'>Japanese (JP)</p>
-								<p className='text-lg font-semibold text-white'>
+								<p className='text-sm text-guild-dim mb-1'>Japanese (JP)</p>
+								<p className='text-lg font-semibold text-foreground'>
 									{detail.cv.JP || '\u2014'}
 								</p>
 							</CardContent>
 						</Card>
-						<Card className='bg-black/20 border-white/5'>
+						<Card className='bg-guild-elevated/50 border-guild-border/30'>
 							<CardContent className='p-4'>
-								<p className='text-sm text-gray-500 mb-1'>Chinese (CN)</p>
-								<p className='text-lg font-semibold text-white'>
+								<p className='text-sm text-guild-dim mb-1'>Chinese (CN)</p>
+								<p className='text-lg font-semibold text-foreground'>
 									{detail.cv.CHS || '\u2014'}
 								</p>
 							</CardContent>
 						</Card>
-						<Card className='bg-black/20 border-white/5'>
+						<Card className='bg-guild-elevated/50 border-guild-border/30'>
 							<CardContent className='p-4'>
-								<p className='text-sm text-gray-500 mb-1'>Korean (KR)</p>
-								<p className='text-lg font-semibold text-white'>
+								<p className='text-sm text-guild-dim mb-1'>Korean (KR)</p>
+								<p className='text-lg font-semibold text-foreground'>
 									{detail.cv.KR || '\u2014'}
 								</p>
 							</CardContent>
@@ -1161,8 +1161,8 @@ function LoreTab({ detail }: { detail: CharacterDetail }) {
 			{/* Character Quote */}
 			{detail.description && (
 				<div className='guild-card p-6'>
-					<h2 className='text-2xl font-bold text-white mb-4'>Introduction</h2>
-					<blockquote className='border-l-4 border-white/20 pl-4 italic text-base text-gray-400 leading-relaxed'>
+					<h2 className='text-2xl font-bold text-foreground mb-4'>Introduction</h2>
+					<blockquote className='border-l-4 border-guild-border pl-4 italic text-base text-guild-muted leading-relaxed'>
 						{detail.description}
 					</blockquote>
 				</div>
@@ -1189,15 +1189,15 @@ function GuidesTab({ detail, colors }: { detail: CharacterDetail; colors: Elemen
 	if (!guide && !kqmGuide) {
 		return (
 			<div className="guild-card p-8 text-center space-y-4">
-				<h2 className="text-xl font-semibold text-white mb-2">No Guide Available Yet</h2>
-				<p className="text-gray-400">Community guide for {detail.name} hasn&apos;t been added yet.</p>
+				<h2 className="text-xl font-semibold text-foreground mb-2">No Guide Available Yet</h2>
+				<p className="text-guild-muted">Community guide for {detail.name} hasn&apos;t been added yet.</p>
 				<div className="flex items-center justify-center gap-3">
 					<a href={`https://kqm.gg/${detail.name.toLowerCase().replace(/\s+/g, '-')}`} target="_blank" rel="noopener noreferrer"
 						className="px-4 py-2 rounded-lg bg-guild-accent/20 text-guild-accent hover:bg-guild-accent/30 transition-colors text-sm">
 						Check KQM Guide
 					</a>
 					<a href={`https://genshin-impact.fandom.com/wiki/${detail.name.replace(/\s+/g, '_')}`} target="_blank" rel="noopener noreferrer"
-						className="px-4 py-2 rounded-lg bg-guild-elevated text-guild-muted hover:bg-white/10 transition-colors text-sm">
+						className="px-4 py-2 rounded-lg bg-guild-elevated text-guild-muted hover:bg-foreground/10 transition-colors text-sm">
 						View on Wiki
 					</a>
 				</div>
@@ -1261,14 +1261,14 @@ function GuidesTab({ detail, colors }: { detail: CharacterDetail; colors: Elemen
 								<div className="relative">
 									{w.weaponId > 0 && (
 										<Image src={weaponIconUrl(w.weaponId)} alt={w.name} width={56} height={56}
-											className="rounded-lg bg-guild-elevated border border-white/10" />
+											className="rounded-lg bg-guild-elevated border border-guild-border" />
 									)}
 									{!w.weaponId && (
-										<div className="w-14 h-14 rounded-lg bg-guild-elevated border border-white/10 flex items-center justify-center text-guild-muted text-xs">?</div>
+										<div className="w-14 h-14 rounded-lg bg-guild-elevated border border-guild-border flex items-center justify-center text-guild-muted text-xs">?</div>
 									)}
 									{i === 0 && <div className="absolute -top-1 -left-1 w-4 h-4 rounded-full bg-guild-gold flex items-center justify-center text-[8px] font-bold text-black">1</div>}
 									{w.source && (
-										<span className={cn("absolute -top-1 -right-1 text-[8px] font-bold px-1 rounded", SOURCE_COLORS[w.source] || 'bg-white/10 text-white/60')}>
+										<span className={cn("absolute -top-1 -right-1 text-[8px] font-bold px-1 rounded", SOURCE_COLORS[w.source] || 'bg-foreground/10 text-foreground/60')}>
 											{w.source}
 										</span>
 									)}
@@ -1304,7 +1304,7 @@ function GuidesTab({ detail, colors }: { detail: CharacterDetail; colors: Elemen
 				<div className="guild-card overflow-hidden p-0">
 					<SectionHeader title="Talent Priority" />
 					<div className="p-4">
-						<p className="text-base font-bold text-white">
+						<p className="text-base font-bold text-foreground">
 							{talentStr.split(' > ').map((part: string, i: number, arr: string[]) => (
 								<span key={i}>
 									<span className={colors.text}>{part.trim()}</span>
@@ -1353,7 +1353,7 @@ function GuidesTab({ detail, colors }: { detail: CharacterDetail; colors: Elemen
 								))}
 							</div>
 							{guide.erRequirement && (
-								<div className="mt-3 pt-3 border-t border-white/5">
+								<div className="mt-3 pt-3 border-t border-guild-border/30">
 									<p className="text-xs text-guild-muted"><span className="font-semibold text-guild-accent">ER:</span> {guide.erRequirement}</p>
 								</div>
 							)}
@@ -1373,19 +1373,19 @@ function GuidesTab({ detail, colors }: { detail: CharacterDetail; colors: Elemen
 									const entry = findCharEntry(member);
 									return entry ? (
 										<Link key={j} href={`/database/${entry.id}`}>
-											<div className="w-10 h-10 rounded-lg overflow-hidden border border-white/10 bg-guild-elevated hover:border-guild-accent/50 transition-colors">
+											<div className="w-10 h-10 rounded-lg overflow-hidden border border-guild-border bg-guild-elevated hover:border-guild-accent/50 transition-colors">
 												<Image src={charIconUrl(entry.id)} alt={member} width={40} height={40} className="object-cover" sizes="40px" />
 											</div>
 										</Link>
 									) : (
-										<div key={j} className="w-10 h-10 rounded-lg bg-guild-elevated border border-white/10 flex items-center justify-center text-[10px] text-guild-muted">
+										<div key={j} className="w-10 h-10 rounded-lg bg-guild-elevated border border-guild-border flex items-center justify-center text-[10px] text-guild-muted">
 											{member.slice(0, 2)}
 										</div>
 									);
 								})}
 							</div>
 							<div className="flex-1 min-w-0">
-								<p className="text-xs text-white font-medium truncate">{team.name}</p>
+								<p className="text-xs text-foreground font-medium truncate">{team.name}</p>
 								{(team.archetype || team.note) && (
 									<p className="text-[10px] text-guild-muted truncate">{team.note || team.archetype}</p>
 								)}
@@ -1402,7 +1402,7 @@ function GuidesTab({ detail, colors }: { detail: CharacterDetail; colors: Elemen
 					<div className="p-4">
 						<ul className="space-y-2">
 							{guide.tips.map((tip, i) => (
-								<li key={i} className="flex gap-2 text-sm text-gray-300">
+								<li key={i} className="flex gap-2 text-sm text-guild-muted">
 									<span className={cn("font-bold shrink-0", colors.text)}>&bull;</span>
 									{tip}
 								</li>
@@ -1415,7 +1415,7 @@ function GuidesTab({ detail, colors }: { detail: CharacterDetail; colors: Elemen
 			{/* Playstyle */}
 			{guide?.playstyle && (
 				<div className="guild-card p-4">
-					<p className="text-sm text-gray-300 italic">&quot;{guide.playstyle}&quot;</p>
+					<p className="text-sm text-guild-muted italic">&quot;{guide.playstyle}&quot;</p>
 				</div>
 			)}
 		</div>
@@ -1442,7 +1442,7 @@ function RecommendedBuildSection({
 	return (
 		<div className='space-y-4'>
 			<div className='space-y-2'>
-				<h2 className='text-2xl font-bold text-white flex items-center gap-3'>
+				<h2 className='text-2xl font-bold text-foreground flex items-center gap-3'>
 					<span className={colors.text}>&#9733;</span> Recommended Build
 				</h2>
 				<div className={`h-0.5 rounded-full ${colors.bg}`} />
@@ -1476,7 +1476,7 @@ function RecommendedBuildSection({
 												alt={w.name}
 												width={48}
 												height={48}
-												className='rounded-lg bg-guild-elevated border border-white/10 group-hover:border-guild-accent/50 transition-colors'
+												className='rounded-lg bg-guild-elevated border border-guild-border group-hover:border-guild-accent/50 transition-colors'
 												sizes='48px'
 											/>
 											{i === 0 && (
@@ -1486,7 +1486,7 @@ function RecommendedBuildSection({
 											)}
 										</div>
 										<div className='flex-1 min-w-0'>
-											<p className='text-sm font-medium text-white group-hover:text-guild-accent transition-colors truncate'>
+											<p className='text-sm font-medium text-foreground group-hover:text-guild-accent transition-colors truncate'>
 												{w.name}
 											</p>
 											<p className='text-xs text-guild-muted'>
@@ -1535,7 +1535,7 @@ function RecommendedBuildSection({
 									>
 										{i + 1}.
 									</span>
-									<span className='text-sm text-white'>{set}</span>
+									<span className='text-sm text-foreground'>{set}</span>
 									{i === 0 && (
 										<Badge
 											className={cn(
@@ -1596,7 +1596,7 @@ function RecommendedBuildSection({
 									<span className='text-xs text-guild-muted w-14'>
 										{slot}
 									</span>
-									<span className='text-sm font-medium text-white'>
+									<span className='text-sm font-medium text-foreground'>
 										{value}
 									</span>
 								</div>
@@ -1628,7 +1628,7 @@ function RecommendedBuildSection({
 									>
 										{i + 1}.
 									</span>
-									<span className='text-sm text-white'>{sub}</span>
+									<span className='text-sm text-foreground'>{sub}</span>
 								</div>
 							))}
 						</div>
@@ -1658,7 +1658,7 @@ function RecommendedBuildSection({
 											key={j}
 											href={`/database/${entry.id}`}
 										>
-											<div className='w-10 h-10 rounded-lg overflow-hidden border border-white/10 bg-guild-elevated hover:border-guild-accent/50 transition-colors'>
+											<div className='w-10 h-10 rounded-lg overflow-hidden border border-guild-border bg-guild-elevated hover:border-guild-accent/50 transition-colors'>
 												<Image
 													src={charIconUrl(entry.id)}
 													alt={member}
@@ -1672,7 +1672,7 @@ function RecommendedBuildSection({
 									) : (
 										<div
 											key={j}
-											className='w-10 h-10 rounded-lg bg-guild-elevated border border-white/10 flex items-center justify-center text-[10px] text-guild-muted'
+											className='w-10 h-10 rounded-lg bg-guild-elevated border border-guild-border flex items-center justify-center text-[10px] text-guild-muted'
 										>
 											{member.slice(0, 2)}
 										</div>
@@ -1680,7 +1680,7 @@ function RecommendedBuildSection({
 								})}
 							</div>
 							<div className='flex-1 min-w-0'>
-								<p className='text-xs text-white font-medium truncate'>
+								<p className='text-xs text-foreground font-medium truncate'>
 									{team.join(' / ')}
 								</p>
 							</div>
@@ -1708,10 +1708,10 @@ function RecommendedBuildSection({
 
 function DetailCard({ label, value }: { label: string; value: string }) {
 	return (
-		<div className='bg-black/20 rounded-lg p-3'>
-			<p className='text-sm text-gray-500'>{label}</p>
+		<div className='bg-guild-elevated/50 rounded-lg p-3'>
+			<p className='text-sm text-guild-dim'>{label}</p>
 			<p
-				className={`font-medium text-base ${value === '\u2014' ? 'text-gray-600' : 'text-white'}`}
+				className={`font-medium text-base ${value === '\u2014' ? 'text-guild-dim' : 'text-foreground'}`}
 			>
 				{value}
 			</p>

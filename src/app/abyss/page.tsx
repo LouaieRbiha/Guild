@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Shield, AlertTriangle, Swords, Trophy, Info, ChevronRight, Flame, Zap, BarChart3, Users } from "lucide-react";
 import type { AbyssRatesData } from "@/app/api/abyss/route";
 import type { StygianRatesData } from "@/app/api/abyss/stygian/route";
@@ -16,6 +17,7 @@ import {
   ABYSS_FLOORS,
   ABYSS_VERSION,
   ABYSS_CYCLE,
+  RECOMMENDED_TEAMS,
   STYGIAN_STAGES,
   STYGIAN_VERSION,
   STYGIAN_CYCLE,
@@ -23,13 +25,16 @@ import {
   type AbyssBoss,
   type AbyssEnemy,
   type StygianStage,
+  type TeamComp,
 } from "@/data/abyss";
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 
 const ID_TO_NAME_LOOKUP: Record<string, string> = {};
+const NAME_TO_ENTRY: Record<string, typeof ALL_CHARACTERS[number]> = {};
 for (const c of ALL_CHARACTERS) {
   ID_TO_NAME_LOOKUP[c.id] = c.name;
+  NAME_TO_ENTRY[c.name] = c;
 }
 
 const ELEMENT_BAR_COLORS: Record<string, string> = {
@@ -784,6 +789,98 @@ function StygianUsageRatesSection() {
   );
 }
 
+// ── Recommended Teams (curated from RECOMMENDED_TEAMS data) ─────────
+
+function RecommendedTeamsSection() {
+  const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <h2 className="text-xl font-semibold flex items-center gap-2">
+          <Users className="h-5 w-5 text-guild-accent" />
+          Recommended Teams
+        </h2>
+        <span className="text-xs text-guild-muted">Curated meta compositions</span>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {RECOMMENDED_TEAMS.map((team) => (
+          <Card key={team.name} className="bg-guild-card border-guild-border hover:border-guild-accent/30 transition-all">
+            <CardContent className="p-4 space-y-3">
+              {/* Team name + archetype */}
+              <div className="flex items-center justify-between gap-2">
+                <h4 className="text-sm font-semibold truncate">{team.name}</h4>
+                <Badge variant="outline" className="text-[10px] shrink-0 text-guild-muted border-guild-border">
+                  {team.archetype}
+                </Badge>
+              </div>
+
+              {/* Character icons row */}
+              <div className="flex items-center gap-1.5">
+                {team.characters.map((name) => {
+                  const entry = NAME_TO_ENTRY[name];
+                  const hasError = entry ? imgErrors[entry.id] : true;
+                  return entry ? (
+                    <Link key={name} href={`/database/${entry.id}`}>
+                      <div
+                        className="w-11 h-11 rounded-lg overflow-hidden border border-guild-border bg-guild-elevated hover:border-guild-accent/50 transition-colors"
+                        title={name}
+                      >
+                        {!hasError ? (
+                          <Image
+                            src={charIconUrl(entry.id)}
+                            alt={name}
+                            width={44}
+                            height={44}
+                            className="object-cover"
+                            sizes="44px"
+                            onError={() => setImgErrors((prev) => ({ ...prev, [entry.id]: true }))}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-[10px] text-guild-muted font-medium">
+                            {name.charAt(0)}
+                          </div>
+                        )}
+                      </div>
+                    </Link>
+                  ) : (
+                    <div
+                      key={name}
+                      className="w-11 h-11 rounded-lg bg-guild-elevated border border-guild-border flex items-center justify-center text-[10px] text-guild-muted"
+                      title={name}
+                    >
+                      {name.slice(0, 2)}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Usage & Clear Rate stats */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5">
+                  <BarChart3 className="h-3 w-3 text-guild-muted" />
+                  <span className="text-xs text-guild-muted">Usage</span>
+                  <Badge variant="outline" className="text-[10px] text-guild-accent bg-guild-accent/10 border-guild-accent/20 font-mono">
+                    {team.usage}%
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Trophy className="h-3 w-3 text-guild-muted" />
+                  <span className="text-xs text-guild-muted">Clear</span>
+                  <Badge variant="outline" className="text-[10px] text-green-400 bg-green-500/10 border-green-500/20 font-mono">
+                    {team.clearRate}%
+                  </Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── Abyss Data Section (single fetch for usage rates + top teams) ────
 
 function AbyssDataSection() {
@@ -906,6 +1003,9 @@ export default function AbyssPage() {
               </TabsContent>
             ))}
           </Tabs>
+
+          {/* Recommended Teams (curated meta comps) */}
+          <RecommendedTeamsSection />
 
           {/* Live Top Teams + Usage Rates from AZA.GG (single fetch) */}
           <AbyssDataSection />
