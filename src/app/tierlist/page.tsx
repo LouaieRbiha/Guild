@@ -76,9 +76,9 @@ export default function TierListPage() {
                 "cursor-pointer transition-all select-none",
                 roleFilter === role
                   ? role === "All"
-                    ? "bg-white/10 text-white border-white/20"
+                    ? "bg-white/10 text-white border-transparent"
                     : ROLE_COLORS[role]
-                  : "bg-guild-elevated text-guild-muted border-white/10 hover:border-white/20"
+                  : "bg-guild-elevated text-guild-muted border-transparent hover:bg-guild-elevated/80"
               )}
             >
               {role}
@@ -200,7 +200,7 @@ export default function TierListPage() {
           <Badge
             variant="outline"
             onClick={() => setRoleFilter("All")}
-            className="cursor-pointer bg-white/10 text-white border-white/20"
+            className="cursor-pointer bg-white/10 text-white border-transparent"
           >
             Show All
           </Badge>

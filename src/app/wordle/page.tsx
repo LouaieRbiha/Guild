@@ -7,9 +7,11 @@ import { cn } from '@/lib/utils';
 import { Clock, HelpCircle, X, Trophy, Target, BarChart3, Share2, Check } from 'lucide-react';
 import Image from 'next/image';
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import GenshinWordle from './genshin-wordle';
 
 // ── Types ─────────────────────────────────────────────────────────────
 
+type GameTab = 'genshindle' | 'wordle';
 type MatchResult = 'correct' | 'wrong' | 'partial';
 
 interface GuessResult {
@@ -154,9 +156,48 @@ const MATCH_BORDER: Record<MatchResult, string> = {
 	wrong: 'border-guild-border',
 };
 
-// ── Component ─────────────────────────────────────────────────────────
+// ── Page with Tabs ────────────────────────────────────────────────────
 
 export default function WordlePage() {
+	const [activeTab, setActiveTab] = useState<GameTab>('genshindle');
+
+	return (
+		<div className="max-w-4xl mx-auto space-y-6">
+			{/* Tab Navigation */}
+			<div className="flex gap-2">
+				<button
+					onClick={() => setActiveTab('genshindle')}
+					className={cn(
+						'px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors cursor-pointer',
+						activeTab === 'genshindle'
+							? 'bg-guild-accent text-white'
+							: 'bg-guild-elevated text-guild-muted hover:bg-foreground/10',
+					)}
+				>
+					Genshindle
+				</button>
+				<button
+					onClick={() => setActiveTab('wordle')}
+					className={cn(
+						'px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors cursor-pointer',
+						activeTab === 'wordle'
+							? 'bg-guild-accent text-white'
+							: 'bg-guild-elevated text-guild-muted hover:bg-foreground/10',
+					)}
+				>
+					Wordle
+				</button>
+			</div>
+
+			{/* Tab Content */}
+			{activeTab === 'genshindle' ? <GenshindleGame /> : <GenshinWordle />}
+		</div>
+	);
+}
+
+// ── Genshindle Game ───────────────────────────────────────────────────
+
+function GenshindleGame() {
 	const [answer] = useState(() => getDailyCharacter());
 	const [guesses, setGuesses] = useState<GuessResult[]>([]);
 	const [inputValue, setInputValue] = useState('');
@@ -376,7 +417,7 @@ export default function WordlePage() {
 	] as const;
 
 	return (
-		<div className="max-w-4xl mx-auto space-y-6">
+		<div className="space-y-6">
 			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div>
