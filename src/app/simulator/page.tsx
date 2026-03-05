@@ -19,7 +19,22 @@ import {
 	WISH_COST,
 } from '@/lib/wish-engine';
 import type { BannerPity, BannerType, WishResult } from '@/lib/wish-engine';
-import { WishAnimation } from '@/components/simulator/wish-animation';
+import dynamic from 'next/dynamic';
+
+const WishAnimation = dynamic(
+	() =>
+		import('@/components/simulator/wish-animation').then(
+			(m) => m.WishAnimation,
+		),
+	{
+		ssr: false,
+		loading: () => (
+			<div className='h-64 flex items-center justify-center'>
+				<span className='text-guild-dim'>Loading...</span>
+			</div>
+		),
+	},
+);
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import {
