@@ -10,7 +10,7 @@ import {
 	WeaponIcon,
 } from '@/components/icons/genshin-icons';
 import { cn } from '@/lib/utils';
-import { Calendar, MoreHorizontal, Shield, X } from 'lucide-react';
+import { Calendar, Gamepad2, MoreHorizontal, Shield, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
@@ -38,6 +38,7 @@ const MORE_ITEMS: MobileNavItem[] = [
 	{ href: '/abyss', icon: Shield, label: 'Abyss' },
 	{ href: '/map', icon: CompassIcon, label: 'Map' },
 	{ href: '/simulator', icon: FateIcon, label: 'Simulator' },
+	{ href: '/wordle', icon: Gamepad2, label: 'Genshindle' },
 ];
 
 // ── Component ─────────────────────────────────────────────────────────────

@@ -12,7 +12,7 @@ import {
 	WeaponIcon,
 } from '@/components/icons/genshin-icons';
 import { cn } from '@/lib/utils';
-import { Calendar, Shield } from 'lucide-react';
+import { Calendar, Gamepad2, Shield } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -34,6 +34,7 @@ const navItems: NavItem[] = [
 	{ href: '/abyss', icon: Shield, label: 'Abyss' },
 	{ href: '/map', icon: CompassIcon, label: 'Map' },
 	{ href: '/simulator', icon: FateIcon, label: 'Simulator' },
+	{ href: '/wordle', icon: Gamepad2, label: 'Genshindle' },
 	{ href: '/streamers', icon: KameraIcon, label: 'Live' },
 	{
 		href: '/leaks',
