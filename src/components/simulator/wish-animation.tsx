@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense, lazy } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Star, SkipForward } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const WishStar3D = lazy(() => import("./wish-star-3d").then(m => ({ default: m.WishStar3D })));
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -135,6 +137,14 @@ export function WishAnimation({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
         >
+          {/* 3D Star */}
+          <Suspense fallback={null}>
+            <WishStar3D
+              rarity={currentResult?.rarity ?? 3}
+              phase={showCard ? "revealed" : "entering"}
+            />
+          </Suspense>
+
           {/* Meteor streaks */}
           <MeteorAnimation rarity={currentResult?.rarity ?? 3} />
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import Image from "next/image";
 import {
   Dices,
   RotateCcw,
@@ -17,38 +18,82 @@ import { WishAnimation } from "@/components/simulator/wish-animation";
 
 // ── Artifact Roller Constants ─────────────────────────────────────────
 
-const ARTIFACT_SETS = [
-  // Momiji-Dyed Court
-  "Emblem of Severed Fate",
-  "Shimenawa's Reminiscence",
-  // Ridge Watch
-  "Husk of Opulent Dreams",
-  "Ocean-Hued Clam",
-  // Valley of Remembrance
-  "Viridescent Venerer",
-  "Maiden Beloved",
-  // Hidden Palace of Zhou Formula
-  "Crimson Witch of Flames",
-  "Lavawalker",
-  // Midsummer Courtyard
-  "Thundering Fury",
-  "Thundersoother",
-  // Domain of Guyun
-  "Archaic Petra",
-  "Retracing Bolide",
-  // Clear Pool and Mountain Cavern
-  "Noblesse Oblige",
-  "Bloodstained Chivalry",
-  // Peak of Vindagnyr
-  "Blizzard Strayer",
-  "Heart of Depth",
-  // Equitable Judgment
-  "Marechaussee Hunter",
-  "Golden Troupe",
-  // Denouement of Sin
-  "Fragment of Harmonic Whimsy",
-  "Unfinished Reverie",
+const YATTA_ASSETS = "https://gi.yatta.moe/assets/UI";
+
+interface ArtifactDomain {
+  name: string;
+  location: string;
+  sets: { name: string; icon: string }[];
+}
+
+const ARTIFACT_DOMAINS: ArtifactDomain[] = [
+  {
+    name: "Momiji-Dyed Court",
+    location: "Inazuma",
+    sets: [
+      { name: "Emblem of Severed Fate", icon: "UI_RelicIcon_15020_4" },
+      { name: "Shimenawa's Reminiscence", icon: "UI_RelicIcon_15019_4" },
+    ],
+  },
+  {
+    name: "Spire of Solitary Enlightenment",
+    location: "Sumeru",
+    sets: [
+      { name: "Deepwood Memories", icon: "UI_RelicIcon_15025_4" },
+      { name: "Gilded Dreams", icon: "UI_RelicIcon_15026_4" },
+    ],
+  },
+  {
+    name: "Denouement of Sin",
+    location: "Fontaine",
+    sets: [
+      { name: "Golden Troupe", icon: "UI_RelicIcon_15031_4" },
+      { name: "Marechaussee Hunter", icon: "UI_RelicIcon_15032_4" },
+    ],
+  },
+  {
+    name: "Sanctum of Rainbow Spirits",
+    location: "Natlan",
+    sets: [
+      { name: "Obsidian Codex", icon: "UI_RelicIcon_15035_4" },
+      { name: "Scroll of the Hero of Cinder City", icon: "UI_RelicIcon_15036_4" },
+    ],
+  },
+  {
+    name: "Domain of Guyun",
+    location: "Liyue",
+    sets: [
+      { name: "Archaic Petra", icon: "UI_RelicIcon_15014_4" },
+      { name: "Retracing Bolide", icon: "UI_RelicIcon_15015_4" },
+    ],
+  },
+  {
+    name: "Valley of Remembrance",
+    location: "Mondstadt",
+    sets: [
+      { name: "Viridescent Venerer", icon: "UI_RelicIcon_15002_4" },
+      { name: "Maiden Beloved", icon: "UI_RelicIcon_15003_4" },
+    ],
+  },
+  {
+    name: "Ridge Watch",
+    location: "Liyue",
+    sets: [
+      { name: "Husk of Opulent Dreams", icon: "UI_RelicIcon_15021_4" },
+      { name: "Ocean-Hued Clam", icon: "UI_RelicIcon_15022_4" },
+    ],
+  },
+  {
+    name: "Slumbering Court",
+    location: "Inazuma",
+    sets: [
+      { name: "Vermillion Hereafter", icon: "UI_RelicIcon_15023_4" },
+      { name: "Echoes of an Offering", icon: "UI_RelicIcon_15024_4" },
+    ],
+  },
 ];
+
+const ARTIFACT_SETS = ARTIFACT_DOMAINS.flatMap((d) => d.sets.map((s) => s.name));
 
 const MAIN_STATS: Record<string, string[]> = {
   Flower: ["HP"],
@@ -158,6 +203,58 @@ function getCVColorClass(cv: number): string {
   if (cv >= 30) return "text-green-400";
   if (cv >= 20) return "text-yellow-400";
   return "text-guild-dim";
+}
+
+const SLOT_META: Record<string, { label: string; iconSuffix: string }> = {
+  Flower: { label: "Flower of Life", iconSuffix: "_4" },
+  Plume: { label: "Plume of Death", iconSuffix: "_2" },
+  Sands: { label: "Sands of Eon", iconSuffix: "_5" },
+  Goblet: { label: "Goblet of Eonothem", iconSuffix: "_1" },
+  Circlet: { label: "Circlet of Logos", iconSuffix: "_3" },
+};
+
+const MAIN_STAT_VALUES: Record<string, string> = {
+  HP: "4,780",
+  ATK: "311",
+  "HP%": "46.6%",
+  "ATK%": "46.6%",
+  "DEF%": "58.3%",
+  "Energy Recharge": "51.8%",
+  "Elemental Mastery": "187",
+  "Pyro DMG%": "46.6%",
+  "Hydro DMG%": "46.6%",
+  "Electro DMG%": "46.6%",
+  "Cryo DMG%": "46.6%",
+  "Anemo DMG%": "46.6%",
+  "Geo DMG%": "46.6%",
+  "Dendro DMG%": "46.6%",
+  "CRIT Rate": "31.1%",
+  "CRIT DMG": "62.2%",
+  "Healing Bonus": "35.9%",
+};
+
+function getArtifactPieceIcon(
+  setName: string,
+  slot: string
+): string | null {
+  for (const domain of ARTIFACT_DOMAINS) {
+    for (const set of domain.sets) {
+      if (set.name === setName) {
+        const baseIcon = set.icon.replace(/_\d+$/, "");
+        const suffix = SLOT_META[slot]?.iconSuffix ?? "_4";
+        return `${YATTA_ASSETS}/${baseIcon}${suffix}.png`;
+      }
+    }
+  }
+  return null;
+}
+
+function getScoreGrade(cv: number): { grade: string; color: string } {
+  if (cv >= 40) return { grade: "SS", color: "text-amber-400" };
+  if (cv >= 30) return { grade: "S", color: "text-green-400" };
+  if (cv >= 20) return { grade: "A", color: "text-yellow-400" };
+  if (cv >= 10) return { grade: "B", color: "text-blue-400" };
+  return { grade: "C", color: "text-guild-dim" };
 }
 
 type BannerType = "character" | "weapon" | "standard";
@@ -418,7 +515,7 @@ export default function SimulatorPage() {
   const [animState, setAnimState] = useState<"idle" | "animating">("idle");
 
   // ── Artifact Roller State ─────────────────────────────────────────
-  const [artSet, setArtSet] = useState(ARTIFACT_SETS[0]);
+  const [selectedDomainIdx, setSelectedDomainIdx] = useState(0);
   const [artifacts, setArtifacts] = useState<Artifact[]>([]);
   const [resin, setResin] = useState(0);
 
@@ -499,9 +596,12 @@ export default function SimulatorPage() {
 
   // ── Artifact Logic ────────────────────────────────────────────────
   const doArtRoll = useCallback(() => {
-    setArtifacts((p) => [rollArtifact(artSet), ...p]);
+    const domain = ARTIFACT_DOMAINS[selectedDomainIdx];
+    const randomSet =
+      domain.sets[Math.floor(Math.random() * domain.sets.length)];
+    setArtifacts((p) => [rollArtifact(randomSet.name), ...p]);
     setResin((p) => p + 20);
-  }, [artSet]);
+  }, [selectedDomainIdx]);
 
   const resetArtifacts = useCallback(() => {
     setArtifacts([]);
@@ -936,34 +1036,62 @@ export default function SimulatorPage() {
          ═══════════════════════════════════════════════════════════════ */}
       {mode === "artifact" && (
         <div className="space-y-5">
-          {/* Controls */}
+          {/* ── Domain Grid Selector ── */}
+          <div>
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <Dices className="h-4 w-4 text-guild-accent" />
+              Select Domain
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {ARTIFACT_DOMAINS.map((domain, idx) => (
+                <button
+                  key={domain.name}
+                  onClick={() => setSelectedDomainIdx(idx)}
+                  className={cn(
+                    "rounded-lg p-3 border text-left transition-all cursor-pointer",
+                    selectedDomainIdx === idx
+                      ? "bg-guild-accent/10 border-guild-accent ring-1 ring-guild-accent/30"
+                      : "bg-guild-card border-white/5 hover:border-white/20"
+                  )}
+                >
+                  <div className="font-medium text-sm">{domain.name}</div>
+                  <div className="text-[11px] text-guild-muted mb-2">
+                    {domain.location}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {domain.sets.map((set) => (
+                      <div key={set.name} className="flex items-center gap-1.5">
+                        <Image
+                          src={`${YATTA_ASSETS}/${set.icon}.png`}
+                          alt={set.name}
+                          width={32}
+                          height={32}
+                          className="rounded"
+                          unoptimized
+                        />
+                        <span className="text-[10px] text-guild-dim leading-tight max-w-[70px] truncate">
+                          {set.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Roll Controls + Stats ── */}
           <Card className="bg-guild-card border-white/5 py-0">
             <CardContent className="flex flex-wrap items-center gap-4 py-4">
-              <div>
-                <label className="text-xs text-guild-muted block mb-1">
-                  Domain
-                </label>
-                <select
-                  value={artSet}
-                  onChange={(e) => setArtSet(e.target.value)}
-                  className="h-9 px-3 rounded-md bg-guild-elevated border border-white/5 text-sm"
-                >
-                  {ARTIFACT_SETS.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </div>
               <button
                 onClick={doArtRoll}
-                className="h-9 px-5 rounded-md bg-guild-accent hover:bg-guild-accent/80 text-sm font-medium flex items-center gap-2 transition-colors cursor-pointer"
+                className="h-10 px-6 rounded-lg bg-guild-accent hover:bg-guild-accent/80 text-sm font-medium flex items-center gap-2 transition-colors cursor-pointer guild-glow"
               >
                 <Dices className="h-4 w-4" /> Roll (20 Resin)
               </button>
               <button
                 onClick={resetArtifacts}
-                className="h-9 px-4 rounded-md bg-guild-elevated hover:bg-white/10 text-sm flex items-center gap-2 transition-colors cursor-pointer"
+                className="h-10 px-4 rounded-lg bg-guild-elevated hover:bg-white/10 text-sm flex items-center gap-2 transition-colors cursor-pointer"
               >
                 <RotateCcw className="h-4 w-4" /> Reset
               </button>
@@ -973,7 +1101,8 @@ export default function SimulatorPage() {
                   <span className="font-mono text-guild-gold">{resin}</span>
                 </span>
                 <span className="text-guild-muted">
-                  Rolled: <span className="font-mono">{artifacts.length}</span>
+                  Rolled:{" "}
+                  <span className="font-mono">{artifacts.length}</span>
                 </span>
                 <span className="text-guild-muted">
                   Good:{" "}
@@ -1000,11 +1129,13 @@ export default function SimulatorPage() {
             </Card>
           )}
 
-          {/* Artifact grid */}
+          {/* ── Artifact Grid ── */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
             {artifacts.slice(0, 20).map((a, i) => {
               const cv = calculateCV(a.substats);
               const cvColor = getCVColorClass(cv);
+              const pieceIcon = getArtifactPieceIcon(a.set, a.slot);
+              const grade = getScoreGrade(cv);
               return (
                 <Card
                   key={i}
@@ -1016,20 +1147,46 @@ export default function SimulatorPage() {
                   )}
                 >
                   <CardContent className="space-y-2 p-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-guild-muted">{a.slot}</span>
-                      <span
-                        className={cn(
-                          "text-xs",
-                          a.rarity === 5 ? "text-amber-400" : "text-purple-400"
-                        )}
-                      >
-                        {"\u2605".repeat(a.rarity)}
+                    {/* Header: piece icon + type + rarity */}
+                    <div className="flex items-center gap-2">
+                      {pieceIcon && (
+                        <Image
+                          src={pieceIcon}
+                          alt={SLOT_META[a.slot]?.label ?? a.slot}
+                          width={36}
+                          height={36}
+                          className="rounded shrink-0"
+                          unoptimized
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-medium truncate">
+                          {SLOT_META[a.slot]?.label ?? a.slot}
+                        </div>
+                        <span
+                          className={cn(
+                            "text-[10px]",
+                            a.rarity === 5
+                              ? "text-amber-400"
+                              : "text-purple-400"
+                          )}
+                        >
+                          {"\u2605".repeat(a.rarity)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Main stat */}
+                    <div className="flex items-center justify-between bg-guild-elevated rounded px-2 py-1">
+                      <span className="text-xs font-medium text-guild-gold">
+                        {a.mainStat}
+                      </span>
+                      <span className="text-xs font-mono text-guild-gold">
+                        {MAIN_STAT_VALUES[a.mainStat] ?? ""}
                       </span>
                     </div>
-                    <div className="text-xs font-medium text-guild-gold">
-                      {a.mainStat}
-                    </div>
+
+                    {/* Substats */}
                     <div className="space-y-0.5">
                       {a.substats.map((s) => (
                         <div
@@ -1046,21 +1203,33 @@ export default function SimulatorPage() {
                         </div>
                       ))}
                     </div>
-                    <div className="flex items-center justify-between pt-0.5">
+
+                    {/* Set name + CV + grade */}
+                    <div className="flex items-center justify-between pt-1 border-t border-white/5">
                       <span className="text-[9px] text-guild-dim truncate mr-2">
                         {a.set}
                       </span>
-                      {cv > 0 && (
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {cv > 0 && (
+                          <span
+                            className={cn(
+                              "text-[10px] font-mono font-medium",
+                              cvColor
+                            )}
+                            title="Crit Value = (CRIT Rate x 2) + CRIT DMG"
+                          >
+                            CV {cv.toFixed(1)}
+                          </span>
+                        )}
                         <span
                           className={cn(
-                            "text-[10px] font-mono font-medium shrink-0",
-                            cvColor
+                            "text-[10px] font-mono font-bold",
+                            grade.color
                           )}
-                          title="Crit Value = (CRIT Rate x 2) + CRIT DMG"
                         >
-                          CV {cv.toFixed(1)}
+                          {grade.grade}
                         </span>
-                      )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

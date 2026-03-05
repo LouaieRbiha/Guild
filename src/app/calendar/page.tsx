@@ -40,7 +40,7 @@ const DAY_NAMES = [
 
 const TYPE_CONFIG: Record<
   GameEvent["type"],
-  { border: string; bg: string; text: string; icon: React.ElementType }
+  { border: string; bg: string; text: string; icon: React.FC<{ size?: number; className?: string }> }
 > = {
   "In-Game": {
     border: "border-l-indigo-500",
