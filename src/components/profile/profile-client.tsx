@@ -8,11 +8,13 @@ import {
 	TrophyIcon,
 	VerdictIcon,
 } from '@/components/icons/genshin-icons';
+import { FallbackImage } from '@/components/shared';
 import type { AkashaCalculation } from '@/lib/akasha/types';
 import { ENKA_UI } from '@/lib/constants';
 import type { EnkaProfile } from '@/lib/enka/client';
 import {
 	barColor,
+	calculateCV,
 	elBg,
 	elColor,
 	estimateResin,
@@ -78,45 +80,6 @@ const ROLL_QUALITY_COLORS = {
 
 // Crit-relevant substats for DPS characters
 const CRIT_SUBS = ['CRIT Rate', 'CRIT DMG'];
-
-// Character image with fallback for unknown/new characters
-function CharImg({
-	src,
-	alt,
-	size,
-	className,
-}: {
-	src: string;
-	alt: string;
-	size: number;
-	className?: string;
-}) {
-	const [err, setErr] = useState(false);
-	if (err) {
-		return (
-			<div
-				className={cn(
-					'flex items-center justify-center bg-guild-elevated text-guild-muted font-bold',
-					className,
-				)}
-				style={{ width: size, height: size }}
-			>
-				{alt[0]}
-			</div>
-		);
-	}
-	return (
-		<Image
-			src={src}
-			alt={alt}
-			width={size}
-			height={size}
-			className={cn('object-cover', className)}
-			sizes={`${size}px`}
-			onError={() => setErr(true)}
-		/>
-	);
-}
 
 interface ProfileClientProps {
 	profile: EnkaProfile;
@@ -223,10 +186,11 @@ export function ProfileClient({
 										: 'ring-2 ring-guild-accent-2/50',
 								)}
 							>
-								<CharImg
+								<FallbackImage
 									src={`${ENKA_UI}/${c.sideIcon}.png`}
 									alt={c.name}
-									size={56}
+									width={56}
+									height={56}
 								/>
 							</div>
 							{(() => {
@@ -273,10 +237,11 @@ export function ProfileClient({
 						)}
 					>
 						<div className='absolute inset-0 flex items-center justify-center p-4'>
-							<CharImg
+							<FallbackImage
 								src={`${ENKA_UI}/${selected.icon}.png`}
 								alt={selected.name}
-								size={200}
+								width={200}
+								height={200}
 								className='rounded-xl'
 							/>
 						</div>
@@ -315,10 +280,11 @@ export function ProfileClient({
 							<div className='flex items-center gap-3 p-3 rounded-lg bg-guild-elevated border border-white/5'>
 								{selected.weapon.icon && (
 									<div className='w-12 h-12 rounded-lg overflow-hidden border border-white/10 shrink-0 bg-guild-card'>
-										<CharImg
+										<FallbackImage
 											src={`${ENKA_UI}/${selected.weapon.icon}.png`}
 											alt={selected.weapon.name}
-											size={48}
+											width={48}
+											height={48}
 										/>
 									</div>
 								)}
@@ -394,10 +360,11 @@ export function ProfileClient({
 										>
 											{a.icon && (
 												<div className='w-9 h-9 rounded overflow-hidden shrink-0 bg-guild-card'>
-													<CharImg
+													<FallbackImage
 														src={`${ENKA_UI}/${a.icon}.png`}
 														alt={a.slot}
-														size={36}
+														width={36}
+														height={36}
 													/>
 												</div>
 											)}
@@ -466,12 +433,7 @@ export function ProfileClient({
 													/>
 												</div>
 												{(() => {
-													let cv = 0;
-													for (const sub of a.substats) {
-														const v = parseFloat(sub.value);
-														if (sub.name === 'CRIT Rate') cv += v * 2;
-														else if (sub.name === 'CRIT DMG') cv += v;
-													}
+													const cv = calculateCV(a.substats);
 													return cv > 0 ? (
 														<div className='text-[9px] text-guild-dim font-mono'>
 															{cv.toFixed(1)} CV

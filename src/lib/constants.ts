@@ -33,6 +33,18 @@ export const MAT_RARITY_BG: Record<number, string> = {
   5: "bg-amber-900/40",
 };
 
+export const RARITY_GRADIENT: Record<number, string> = {
+  5: "from-amber-900/60 via-amber-950/40 to-black/80",
+  4: "from-purple-900/50 via-purple-950/40 to-black/80",
+  3: "from-blue-900/40 via-blue-950/30 to-black/80",
+};
+
+export const RARITY_BORDER: Record<number, string> = {
+  5: "border-amber-500/25 hover:border-amber-400/50",
+  4: "border-purple-500/20 hover:border-purple-400/40",
+  3: "border-blue-500/20 hover:border-blue-400/40",
+};
+
 export const LOCAL_ASSETS = "/assets";
 
 export function elementIconUrl(element: string): string {

@@ -196,6 +196,19 @@ function simpleHash(str: string): number {
   return Math.abs(hash);
 }
 
+// ── Crit Value ──────────────────────────────────────────────────────────
+
+export function calculateCV(substats: { name: string; value: string }[]): number {
+  let cv = 0;
+  for (const sub of substats) {
+    const v = parseFloat(sub.value);
+    if (Number.isNaN(v)) continue;
+    if (sub.name === 'CRIT Rate') cv += v * 2;
+    else if (sub.name === 'CRIT DMG') cv += v;
+  }
+  return cv;
+}
+
 // ── Helper formatters ──────────────────────────────────────────────────
 
 export function scoreColor(s: number): string {

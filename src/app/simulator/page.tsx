@@ -3,6 +3,8 @@
 import { WishAnimation } from '@/components/simulator/wish-animation';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { YATTA_ASSETS } from '@/lib/constants';
+import { calculateCV } from '@/lib/scoring';
 import { cn } from '@/lib/utils';
 import {
 	ChevronDown,
@@ -17,8 +19,6 @@ import Image from 'next/image';
 import { useCallback, useMemo, useState } from 'react';
 
 // ── Artifact Roller Constants ─────────────────────────────────────────
-
-const YATTA_ASSETS = 'https://gi.yatta.moe/assets/UI';
 
 interface ArtifactDomain {
 	name: string;
@@ -276,23 +276,6 @@ function weightedPick(weights: Record<string, number>): string {
 }
 
 // ── Wish Simulator Constants ──────────────────────────────────────────
-
-// ── Crit Value Calculation ───────────────────────────────────────────
-
-function calculateCV(substats: { name: string; value: string }[]): number {
-	let cv = 0;
-	for (const sub of substats) {
-		const numericValue = parseFloat(sub.value);
-		if (Number.isNaN(numericValue)) continue;
-
-		if (sub.name === 'CRIT Rate') {
-			cv += numericValue * 2;
-		} else if (sub.name === 'CRIT DMG') {
-			cv += numericValue;
-		}
-	}
-	return cv;
-}
 
 function getCVColorClass(cv: number): string {
 	if (cv >= 30) return 'text-green-400';
