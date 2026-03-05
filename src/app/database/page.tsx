@@ -229,7 +229,6 @@ export default function DatabasePage() {
             return (
               <Badge
                 key={el}
-                variant="outline"
                 onClick={() => toggleElement(el)}
                 className={cn(
                   "cursor-pointer transition-all select-none flex items-center gap-1.5",
@@ -237,7 +236,7 @@ export default function DatabasePage() {
                     ? colors
                       ? `${colors.bg} ${colors.text} ${colors.border}`
                       : "bg-guild-accent/15 text-guild-accent border-guild-accent/30"
-                    : "bg-guild-elevated text-guild-muted border-guild-border/50 hover:border-guild-border"
+                    : "bg-guild-elevated text-guild-muted border-transparent hover:bg-guild-elevated/80"
                 )}
               >
                 {EI && <EI size={14} />}
@@ -252,13 +251,12 @@ export default function DatabasePage() {
           {WEAPONS.map((w) => (
             <Badge
               key={w}
-              variant="outline"
               onClick={() => setWeapon(w)}
               className={cn(
                 "cursor-pointer transition-all select-none",
                 weapon === w
                   ? "bg-guild-accent/20 text-guild-accent border-guild-accent/30"
-                  : "bg-guild-elevated text-guild-muted border-guild-border/50 hover:border-guild-border"
+                  : "bg-guild-elevated text-guild-muted border-transparent hover:bg-guild-elevated/80"
               )}
             >
               {w}
@@ -271,7 +269,6 @@ export default function DatabasePage() {
           {[0, 5, 4].map((r) => (
             <Badge
               key={r}
-              variant="outline"
               onClick={() => setRarity(r)}
               className={cn(
                 "cursor-pointer transition-all select-none",
@@ -279,7 +276,7 @@ export default function DatabasePage() {
                   ? r === 5 ? "bg-amber-500/20 text-amber-400 border-amber-500/30"
                   : r === 4 ? "bg-purple-500/20 text-purple-400 border-purple-500/30"
                   : "bg-guild-accent/15 text-guild-accent border-guild-accent/30"
-                  : "bg-guild-elevated text-guild-muted border-guild-border/50 hover:border-guild-border"
+                  : "bg-guild-elevated text-guild-muted border-transparent hover:bg-guild-elevated/80"
               )}
             >
               {r === 0 ? "All" : `${r}★`}
@@ -329,7 +326,6 @@ export default function DatabasePage() {
               return (
                 <Badge
                   key={el}
-                  variant="outline"
                   onClick={() => toggleElement(el)}
                   className={cn(
                     "cursor-pointer gap-1",

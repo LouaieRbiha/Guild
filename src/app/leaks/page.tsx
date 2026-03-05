@@ -363,7 +363,6 @@ export default function LeaksPage() {
         {categories.map((cat) => (
           <Badge
             key={cat}
-            variant="outline"
             onClick={() => setFilterCategory(cat)}
             className={cn(
               "cursor-pointer transition-all select-none capitalize",
@@ -371,7 +370,7 @@ export default function LeaksPage() {
                 ? cat === "all"
                   ? "bg-guild-accent/15 text-guild-accent border-guild-accent/30"
                   : cn(CATEGORY_COLORS[cat]?.bg, CATEGORY_COLORS[cat]?.text, CATEGORY_COLORS[cat]?.border)
-                : "bg-guild-elevated text-guild-muted border-guild-border/50 hover:border-guild-border"
+                : "bg-guild-elevated text-guild-muted border-transparent hover:bg-guild-elevated/80"
             )}
           >
             {cat}
@@ -381,7 +380,6 @@ export default function LeaksPage() {
         {(["all", "reliable", "sus", "speculative"] as const).map((rel) => (
           <Badge
             key={rel}
-            variant="outline"
             onClick={() => setFilterReliability(rel)}
             className={cn(
               "cursor-pointer transition-all select-none",
@@ -389,7 +387,7 @@ export default function LeaksPage() {
                 ? rel === "all"
                   ? "bg-guild-accent/15 text-guild-accent border-guild-accent/30"
                   : cn(RELIABILITY_STYLES[rel]?.bg, RELIABILITY_STYLES[rel]?.text, RELIABILITY_STYLES[rel]?.border)
-                : "bg-guild-elevated text-guild-muted border-guild-border/50 hover:border-guild-border"
+                : "bg-guild-elevated text-guild-muted border-transparent hover:bg-guild-elevated/80"
             )}
           >
             {rel === "all" ? "All reliability" : RELIABILITY_STYLES[rel]?.label}

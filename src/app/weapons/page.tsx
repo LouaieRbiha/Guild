@@ -211,13 +211,12 @@ export default function WeaponsPage() {
           {WEAPON_TYPES.map((w) => (
             <Badge
               key={w}
-              variant="outline"
               onClick={() => setType(w)}
               className={cn(
                 "cursor-pointer transition-all select-none",
                 type === w
                   ? "bg-guild-accent/20 text-guild-accent border-guild-accent/30"
-                  : "bg-guild-elevated text-guild-muted border-guild-border/50 hover:border-guild-border"
+                  : "bg-guild-elevated text-guild-muted border-transparent hover:bg-guild-elevated/80"
               )}
             >
               {w}
@@ -230,7 +229,6 @@ export default function WeaponsPage() {
           {[0, 5, 4, 3].map((r) => (
             <Badge
               key={r}
-              variant="outline"
               onClick={() => setRarity(r)}
               className={cn(
                 "cursor-pointer transition-all select-none",
@@ -239,7 +237,7 @@ export default function WeaponsPage() {
                   : r === 4 ? "bg-purple-500/20 text-purple-400 border-purple-500/30"
                   : r === 3 ? "bg-blue-500/20 text-blue-400 border-blue-500/30"
                   : "bg-guild-accent/15 text-guild-accent border-guild-accent/30"
-                  : "bg-guild-elevated text-guild-muted border-guild-border/50 hover:border-guild-border"
+                  : "bg-guild-elevated text-guild-muted border-transparent hover:bg-guild-elevated/80"
               )}
             >
               {r === 0 ? "All" : `${r}\u2605`}

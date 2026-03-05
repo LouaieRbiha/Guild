@@ -290,13 +290,12 @@ export default function ArtifactsPage() {
             return (
               <Badge
                 key={r}
-                variant="outline"
                 onClick={() => setRarity(r)}
                 className={cn(
                   "cursor-pointer transition-all select-none",
                   rarity === r
                     ? activeStyle
-                    : "bg-guild-elevated text-guild-muted border-guild-border/50 hover:border-guild-border"
+                    : "bg-guild-elevated text-guild-muted border-transparent hover:bg-guild-elevated/80"
                 )}
               >
                 {r === 0 ? "All" : `${r}\u2605`}

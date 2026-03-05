@@ -70,7 +70,6 @@ export default function TierListPage() {
           {ALL_ROLES.map((role) => (
             <Badge
               key={role}
-              variant="outline"
               onClick={() => setRoleFilter(role)}
               className={cn(
                 "cursor-pointer transition-all select-none",
@@ -78,7 +77,7 @@ export default function TierListPage() {
                   ? role === "All"
                     ? "bg-guild-accent/15 text-guild-accent border-guild-accent/30"
                     : ROLE_COLORS[role]
-                  : "bg-guild-elevated text-guild-muted border-guild-border/50 hover:border-guild-border"
+                  : "bg-guild-elevated text-guild-muted border-transparent hover:bg-guild-elevated/80"
               )}
             >
               {role}
@@ -198,7 +197,6 @@ export default function TierListPage() {
             No characters match this role filter.
           </p>
           <Badge
-            variant="outline"
             onClick={() => setRoleFilter("All")}
             className="cursor-pointer bg-guild-accent/15 text-guild-accent border-guild-accent/30"
           >
