@@ -7,6 +7,7 @@ import {
 import { ElementBadge, RarityStars, MaterialCard } from '@/components/shared';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import {
 	Tabs,
 	TabsList,
@@ -440,7 +441,7 @@ function TalentsTab({
 	const [expanded, setExpanded] = useState<string | null>('talent-0');
 
 	return (
-		<div className='space-y-6'>
+		<div className='space-y-8'>
 			{/* Section header: Combat Talents */}
 			<div className='space-y-2'>
 				<h2 className='text-2xl font-bold text-white flex items-center gap-3'>
@@ -453,7 +454,7 @@ function TalentsTab({
 				</p>
 			</div>
 
-			<div className='space-y-3'>
+			<div className='space-y-6'>
 				{detail.talents.map((talent, i) => {
 					const isExpanded = expanded === `talent-${i}`;
 					const priorityLabel = TALENT_PRIORITY[talent.type] || talent.type;
@@ -480,7 +481,7 @@ function TalentsTab({
 								)}
 								<div className='flex-1'>
 									<div className='flex items-center gap-2 flex-wrap'>
-										<span className='text-white font-semibold text-lg'>
+										<span className='text-white font-semibold text-xl'>
 											{talent.name}
 										</span>
 										<Badge className={badgeStyle}>
@@ -506,17 +507,19 @@ function TalentsTab({
 				})}
 			</div>
 
+			<Separator className='my-2 bg-white/10' />
+
 			{/* Section header: Passive Talents */}
 			{detail.passives.length > 0 && (
 				<div className='space-y-6'>
-					<div className='space-y-2 mt-8'>
+					<div className='space-y-2'>
 						<h2 className='text-2xl font-bold text-white flex items-center gap-3'>
 							<span className='text-amber-400'>&#10022;</span> Passive Talents
 						</h2>
 						<div className='h-0.5 rounded-full bg-amber-500/20' />
 					</div>
 
-					<div className='space-y-3'>
+					<div className='space-y-6'>
 						{detail.passives.map((passive, i) => {
 							const isExpanded = expanded === `passive-${i}`;
 							return (
@@ -539,7 +542,7 @@ function TalentsTab({
 											/>
 										)}
 										<div className='flex-1'>
-											<span className='text-white font-semibold text-lg'>
+											<span className='text-white font-semibold text-xl'>
 												{passive.name}
 											</span>
 											<p className='text-base text-gray-400'>{passive.type}</p>
