@@ -1,13 +1,21 @@
 'use client';
 
-import { ConstellationIcon } from '@/components/icons/genshin-icons';
 import {
-	CharacterEntry,
-	ELEMENT_COLORS,
+	ConstellationIcon,
 	ELEMENT_ICONS,
-	charIconUrl,
-} from '@/lib/characters';
-import { MAT_RARITY_BORDER, MAT_RARITY_BG } from '@/lib/constants';
+} from '@/components/icons/genshin-icons';
+import { ElementBadge, RarityStars, MaterialCard } from '@/components/shared';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+	Tabs,
+	TabsList,
+	TabsTrigger,
+	TabsContent,
+} from '@/components/ui/tabs';
+import { CharacterEntry, charIconUrl } from '@/lib/characters';
+import { ELEMENT_COLORS } from '@/lib/constants';
+import { cn } from '@/lib/utils';
 import {
 	CharacterDetail,
 	MaterialGroup,
@@ -15,15 +23,10 @@ import {
 	yattaGachaUrl,
 	yattaIconUrl,
 } from '@/lib/yatta/client';
+import * as SliderPrimitive from '@radix-ui/react-slider';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
-
-// Use real element icons from library
-const VISION_MAP: Record<
-	string,
-	React.FC<{ className?: string }>
-> = ELEMENT_ICONS;
 
 // Highlight numeric values in descriptions (percentages, flat numbers, durations)
 function HighlightedText({
@@ -81,7 +84,6 @@ function HighlightNumbers({ text, color }: { text: string; color: string }) {
 }
 
 // Constellation damage impact estimates
-const CONSTELLATION_IMPACT: Record<string, string[]> = {};
 function estimateConstellationImpact(
 	description: string,
 	index: number,
@@ -246,13 +248,9 @@ interface Props {
 }
 
 export function CharacterDetailClient({ detail, entry }: Props) {
-	const [activeTab, setActiveTab] = useState<
-		'talents' | 'constellations' | 'materials' | 'lore'
-	>('talents');
 	const colors = ELEMENT_COLORS[detail.element] || ELEMENT_COLORS.Pyro;
-	const VisionComp = VISION_MAP[detail.element];
+	const VisionComp = ELEMENT_ICONS[detail.element];
 	const gachaUrl = yattaGachaUrl(entry.avatarKey);
-	const rarityStars = '★'.repeat(detail.rarity);
 
 	return (
 		<div className='space-y-6 pb-12'>
@@ -304,21 +302,94 @@ export function CharacterDetailClient({ detail, entry }: Props) {
 							</div>
 						</div>
 
-						<div className={`text-xl ${colors.text}`}>{rarityStars}</div>
+						{/* Element badge, weapon badge, rarity stars */}
+						<div className='flex items-center gap-2 flex-wrap'>
+							<ElementBadge element={detail.element} />
+							<Badge
+								variant='outline'
+								className='text-gray-300 border-gray-600'
+							>
+								{detail.weapon}
+							</Badge>
+							<RarityStars rarity={detail.rarity} size='md' />
+						</div>
 
 						{/* Quick stats grid */}
-						<div className='grid grid-cols-2 gap-3'>
-							<InfoRow label='Element' value={detail.element} />
-							<InfoRow label='Weapon' value={detail.weapon} />
-							<InfoRow label='Region' value={detail.region} />
-							<InfoRow label='Affiliation' value={detail.affiliation || '—'} />
-							<InfoRow label='Birthday' value={detail.birthday} />
-							<InfoRow
-								label='Constellation'
-								value={detail.constellation || '—'}
-							/>
-							<InfoRow label='Ascension Stat' value={detail.ascensionStat} />
-							<InfoRow label='Released' value={detail.release} />
+						<div className='grid grid-cols-2 md:grid-cols-3 gap-3'>
+							<Card
+								className={cn(
+									'bg-black/20 border-white/5 border-l-2',
+									colors.border,
+								)}
+							>
+								<CardContent className='p-3'>
+									<p className='text-xs text-muted-foreground'>Region</p>
+									<p className='font-medium text-white'>{detail.region}</p>
+								</CardContent>
+							</Card>
+							<Card
+								className={cn(
+									'bg-black/20 border-white/5 border-l-2',
+									colors.border,
+								)}
+							>
+								<CardContent className='p-3'>
+									<p className='text-xs text-muted-foreground'>Affiliation</p>
+									<p className='font-medium text-white'>
+										{detail.affiliation || '\u2014'}
+									</p>
+								</CardContent>
+							</Card>
+							<Card
+								className={cn(
+									'bg-black/20 border-white/5 border-l-2',
+									colors.border,
+								)}
+							>
+								<CardContent className='p-3'>
+									<p className='text-xs text-muted-foreground'>Birthday</p>
+									<p className='font-medium text-white'>{detail.birthday}</p>
+								</CardContent>
+							</Card>
+							<Card
+								className={cn(
+									'bg-black/20 border-white/5 border-l-2',
+									colors.border,
+								)}
+							>
+								<CardContent className='p-3'>
+									<p className='text-xs text-muted-foreground'>Constellation</p>
+									<p className='font-medium text-white'>
+										{detail.constellation || '\u2014'}
+									</p>
+								</CardContent>
+							</Card>
+							<Card
+								className={cn(
+									'bg-black/20 border-white/5 border-l-2',
+									colors.border,
+								)}
+							>
+								<CardContent className='p-3'>
+									<p className='text-xs text-muted-foreground'>
+										Ascension Stat
+									</p>
+									<p className='font-medium text-white'>
+										{detail.ascensionStat}
+									</p>
+								</CardContent>
+							</Card>
+							<Card
+								className={cn(
+									'bg-black/20 border-white/5 border-l-2',
+									colors.border,
+								)}
+							>
+								<CardContent className='p-3'>
+									<p className='text-xs text-muted-foreground'>Released</p>
+									<p className='font-medium text-white'>{detail.release}</p>
+								</CardContent>
+							</Card>
 						</div>
 
 						{/* Voice actors */}
@@ -333,49 +404,39 @@ export function CharacterDetailClient({ detail, entry }: Props) {
 			</div>
 
 			{/* Tab navigation */}
-			<div className='flex gap-1 bg-[#0D1117] rounded-lg p-1'>
-				{(['talents', 'constellations', 'materials', 'lore'] as const).map(
-					(tab) => (
-						<button
-							key={tab}
-							onClick={() => setActiveTab(tab)}
-							className={`flex-1 py-2.5 px-4 rounded-md text-sm font-medium capitalize transition-colors ${
-								activeTab === tab
-									? `${colors.bg} ${colors.text} ${colors.border} border`
-									: 'text-gray-400 hover:text-white hover:bg-white/5'
-							}`}
-						>
-							{tab}
-						</button>
-					),
-				)}
-			</div>
-
-			{/* Tab content */}
-			{activeTab === 'talents' && (
-				<TalentsTab detail={detail} colors={colors} />
-			)}
-			{activeTab === 'constellations' && (
-				<ConstellationsTab detail={detail} colors={colors} />
-			)}
-			{activeTab === 'materials' && (
-				<MaterialsTab detail={detail} colors={colors} />
-			)}
-			{activeTab === 'lore' && <LoreTab detail={detail} colors={colors} />}
+			<Tabs defaultValue='talents' className='w-full'>
+				<TabsList className='w-full bg-[#0D1117]'>
+					<TabsTrigger value='talents' className='flex-1'>
+						Talents
+					</TabsTrigger>
+					<TabsTrigger value='constellations' className='flex-1'>
+						Constellations
+					</TabsTrigger>
+					<TabsTrigger value='materials' className='flex-1'>
+						Materials
+					</TabsTrigger>
+					<TabsTrigger value='lore' className='flex-1'>
+						Lore
+					</TabsTrigger>
+				</TabsList>
+				<TabsContent value='talents'>
+					<TalentsTab detail={detail} colors={colors} />
+				</TabsContent>
+				<TabsContent value='constellations'>
+					<ConstellationsTab detail={detail} colors={colors} />
+				</TabsContent>
+				<TabsContent value='materials'>
+					<MaterialsTab detail={detail} colors={colors} />
+				</TabsContent>
+				<TabsContent value='lore'>
+					<LoreTab detail={detail} colors={colors} />
+				</TabsContent>
+			</Tabs>
 		</div>
 	);
 }
 
 // ── Sub-components ─────────────────────────────────────────────────────
-
-function InfoRow({ label, value }: { label: string; value: string }) {
-	return (
-		<div>
-			<span className='text-gray-500 text-sm'>{label}</span>
-			<p className='text-white font-medium'>{value}</p>
-		</div>
-	);
-}
 
 function TalentsTab({
 	detail,
@@ -423,11 +484,15 @@ function TalentsTab({
 										<span className='text-white font-semibold text-base'>
 											{talent.name}
 										</span>
-										<span
-											className={`text-xs px-2 py-0.5 rounded ${colors.bg} ${colors.text}`}
+										<Badge
+											className={cn(
+												colors.bg,
+												colors.text,
+												colors.border,
+											)}
 										>
 											{priorityLabel}
-										</span>
+										</Badge>
 									</div>
 									<p className='text-sm text-gray-400'>{talent.type}</p>
 								</div>
@@ -521,80 +586,105 @@ function ConstellationsTab({
 				<ConstellationIcon className={`w-6 h-6 ${colors.text}`} />{' '}
 				Constellations — {detail.constellation}
 			</h2>
-			<div className='space-y-3'>
+
+			{/* Vertical timeline */}
+			<div className='relative space-y-4 pl-16'>
+				{/* Vertical line */}
+				<div className='absolute left-6 top-0 bottom-0 w-px bg-white/10' />
+
 				{detail.constellations.map((c) => {
 					const isExpanded = expanded === c.index;
 					const impact = estimateConstellationImpact(c.description, c.index);
 
 					return (
-						<div
-							key={c.index}
-							className='guild-card p-4 cursor-pointer transition-all hover:bg-white/5'
-							onClick={() => setExpanded(isExpanded ? null : c.index)}
-						>
-							<div className='flex items-center gap-3'>
-								<div
-									className={`w-12 h-12 rounded-full ${colors.bg} ${colors.border} border flex items-center justify-center flex-shrink-0`}
-								>
-									{c.icon ? (
-										<Image
-											src={yattaIconUrl(c.icon)}
-											alt={c.name}
-											width={36}
-											height={36}
-											className='rounded-full'
-											fetchPriority='low'
-										/>
-									) : (
-										<span className={`text-base font-bold ${colors.text}`}>
-											C{c.index}
-										</span>
-									)}
-								</div>
-								<div className='flex-1'>
-									<div className='flex items-center gap-2 flex-wrap'>
-										<span className={`text-sm font-bold ${colors.text}`}>
-											C{c.index}
-										</span>
-										<span className='text-white font-semibold text-base'>
-											{c.name}
-										</span>
-										<span
-											className={`text-xs px-2 py-0.5 rounded-full font-bold ${impact.color} bg-white/5 border border-white/10`}
-										>
-											{impact.label}
+						<div key={c.index} className='relative'>
+							{/* Circle on the line */}
+							<div
+								className={cn(
+									'absolute -left-10 w-12 h-12 rounded-full border flex items-center justify-center flex-shrink-0',
+									colors.bg,
+									colors.border,
+								)}
+							>
+								{c.icon ? (
+									<Image
+										src={yattaIconUrl(c.icon)}
+										alt={c.name}
+										width={36}
+										height={36}
+										className='rounded-full'
+										fetchPriority='low'
+									/>
+								) : (
+									<span className={`text-base font-bold ${colors.text}`}>
+										C{c.index}
+									</span>
+								)}
+							</div>
+
+							{/* Content card */}
+							<Card
+								className='bg-black/20 border-white/5 cursor-pointer transition-all hover:bg-white/5'
+								onClick={() => setExpanded(isExpanded ? null : c.index)}
+							>
+								<CardContent className='p-4'>
+									<div className='flex items-center justify-between'>
+										<div className='flex items-center gap-2 flex-wrap'>
+											<span className={`text-sm font-bold ${colors.text}`}>
+												C{c.index}
+											</span>
+											<span className='text-white font-semibold text-base'>
+												{c.name}
+											</span>
+											<Badge
+												variant='outline'
+												className={cn(
+													impact.color,
+													'bg-white/5 border-white/10 font-bold',
+												)}
+											>
+												{impact.label}
+											</Badge>
+										</div>
+										<span className='text-gray-500'>
+											{isExpanded ? '▲' : '▼'}
 										</span>
 									</div>
 									<p className='text-sm text-gray-400 mt-0.5'>
 										{impact.detail}
 									</p>
-								</div>
-								<span className='text-gray-500'>{isExpanded ? '▲' : '▼'}</span>
-							</div>
-							{isExpanded && (
-								<div className='mt-3 pt-3 border-t border-white/10 space-y-3'>
-									<p className='text-sm text-gray-300 whitespace-pre-line leading-relaxed'>
-										<HighlightNumbers
-											text={c.description}
-											color={colors.text}
-										/>
-									</p>
-									{/* Impact breakdown */}
-									<div
-										className={`flex items-center gap-2 p-3 rounded-lg ${colors.bg} border ${colors.border}`}
-									>
-										<span className='text-sm font-semibold text-white'>
-											Estimated Impact:
-										</span>
-										<span className={`text-sm font-bold ${impact.color}`}>
-											{impact.label}
-										</span>
-										<span className='text-sm text-gray-400'>
-											— {impact.detail}
-										</span>
-									</div>
-								</div>
-							)}
+									{isExpanded && (
+										<div className='mt-3 pt-3 border-t border-white/10 space-y-3'>
+											<p className='text-sm text-gray-300 whitespace-pre-line leading-relaxed'>
+												<HighlightNumbers
+													text={c.description}
+													color={colors.text}
+												/>
+											</p>
+											{/* Impact breakdown */}
+											<div
+												className={cn(
+													'flex items-center gap-2 p-3 rounded-lg border',
+													colors.bg,
+													colors.border,
+												)}
+											>
+												<span className='text-sm font-semibold text-white'>
+													Estimated Impact:
+												</span>
+												<span
+													className={`text-sm font-bold ${impact.color}`}
+												>
+													{impact.label}
+												</span>
+												<span className='text-sm text-gray-400'>
+													— {impact.detail}
+												</span>
+											</div>
+										</div>
+									)}
+								</CardContent>
+							</Card>
 						</div>
 					);
 				})}
@@ -611,7 +701,7 @@ function ConstellationsTab({
 						return (
 							<div
 								key={c.index}
-								className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/20 border border-white/5`}
+								className='flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/20 border border-white/5'
 							>
 								<span className={`text-xs font-bold ${colors.text}`}>
 									C{c.index}
@@ -627,8 +717,6 @@ function ConstellationsTab({
 		</div>
 	);
 }
-
-import * as SliderPrimitive from '@radix-ui/react-slider';
 
 // Ascension level breakpoints — phases map to these levels
 const ASCENSION_LEVELS = [20, 40, 50, 60, 70, 80, 90];
@@ -713,7 +801,7 @@ function RangeSlider({
 								);
 								onChange([v, value[1]]);
 							}}
-							className={`w-14 text-center text-sm font-bold bg-white/5 border border-white/10 rounded-md py-1 text-white focus:outline-none focus:border-guild-accent`}
+							className='w-14 text-center text-sm font-bold bg-white/5 border border-white/10 rounded-md py-1 text-white focus:outline-none focus:border-guild-accent'
 						/>
 						<span className='text-gray-500 text-sm'>→</span>
 						<input
@@ -728,7 +816,7 @@ function RangeSlider({
 								);
 								onChange([value[0], v]);
 							}}
-							className={`w-14 text-center text-sm font-bold bg-white/5 border border-white/10 rounded-md py-1 text-white focus:outline-none focus:border-guild-accent`}
+							className='w-14 text-center text-sm font-bold bg-white/5 border border-white/10 rounded-md py-1 text-white focus:outline-none focus:border-guild-accent'
 						/>
 					</div>
 				</div>
@@ -747,12 +835,12 @@ function RangeSlider({
 					<SliderPrimitive.Range className='absolute h-full rounded-full bg-guild-accent/60' />
 				</SliderPrimitive.Track>
 				<SliderPrimitive.Thumb
-					className='block w-5 h-5 rounded-full bg-guild-accent border-2 border-white shadow-lg shadow-guild-accent/30 
+					className='block w-5 h-5 rounded-full bg-guild-accent border-2 border-white shadow-lg shadow-guild-accent/30
             hover:bg-guild-accent/90 focus:outline-none focus:ring-2 focus:ring-guild-accent/50 transition-colors cursor-grab active:cursor-grabbing'
 					aria-label='From level'
 				/>
 				<SliderPrimitive.Thumb
-					className='block w-5 h-5 rounded-full bg-guild-accent border-2 border-white shadow-lg shadow-guild-accent/30 
+					className='block w-5 h-5 rounded-full bg-guild-accent border-2 border-white shadow-lg shadow-guild-accent/30
             hover:bg-guild-accent/90 focus:outline-none focus:ring-2 focus:ring-guild-accent/50 transition-colors cursor-grab active:cursor-grabbing'
 					aria-label='To level'
 				/>
@@ -857,13 +945,13 @@ function MaterialsTab({
 							</p>
 							{ascMora > 0 && (
 								<span className='text-sm text-yellow-400 font-medium'>
-									💰 {ascMora.toLocaleString()} Mora
+									{ascMora.toLocaleString()} Mora
 								</span>
 							)}
 						</div>
 						<div className='flex flex-wrap gap-4 justify-start'>
 							{ascMaterials.map((item) => (
-								<MaterialItemCard key={item.id} item={item} />
+								<MaterialCard key={item.id} item={item} />
 							))}
 						</div>
 					</div>
@@ -905,7 +993,7 @@ function MaterialsTab({
 						</p>
 						<div className='flex flex-wrap gap-4 justify-start'>
 							{talentMaterials.map((item) => (
-								<MaterialItemCard key={item.id} item={item} />
+								<MaterialCard key={item.id} item={item} />
 							))}
 						</div>
 					</div>
@@ -915,42 +1003,6 @@ function MaterialsTab({
 					</p>
 				)}
 			</div>
-		</div>
-	);
-}
-
-function MaterialItemCard({ item }: { item: MaterialItem }) {
-	return (
-		<div
-			className='group relative flex flex-col items-center'
-			title={item.name}
-		>
-			<div
-				className={`relative w-[72px] h-[72px] rounded-xl border-2 ${MAT_RARITY_BORDER[item.rarity] || 'border-gray-600'} ${MAT_RARITY_BG[item.rarity] || 'bg-black/30'} overflow-hidden transition-transform group-hover:scale-105`}
-			>
-				{item.icon ? (
-					<Image
-						src={yattaIconUrl(item.icon)}
-						alt={item.name}
-						width={72}
-						height={72}
-						fetchPriority='low'
-					/>
-				) : (
-					<div className='w-full h-full flex items-center justify-center text-xs text-gray-500'>
-						?
-					</div>
-				)}
-				{/* Count badge */}
-				<div className='absolute bottom-0 left-0 right-0 bg-black/70 text-center py-0.5'>
-					<span className='text-xs font-bold text-white'>
-						{item.count.toLocaleString()}
-					</span>
-				</div>
-			</div>
-			<p className='text-[11px] text-gray-400 mt-1 text-center leading-tight max-w-[72px] truncate'>
-				{item.name}
-			</p>
 		</div>
 	);
 }
@@ -985,13 +1037,13 @@ function LoreTab({
 				</h2>
 				<div className='grid grid-cols-2 md:grid-cols-3 gap-4'>
 					<DetailCard label='Real Name' value={detail.name} />
-					<DetailCard label='Title' value={detail.title || '—'} />
+					<DetailCard label='Title' value={detail.title || '\u2014'} />
 					<DetailCard label='Region' value={detail.region} />
-					<DetailCard label='Affiliation' value={detail.affiliation || '—'} />
+					<DetailCard label='Affiliation' value={detail.affiliation || '\u2014'} />
 					<DetailCard label='Birthday' value={detail.birthday} />
 					<DetailCard
 						label='Constellation'
-						value={detail.constellation || '—'}
+						value={detail.constellation || '\u2014'}
 					/>
 				</div>
 			</div>
@@ -1004,9 +1056,9 @@ function LoreTab({
 					</h2>
 					<div className='grid grid-cols-2 gap-4'>
 						<DetailCard label='English' value={detail.cv.EN} />
-						<DetailCard label='Japanese' value={detail.cv.JP || '—'} />
-						<DetailCard label='Chinese' value={detail.cv.CHS || '—'} />
-						<DetailCard label='Korean' value={detail.cv.KR || '—'} />
+						<DetailCard label='Japanese' value={detail.cv.JP || '\u2014'} />
+						<DetailCard label='Chinese' value={detail.cv.CHS || '\u2014'} />
+						<DetailCard label='Korean' value={detail.cv.KR || '\u2014'} />
 					</div>
 				</div>
 			)}
@@ -1019,7 +1071,7 @@ function DetailCard({ label, value }: { label: string; value: string }) {
 		<div className='bg-black/20 rounded-lg p-3'>
 			<p className='text-sm text-gray-500'>{label}</p>
 			<p
-				className={`font-medium ${value === '—' ? 'text-gray-600' : 'text-white'}`}
+				className={`font-medium ${value === '\u2014' ? 'text-gray-600' : 'text-white'}`}
 			>
 				{value}
 			</p>
