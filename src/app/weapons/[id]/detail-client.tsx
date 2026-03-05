@@ -103,7 +103,8 @@ export function WeaponDetailClient({ detail, entry }: Props) {
               width={280}
               height={280}
               className="object-contain drop-shadow-2xl"
-              unoptimized
+              sizes="280px"
+              priority={true}
             />
           </div>
 

@@ -295,7 +295,6 @@ function WeaponCard({ weapon }: { weapon: WeaponEntry }) {
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
               className="object-contain p-3 group-hover:brightness-110 transition-all"
-              unoptimized
               onError={() => setImgErr(true)}
             />
           ) : (

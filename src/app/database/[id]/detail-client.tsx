@@ -276,7 +276,7 @@ export function CharacterDetailClient({ detail, entry }: Props) {
 							className='object-cover object-top'
 							priority={true}
 							quality={95}
-							sizes='(max-width: 768px) 100vw, 200px'
+							sizes='(max-width: 768px) 100vw, 320px'
 							onLoad={() => {
 								// Hero art loaded - optional analytics/logic here
 							}}
@@ -476,6 +476,7 @@ function TalentsTab({
 										width={48}
 										height={48}
 										className='rounded-lg bg-black/30'
+										sizes='48px'
 										fetchPriority='low'
 									/>
 								)}
@@ -538,7 +539,7 @@ function TalentsTab({
 												width={48}
 												height={48}
 												className='rounded-lg bg-black/30'
-												unoptimized
+												sizes='48px'
 											/>
 										)}
 										<div className='flex-1'>
@@ -613,6 +614,7 @@ function ConstellationsTab({
 										width={36}
 										height={36}
 										className='rounded-full'
+										sizes='36px'
 										fetchPriority='low'
 									/>
 								) : (

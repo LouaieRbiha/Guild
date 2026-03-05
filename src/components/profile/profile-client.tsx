@@ -32,7 +32,7 @@ function CharImg({ src, alt, size, className }: { src: string; alt: string; size
     );
   }
   return (
-    <Image src={src} alt={alt} width={size} height={size} className={cn("object-cover", className)} unoptimized onError={() => setErr(true)} />
+    <Image src={src} alt={alt} width={size} height={size} className={cn("object-cover", className)} sizes={`${size}px`} onError={() => setErr(true)} />
   );
 }
 

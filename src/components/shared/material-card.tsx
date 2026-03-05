@@ -28,6 +28,7 @@ export function MaterialCard({ item, className }: MaterialCardProps) {
             width={72}
             height={72}
             className="object-contain p-1"
+            sizes="72px"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-xs text-gray-500">?</div>

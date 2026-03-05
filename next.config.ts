@@ -17,6 +17,11 @@ const nextConfig: NextConfig = {
         hostname: "gi.yatta.moe",
         pathname: "/assets/**",
       },
+      {
+        protocol: "https",
+        hostname: "genshin.jmp.blue",
+        pathname: "/**",
+      },
     ],
   },
 };

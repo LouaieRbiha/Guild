@@ -209,7 +209,7 @@ export default function DatabasePage() {
                       width={32}
                       height={32}
                       className="rounded-full"
-                      unoptimized
+                      sizes="32px"
                     />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-white truncate">{c.name}</p>
@@ -441,7 +441,6 @@ function CharacterCard({ char }: { char: CharacterEntry }) {
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16vw"
             className="object-cover object-top transition-transform duration-300 group-hover:scale-110"
-            unoptimized
             onError={() => { if (!useFallback) setUseFallback(true); }}
           />
 
