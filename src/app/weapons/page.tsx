@@ -6,7 +6,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Search } from "lucide-react";
 import { ALL_WEAPONS, DISPLAYABLE_WEAPONS, WEAPON_TYPES, type WeaponEntry } from "@/lib/weapons";
-import { ENKA_UI } from "@/lib/characters";
+import { ENKA_UI, SUBSTAT_COLORS } from "@/lib/constants";
 
 const RARITY_BG = {
   5: "bg-gradient-to-b from-amber-900/40 to-amber-950/20 border-amber-500/20",
@@ -15,17 +15,6 @@ const RARITY_BG = {
 } as const;
 
 const RARITY_STAR = { 5: "text-amber-400", 4: "text-purple-400", 3: "text-blue-400" } as const;
-
-const SUBSTAT_COLOR: Record<string, string> = {
-  "CRIT Rate": "text-red-400",
-  "CRIT DMG": "text-orange-400",
-  "ATK%": "text-yellow-400",
-  "HP%": "text-green-400",
-  "DEF%": "text-cyan-400",
-  "Energy Recharge": "text-purple-400",
-  "Elemental Mastery": "text-emerald-400",
-  "Physical DMG%": "text-gray-300",
-};
 
 export default function WeaponsPage() {
   const [type, setType] = useState<string>("All");
@@ -146,7 +135,7 @@ function WeaponCard({ weapon }: { weapon: WeaponEntry }) {
           ))}
         </div>
         {weapon.substat !== "None" && (
-          <p className={cn("text-[10px]", SUBSTAT_COLOR[weapon.substat] || "text-guild-muted")}>{weapon.substat}</p>
+          <p className={cn("text-[10px]", SUBSTAT_COLORS[weapon.substat] || "text-guild-muted")}>{weapon.substat}</p>
         )}
       </div>
     </div>

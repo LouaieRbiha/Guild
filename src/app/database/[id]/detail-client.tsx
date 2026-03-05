@@ -7,6 +7,7 @@ import {
 	ELEMENT_ICONS,
 	charIconUrl,
 } from '@/lib/characters';
+import { MAT_RARITY_BORDER, MAT_RARITY_BG } from '@/lib/constants';
 import {
 	CharacterDetail,
 	MaterialGroup,
@@ -237,14 +238,6 @@ const TALENT_COLORS: Record<string, string> = {
 	'Normal Attack': 'border-gray-500',
 	'Elemental Skill': 'border-blue-500',
 	'Elemental Burst': 'border-purple-500',
-};
-
-const MAT_RARITY_BORDER: Record<number, string> = {
-	1: 'border-gray-600',
-	2: 'border-green-600',
-	3: 'border-blue-600',
-	4: 'border-purple-600',
-	5: 'border-amber-600',
 };
 
 interface Props {
@@ -927,20 +920,13 @@ function MaterialsTab({
 }
 
 function MaterialItemCard({ item }: { item: MaterialItem }) {
-	const RARITY_BG: Record<number, string> = {
-		1: 'bg-gray-700/60',
-		2: 'bg-green-900/40',
-		3: 'bg-blue-900/40',
-		4: 'bg-purple-900/40',
-		5: 'bg-amber-900/40',
-	};
 	return (
 		<div
 			className='group relative flex flex-col items-center'
 			title={item.name}
 		>
 			<div
-				className={`relative w-[72px] h-[72px] rounded-xl border-2 ${MAT_RARITY_BORDER[item.rarity] || 'border-gray-600'} ${RARITY_BG[item.rarity] || 'bg-black/30'} overflow-hidden transition-transform group-hover:scale-105`}
+				className={`relative w-[72px] h-[72px] rounded-xl border-2 ${MAT_RARITY_BORDER[item.rarity] || 'border-gray-600'} ${MAT_RARITY_BG[item.rarity] || 'bg-black/30'} overflow-hidden transition-transform group-hover:scale-105`}
 			>
 				{item.icon ? (
 					<Image

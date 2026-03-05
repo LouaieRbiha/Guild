@@ -6,32 +6,7 @@ import { useState } from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import { WeaponDetail, MaterialGroup, MaterialItem } from "@/lib/yatta/client";
 import { WeaponEntry } from "@/lib/weapons";
-import { ENKA_UI } from "@/lib/characters";
-
-const RARITY_COLORS: Record<number, { text: string; bg: string; border: string; star: string }> = {
-  5: { text: "text-amber-400", bg: "bg-amber-500/20", border: "border-amber-500/30", star: "text-amber-400" },
-  4: { text: "text-purple-400", bg: "bg-purple-500/20", border: "border-purple-500/30", star: "text-purple-400" },
-  3: { text: "text-blue-400", bg: "bg-blue-500/20", border: "border-blue-500/30", star: "text-blue-400" },
-};
-
-const SUBSTAT_COLORS: Record<string, string> = {
-  "CRIT Rate": "text-red-400",
-  "CRIT DMG": "text-orange-400",
-  "ATK%": "text-yellow-300",
-  "HP%": "text-green-400",
-  "DEF%": "text-blue-300",
-  "Energy Recharge": "text-cyan-300",
-  "Elemental Mastery": "text-emerald-400",
-  "Physical DMG Bonus": "text-gray-300",
-};
-
-const MAT_RARITY_BORDER: Record<number, string> = {
-  1: "border-gray-600",
-  2: "border-green-600",
-  3: "border-blue-600",
-  4: "border-purple-600",
-  5: "border-amber-600",
-};
+import { ENKA_UI, RARITY_COLORS, SUBSTAT_COLORS, MAT_RARITY_BORDER, MAT_RARITY_BG } from "@/lib/constants";
 
 // Extract numeric values from refinement descriptions for highlighting
 function extractValues(desc: string): string[] {
@@ -427,13 +402,9 @@ function WeaponMaterialsTab({ detail, colors }: { detail: WeaponDetail; colors: 
           </div>
           <div className="flex flex-wrap gap-4 justify-start">
             {materials.map((item) => {
-              const RARITY_BG: Record<number, string> = {
-                1: "bg-gray-700/60", 2: "bg-green-900/40", 3: "bg-blue-900/40",
-                4: "bg-purple-900/40", 5: "bg-amber-900/40",
-              };
               return (
                 <div key={item.id} className="group relative flex flex-col items-center" title={item.name}>
-                  <div className={`relative w-[72px] h-[72px] rounded-xl border-2 ${MAT_RARITY_BORDER[item.rarity] || "border-gray-600"} ${RARITY_BG[item.rarity] || "bg-black/30"} overflow-hidden transition-transform group-hover:scale-105`}>
+                  <div className={`relative w-[72px] h-[72px] rounded-xl border-2 ${MAT_RARITY_BORDER[item.rarity] || "border-gray-600"} ${MAT_RARITY_BG[item.rarity] || "bg-black/30"} overflow-hidden transition-transform group-hover:scale-105`}>
                     {item.icon ? (
                       <Image
                         src={`https://gi.yatta.moe/assets/UI/${item.icon}.png`}

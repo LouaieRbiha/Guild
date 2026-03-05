@@ -1,7 +1,8 @@
 // gi.yatta.moe API client for character detail data
 
 const YATTA_BASE = "https://gi.yatta.moe/api/v2/en";
-const YATTA_ASSETS = "https://gi.yatta.moe/assets/UI";
+import { YATTA_ASSETS } from "@/lib/constants";
+export { YATTA_ASSETS } from "@/lib/constants";
 
 // ── Types ──────────────────────────────────────────────────────────────
 

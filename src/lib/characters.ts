@@ -13,7 +13,9 @@ export interface CharacterEntry {
   release: string;  // YYYY-MM-DD
 }
 
-export const ENKA_UI = "https://enka.network/ui";
+// Re-export shared constants from canonical location
+export { ENKA_UI, ELEMENT_COLORS } from "@/lib/constants";
+import { ENKA_UI } from "@/lib/constants";
 
 export function charIconUrl(icon: string): string {
   return `${ENKA_UI}/${icon}.png`;
@@ -22,16 +24,6 @@ export function charIconUrl(icon: string): string {
 export function charSideIconUrl(sideIcon: string): string {
   return `${ENKA_UI}/${sideIcon}.png`;
 }
-
-export const ELEMENT_COLORS: Record<string, { text: string; bg: string; border: string }> = {
-  Pyro:    { text: "text-red-400",    bg: "bg-red-500/20",    border: "border-red-500/30" },
-  Hydro:   { text: "text-blue-400",   bg: "bg-blue-500/20",   border: "border-blue-500/30" },
-  Anemo:   { text: "text-teal-300",   bg: "bg-teal-500/20",   border: "border-teal-500/30" },
-  Cryo:    { text: "text-cyan-300",   bg: "bg-cyan-500/20",   border: "border-cyan-500/30" },
-  Electro: { text: "text-purple-400", bg: "bg-purple-500/20", border: "border-purple-500/30" },
-  Geo:     { text: "text-yellow-400", bg: "bg-yellow-500/20", border: "border-yellow-500/30" },
-  Dendro:  { text: "text-green-400",  bg: "bg-green-500/20",  border: "border-green-500/30" },
-};
 
 export const ELEMENTS = ["All", "Pyro", "Hydro", "Anemo", "Cryo", "Electro", "Geo", "Dendro"] as const;
 export const WEAPONS = ["All", "Sword", "Claymore", "Polearm", "Bow", "Catalyst"] as const;
