@@ -11,7 +11,8 @@ import {
   ELEMENTS,
   WEAPONS,
   ELEMENT_COLORS,
-  ENKA_UI,
+  charIconUrl,
+  charGachaUrl,
   type CharacterEntry,
 } from "@/lib/characters";
 import { CHARACTER_STATS } from "@/lib/character-stats";
@@ -52,8 +53,8 @@ const ELEMENT_ORDER: Record<string, number> = {
   Pyro: 0, Hydro: 1, Anemo: 2, Cryo: 3, Electro: 4, Geo: 5, Dendro: 6,
 };
 
-function gachaArtUrl(avatarKey: string): string {
-  return `${ENKA_UI}/UI_Gacha_AvatarImg_${avatarKey}.png`;
+function gachaArtUrl(id: string): string {
+  return charGachaUrl(id);
 }
 
 export default function DatabasePage() {
@@ -197,7 +198,7 @@ export default function DatabasePage() {
                     )}
                   >
                     <Image
-                      src={`${ENKA_UI}/${c.icon}.png`}
+                      src={charIconUrl(c.id)}
                       alt={c.name}
                       width={32}
                       height={32}
@@ -429,7 +430,7 @@ function CharacterCard({ char }: { char: CharacterEntry }) {
         <div className="relative aspect-[3/5] bg-black/60 group-hover:[box-shadow:var(--element-glow)]">
           {/* Image with zoom on hover */}
           <Image
-            src={useFallback ? `${ENKA_UI}/${char.icon}.png` : gachaArtUrl(char.avatarKey)}
+            src={useFallback ? charIconUrl(char.id) : gachaArtUrl(char.id)}
             alt={char.name}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16vw"

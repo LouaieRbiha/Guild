@@ -33,6 +33,16 @@ export const MAT_RARITY_BG: Record<number, string> = {
   5: "bg-amber-900/40",
 };
 
+export const LOCAL_ASSETS = "/assets";
+
+export function elementIconUrl(element: string): string {
+  return `/assets/elements/${element.toLowerCase()}.png`;
+}
+
+export function weaponIconUrl(id: number): string {
+  return `/assets/weapons/${id}/icon.png`;
+}
+
 export const SUBSTAT_COLORS: Record<string, string> = {
   "CRIT Rate": "text-red-400",
   "CRIT DMG": "text-orange-400",

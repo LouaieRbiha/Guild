@@ -16,7 +16,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ElementBadge, RarityStars, Countdown } from "@/components/shared";
-import { ELEMENT_COLORS, ENKA_UI } from "@/lib/constants";
+import { ELEMENT_COLORS } from "@/lib/constants";
+import { weaponIconUrl } from "@/lib/constants";
+import { charIconUrl, charGachaUrl } from "@/lib/characters";
 import {
   ELEMENT_ICONS,
   PrimogemIcon,
@@ -95,7 +97,7 @@ export function HomeClient({
   // Hero splash art from first featured 5-star character
   const hero5Star = featured5StarChars[0];
   const heroSplashUrl = hero5Star
-    ? `${ENKA_UI}/UI_Gacha_AvatarImg_${hero5Star.avatarKey}.png`
+    ? charGachaUrl(hero5Star.id)
     : null;
 
   return (
@@ -218,7 +220,7 @@ export function HomeClient({
                         >
                           <div className="w-8 h-8 rounded-full overflow-hidden border border-white/20 relative shrink-0">
                             <Image
-                              src={`${ENKA_UI}/${char.icon}.png`}
+                              src={charIconUrl(char.id)}
                               alt={char.name}
                               fill
                               className="object-cover"
@@ -256,7 +258,7 @@ export function HomeClient({
                     {featured5StarWeapons.map((weapon) => (
                       <Image
                         key={weapon.id}
-                        src={`${ENKA_UI}/${weapon.icon}.png`}
+                        src={weaponIconUrl(weapon.id)}
                         alt={weapon.name}
                         width={160}
                         height={160}
@@ -290,7 +292,7 @@ export function HomeClient({
                             className="flex items-center gap-3"
                           >
                             <Image
-                              src={`${ENKA_UI}/${weapon.icon}.png`}
+                              src={weaponIconUrl(weapon.id)}
                               alt={weapon.name}
                               width={40}
                               height={40}
@@ -344,7 +346,7 @@ export function HomeClient({
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {newestCharacters.map((char) => {
               const Icon = ELEMENT_ICONS[char.element];
-              const splashUrl = `${ENKA_UI}/UI_Gacha_AvatarImg_${char.avatarKey}.png`;
+              const splashUrl = charGachaUrl(char.id);
 
               return (
                 <Link

@@ -2,6 +2,7 @@
 // These replace generic Lucide icons with game-accurate visuals
 
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface IconProps {
   className?: string;
@@ -216,105 +217,33 @@ export const SLOT_ICONS: Record<string, React.FC<IconProps>> = {
   Circlet: CircletIcon,
 };
 
-// ── Element Vision Icons (Real Genshin Assets) ────────────────────────
-// Using official-looking SVG paths that match game assets
-function VisionBase({ className, size, children, color }: IconProps & { children: React.ReactNode; color: string }) {
+// ── Element Vision Icons (Real Genshin PNGs) ──────────────────────────
+function ElementIcon({ element, className, size = 24 }: { element: string; className?: string; size?: number }) {
   return (
-    <svg viewBox="0 0 24 24" width={size || 16} height={size || 16} className={cn(color, className)}>
-      <path d="M12 2L20 12L12 22L4 12L12 2Z" fill="currentColor" fillOpacity="0.15" stroke="currentColor" strokeWidth="1.2" />
-      {children}
-    </svg>
+    <Image
+      src={`/assets/elements/${element.toLowerCase()}.png`}
+      alt={element}
+      width={size}
+      height={size}
+      className={className}
+    />
   );
 }
 
-// Pyro — Fire emblem with flame flicker at center
-export function PyroIcon({ className, size }: IconProps) {
-  return (
-    <VisionBase className={className} size={size} color="text-red-500">
-      {/* Diamond base */}
-      <path d="M12 6L19 12L12 18L5 12L12 6Z" fill="currentColor" fillOpacity="0.4" />
-      {/* Inner flame detail */}
-      <circle cx="12" cy="12" r="3.5" fill="currentColor" fillOpacity="0.3" />
-      <path d="M12 9C14 11 15.5 12.5 16 14" stroke="currentColor" strokeWidth="0.8" strokeLinecap="round" fill="none" />
-      <circle cx="12" cy="12" r="0.8" fill="white" fillOpacity="0.9" />
-    </VisionBase>
-  );
-}
-
-// Hydro — Water orb with ripple effect
-export function HydroIcon({ className, size }: IconProps) {
-  return (
-    <VisionBase className={className} size={size} color="text-blue-450">
-      <circle cx="12" cy="12" r="3.5" fill="currentColor" fillOpacity="0.35" />
-      {/* Ripple rings */}
-      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="0.5" fill="none" opacity="0.6" />
-      <circle cx="12" cy="12" r="2.5" stroke="white" strokeWidth="0.4" fill="none" opacity="0.7" />
-      {/* Water droplets */}
-      <circle cx="9" cy="10" r="0.6" fill="currentColor" fillOpacity="0.8" />
-      <circle cx="15" cy="14" r="0.5" fill="white" fillOpacity="0.9" />
-    </VisionBase>
-  );
-}
-
-// Anemo — Wind swirl with teal glow
-export function AnemoIcon({ className, size }: IconProps) {
-  return (
-    <VisionBase className={className} size={size} color="text-teal-350">
-      <path d="M12 8C15 8 18 11 18 14C18 17 15 20 12 20C9 20 6 17 6 14C6 11 9 8 12 8Z" fill="currentColor" fillOpacity="0.3" />
-      <path d="M12 8C13.5 9.5 15 11.5 16 14C15 15.5 13 17 12 18C11 17 9 15.5 8 14C7 11.5 8.5 9.5 10 8" stroke="currentColor" strokeWidth="0.6" fill="none" opacity="0.7" />
-      <circle cx="12" cy="12" r="1" fill="currentColor" fillOpacity="0.5" />
-    </VisionBase>
-  );
-}
-
-// Electro — Lightning bolt diamond
-export function ElectroIcon({ className, size }: IconProps) {
-  return (
-    <VisionBase className={className} size={size} color="text-purple-400">
-      <path d="M12 6L9.5 11H7L9.5 16" stroke="currentColor" strokeWidth="1.8" fill="none" />
-      <path d="M16 6L13.5 11H16L18.5 16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" fill="none" />
-      <circle cx="12" cy="12" r="2.5" fill="currentColor" fillOpacity="0.3" />
-      <path d="M12 9C13.5 10.5 14 12.5 14 14C14 15.5 13 17 12 18C11 17 10 15.5 10 14C10 12.5 10.5 10.5 12 9Z" fill="none" stroke="currentColor" strokeWidth="0.6" />
-    </VisionBase>
-  );
-}
-
-// Cryo — Ice shard with frost edges
-export function CryoIcon({ className, size }: IconProps) {
-  return (
-    <VisionBase className={className} size={size} color="text-cyan-300">
-      <path d="M12 6L4 12L12 18L20 12L12 6Z" fill="currentColor" fillOpacity="0.35" />
-      {/* Frost crystallization */}
-      <path d="M8 12C8 9 10 7 12 7C14 7 16 9 16 12C16 14 14 16 12 16C10 16 8 14 8 12Z" fill="none" stroke="currentColor" strokeWidth="0.8" opacity="0.7" />
-      <circle cx="12" cy="9" r="0.8" fill="white" fillOpacity="0.9" />
-      <circle cx="12" cy="15" r="0.6" fill="currentColor" fillOpacity="0.7" />
-    </VisionBase>
-  );
-}
-
-// Geo — Stone gem with gold rim
-export function GeoIcon({ className, size }: IconProps) {
-  return (
-    <VisionBase className={className} size={size} color="text-yellow-450">
-      <path d="M12 6L18 9L15 15L9 12L12 6Z" fill="currentColor" fillOpacity="0.35" stroke="currentColor" strokeWidth="0.7" />
-      <circle cx="12" cy="10.5" r="2" fill="none" stroke="currentColor" strokeWidth="0.6" opacity="0.8" />
-      <path d="M12 9V12L14 14L11 16L9 14L7 16L10 14Z" fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.8" />
-      <circle cx="12" cy="11" r="0.5" fill="black" fillOpacity="0.4" />
-    </VisionBase>
-  );
-}
-
-// Dendro — Leaf sprout with growth spiral
-export function DendroIcon({ className, size }: IconProps) {
-  return (
-    <VisionBase className={className} size={size} color="text-green-450">
-      <path d="M12 6C9.5 8 7 11 7 14C7 17 9 19 12 20C15 19 17 17 17 14C17 11 14.5 8 12 6Z" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.7" />
-      <path d="M8.5 8.5C9 9 9 10.5 10 11C10.5 11.5 11.5 11 12 11.5C12.5 12 13 11 13 10" fill="currentColor" fillOpacity="0.4" />
-      <path d="M10 13C9.5 13.5 9 14.5 8 16C8.5 16 9.5 17 10 17C10.5 17 12 16.5 12 16" stroke="currentColor" strokeWidth="0.6" fill="none" />
-      <circle cx="12" cy="10.5" r="1.5" fill="none" stroke="currentColor" strokeWidth="0.4" opacity="0.8" />
-    </VisionBase>
-  );
-}
+export const PyroIcon = ({ className, size }: { className?: string; size?: number }) =>
+  <ElementIcon element="pyro" className={className} size={size} />;
+export const HydroIcon = ({ className, size }: { className?: string; size?: number }) =>
+  <ElementIcon element="hydro" className={className} size={size} />;
+export const AnemoIcon = ({ className, size }: { className?: string; size?: number }) =>
+  <ElementIcon element="anemo" className={className} size={size} />;
+export const ElectroIcon = ({ className, size }: { className?: string; size?: number }) =>
+  <ElementIcon element="electro" className={className} size={size} />;
+export const CryoIcon = ({ className, size }: { className?: string; size?: number }) =>
+  <ElementIcon element="cryo" className={className} size={size} />;
+export const GeoIcon = ({ className, size }: { className?: string; size?: number }) =>
+  <ElementIcon element="geo" className={className} size={size} />;
+export const DendroIcon = ({ className, size }: { className?: string; size?: number }) =>
+  <ElementIcon element="dendro" className={className} size={size} />;
 
 export const ELEMENT_ICONS: Record<string, React.FC<IconProps>> = {
   Pyro: PyroIcon,

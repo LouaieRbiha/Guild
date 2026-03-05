@@ -14,15 +14,18 @@ export interface CharacterEntry {
 }
 
 // Re-export shared constants from canonical location
-export { ENKA_UI, ELEMENT_COLORS } from "@/lib/constants";
-import { ENKA_UI } from "@/lib/constants";
+export { ELEMENT_COLORS } from "@/lib/constants";
 
-export function charIconUrl(icon: string): string {
-  return `${ENKA_UI}/${icon}.png`;
+export function charIconUrl(id: string): string {
+  return `/assets/characters/${id}/icon.png`;
 }
 
-export function charSideIconUrl(sideIcon: string): string {
-  return `${ENKA_UI}/${sideIcon}.png`;
+export function charGachaUrl(id: string): string {
+  return `/assets/characters/${id}/gacha.png`;
+}
+
+export function charSideUrl(id: string): string {
+  return `/assets/characters/${id}/side.png`;
 }
 
 export const ELEMENTS = ["All", "Pyro", "Hydro", "Anemo", "Cryo", "Electro", "Geo", "Dendro"] as const;

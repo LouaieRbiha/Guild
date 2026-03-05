@@ -6,7 +6,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Search, X, RotateCcw, ChevronDown } from "lucide-react";
 import { DISPLAYABLE_WEAPONS, WEAPON_TYPES, type WeaponEntry } from "@/lib/weapons";
-import { ENKA_UI, RARITY_COLORS, SUBSTAT_COLORS } from "@/lib/constants";
+import { RARITY_COLORS, SUBSTAT_COLORS, weaponIconUrl } from "@/lib/constants";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -290,7 +290,7 @@ function WeaponCard({ weapon }: { weapon: WeaponEntry }) {
         )}>
           {!imgErr && weapon.icon ? (
             <Image
-              src={`${ENKA_UI}/${weapon.icon}.png`}
+              src={weaponIconUrl(weapon.id)}
               alt={weapon.name}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"

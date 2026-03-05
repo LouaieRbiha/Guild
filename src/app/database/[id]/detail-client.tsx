@@ -246,7 +246,7 @@ export function CharacterDetailClient({ detail, entry }: Props) {
 								// Hero art loaded - optional analytics/logic here
 							}}
 							onError={(e) => {
-								(e.target as HTMLImageElement).src = charIconUrl(entry.icon);
+								(e.target as HTMLImageElement).src = charIconUrl(entry.id);
 							}}
 						/>
 						<div className='absolute inset-0 bg-gradient-to-r from-transparent to-[#111827] hidden md:block' />

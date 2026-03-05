@@ -6,7 +6,7 @@ import { useState } from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import { WeaponDetail, MaterialItem } from "@/lib/yatta/client";
 import { WeaponEntry } from "@/lib/weapons";
-import { ENKA_UI, RARITY_COLORS, SUBSTAT_COLORS } from "@/lib/constants";
+import { RARITY_COLORS, SUBSTAT_COLORS, weaponIconUrl } from "@/lib/constants";
 import { RarityStars, MaterialCard } from "@/components/shared";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -96,7 +96,7 @@ export function WeaponDetailClient({ detail }: Props) {
           {/* Weapon art */}
           <div className={`relative w-full md:w-80 h-80 md:h-auto ${colors.bg} flex-shrink-0 flex items-center justify-center`}>
             <Image
-              src={`${ENKA_UI}/${detail.icon}.png`}
+              src={weaponIconUrl(detail.id)}
               alt={detail.name}
               width={280}
               height={280}
