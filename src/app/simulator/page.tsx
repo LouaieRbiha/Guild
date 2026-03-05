@@ -153,22 +153,107 @@ interface Artifact {
 function rollArtifact(set: string): Artifact {
 	const slots = Object.keys(MAIN_STATS);
 	const slot = slots[Math.floor(Math.random() * slots.length)];
-	const possibleMains = MAIN_STATS[slot];
-	const main = possibleMains[Math.floor(Math.random() * possibleMains.length)];
-	const pool = SUB_STATS.filter((s) => s !== main && !main.startsWith(s));
-	const subCount = Math.random() > 0.66 ? 4 : 3;
-	const picked: { name: string; value: string }[] = [];
-	for (let i = 0; i < subCount; i++) {
-		const idx = Math.floor(Math.random() * pool.length);
-		const stat = pool.splice(idx, 1)[0];
-		if (!stat) break;
-		const value =
-			stat.includes('%') ||
-			['CRIT Rate', 'CRIT DMG', 'Energy Recharge'].includes(stat)
-				? `${(Math.random() * 6 + 2.7).toFixed(1)}%`
-				: `${Math.floor(Math.random() * 200 + 16)}`;
-		picked.push({ name: stat, value });
+
+	// Wiki-accurate main stat weighted selection
+	const mainStatWeights: Record<string, Record<string, number>> = {
+		Flower: { HP: 100 },
+		Plume: { ATK: 100 },
+		Sands: {
+			'HP%': 26.68,
+			'ATK%': 26.66,
+			'DEF%': 26.66,
+			'Energy Recharge': 10,
+			'Elemental Mastery': 10,
+		},
+		Goblet: {
+			'HP%': 19.25,
+			'ATK%': 19.25,
+			'DEF%': 19,
+			'Pyro DMG%': 5,
+			'Hydro DMG%': 5,
+			'Electro DMG%': 5,
+			'Cryo DMG%': 5,
+			'Anemo DMG%': 5,
+			'Geo DMG%': 5,
+			'Dendro DMG%': 5,
+		},
+		Circlet: {
+			'HP%': 22,
+			'ATK%': 22,
+			'DEF%': 22,
+			'CRIT Rate': 10,
+			'CRIT DMG': 10,
+			'Healing Bonus': 10,
+			'Elemental Mastery': 4,
+		},
+	};
+
+	const weights = mainStatWeights[slot] || {};
+	const main = weightedPick(weights);
+
+	// Wiki-accurate substat weights (crit substats are rarer)
+	const subWeights: Record<string, number> = {
+		HP: 6,
+		ATK: 6,
+		DEF: 6,
+		'HP%': 4,
+		'ATK%': 4,
+		'DEF%': 4,
+		'Elemental Mastery': 4,
+		'Energy Recharge': 4,
+		'CRIT Rate': 3,
+		'CRIT DMG': 3,
+	};
+
+	// Wiki-accurate substat roll values (4 tiers per stat)
+	const subRolls: Record<string, number[]> = {
+		HP: [209.13, 239.0, 268.88, 298.75],
+		ATK: [13.62, 15.56, 17.51, 19.45],
+		DEF: [16.2, 18.52, 20.83, 23.15],
+		'HP%': [4.08, 4.66, 5.25, 5.83],
+		'ATK%': [4.08, 4.66, 5.25, 5.83],
+		'DEF%': [5.1, 5.83, 6.56, 7.29],
+		'Elemental Mastery': [16.32, 18.65, 20.98, 23.31],
+		'Energy Recharge': [4.53, 5.18, 5.83, 6.48],
+		'CRIT Rate': [2.72, 3.11, 3.5, 3.89],
+		'CRIT DMG': [5.44, 6.22, 6.99, 7.77],
+	};
+
+	// Remove main stat from substat pool
+	const availPool = { ...subWeights };
+	// Remove the main stat and any variant (e.g., "CRIT Rate" main blocks "CRIT Rate" sub)
+	for (const key of Object.keys(availPool)) {
+		if (key === main || main.startsWith(key)) {
+			delete availPool[key];
+		}
 	}
+
+	// 20% chance for 4 starting substats (wiki-accurate)
+	const subCount = Math.random() < 0.2 ? 4 : 3;
+	const picked: { name: string; value: string }[] = [];
+	const currentPool = { ...availPool };
+
+	for (let i = 0; i < subCount; i++) {
+		const stat = weightedPick(currentPool);
+		if (!stat) break;
+		delete currentPool[stat]; // Each substat can only appear once
+
+		const tiers = subRolls[stat];
+		if (tiers) {
+			// Pick a random roll tier (equal 25% each)
+			const rollValue = tiers[Math.floor(Math.random() * 4)];
+			const isPercent =
+				stat.includes('%') ||
+				['CRIT Rate', 'CRIT DMG', 'Energy Recharge'].includes(stat);
+			picked.push({
+				name: stat,
+				value: isPercent
+					? `${rollValue.toFixed(1)}%`
+					: `${Math.round(rollValue)}`,
+			});
+		}
+	}
+
 	return {
 		set,
 		slot,
@@ -176,6 +261,18 @@ function rollArtifact(set: string): Artifact {
 		mainStat: main,
 		substats: picked,
 	};
+}
+
+/** Weighted random pick from {name: weight} map */
+function weightedPick(weights: Record<string, number>): string {
+	const entries = Object.entries(weights);
+	const total = entries.reduce((sum, [, w]) => sum + w, 0);
+	let r = Math.random() * total;
+	for (const [name, w] of entries) {
+		r -= w;
+		if (r <= 0) return name;
+	}
+	return entries[entries.length - 1]?.[0] ?? '';
 }
 
 // ── Wish Simulator Constants ──────────────────────────────────────────
