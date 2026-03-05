@@ -1,11 +1,27 @@
 'use client';
 
-import { WishAnimation } from '@/components/simulator/wish-animation';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
+import {
+	ARTIFACT_DOMAINS,
+	getArtifactPieceIcon,
+	MAIN_STAT_VALUES,
+	rollArtifact,
+	SLOT_META,
+} from '@/lib/artifact-roller';
+import type { RolledArtifact } from '@/lib/artifact-roller';
 import { YATTA_ASSETS } from '@/lib/constants';
 import { calculateCV } from '@/lib/scoring';
 import { cn } from '@/lib/utils';
+import {
+	BANNER_CONFIG,
+	get5StarRate,
+	performSingleWish,
+	STARTING_PRIMOGEMS,
+	WISH_COST,
+} from '@/lib/wish-engine';
+import type { BannerPity, BannerType, WishResult } from '@/lib/wish-engine';
+import { WishAnimation } from '@/components/simulator/wish-animation';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import {
 	ChevronDown,
 	Dices,
@@ -18,119 +34,7 @@ import {
 import Image from 'next/image';
 import { useCallback, useMemo, useState } from 'react';
 
-// ── Artifact Roller Constants ─────────────────────────────────────────
-
-interface ArtifactDomain {
-	name: string;
-	location: string;
-	sets: { name: string; icon: string }[];
-}
-
-const ARTIFACT_DOMAINS: ArtifactDomain[] = [
-	{
-		name: 'Momiji-Dyed Court',
-		location: 'Inazuma',
-		sets: [
-			{ name: 'Emblem of Severed Fate', icon: 'UI_RelicIcon_15020_4' },
-			{ name: "Shimenawa's Reminiscence", icon: 'UI_RelicIcon_15019_4' },
-		],
-	},
-	{
-		name: 'Spire of Solitary Enlightenment',
-		location: 'Sumeru',
-		sets: [
-			{ name: 'Deepwood Memories', icon: 'UI_RelicIcon_15025_4' },
-			{ name: 'Gilded Dreams', icon: 'UI_RelicIcon_15026_4' },
-		],
-	},
-	{
-		name: 'Denouement of Sin',
-		location: 'Fontaine',
-		sets: [
-			{ name: 'Golden Troupe', icon: 'UI_RelicIcon_15031_4' },
-			{ name: 'Marechaussee Hunter', icon: 'UI_RelicIcon_15032_4' },
-		],
-	},
-	{
-		name: 'Sanctum of Rainbow Spirits',
-		location: 'Natlan',
-		sets: [
-			{ name: 'Obsidian Codex', icon: 'UI_RelicIcon_15035_4' },
-			{
-				name: 'Scroll of the Hero of Cinder City',
-				icon: 'UI_RelicIcon_15036_4',
-			},
-		],
-	},
-	{
-		name: 'Domain of Guyun',
-		location: 'Liyue',
-		sets: [
-			{ name: 'Archaic Petra', icon: 'UI_RelicIcon_15014_4' },
-			{ name: 'Retracing Bolide', icon: 'UI_RelicIcon_15015_4' },
-		],
-	},
-	{
-		name: 'Valley of Remembrance',
-		location: 'Mondstadt',
-		sets: [
-			{ name: 'Viridescent Venerer', icon: 'UI_RelicIcon_15002_4' },
-			{ name: 'Maiden Beloved', icon: 'UI_RelicIcon_15003_4' },
-		],
-	},
-	{
-		name: 'Ridge Watch',
-		location: 'Liyue',
-		sets: [
-			{ name: 'Husk of Opulent Dreams', icon: 'UI_RelicIcon_15021_4' },
-			{ name: 'Ocean-Hued Clam', icon: 'UI_RelicIcon_15022_4' },
-		],
-	},
-	{
-		name: 'Slumbering Court',
-		location: 'Inazuma',
-		sets: [
-			{ name: 'Vermillion Hereafter', icon: 'UI_RelicIcon_15023_4' },
-			{ name: 'Echoes of an Offering', icon: 'UI_RelicIcon_15024_4' },
-		],
-	},
-];
-
-const ARTIFACT_SETS = ARTIFACT_DOMAINS.flatMap((d) =>
-	d.sets.map((s) => s.name),
-);
-
-const MAIN_STATS: Record<string, string[]> = {
-	Flower: ['HP'],
-	Plume: ['ATK'],
-	Sands: ['HP%', 'ATK%', 'DEF%', 'Energy Recharge', 'Elemental Mastery'],
-	Goblet: [
-		'HP%',
-		'ATK%',
-		'DEF%',
-		'Pyro DMG%',
-		'Hydro DMG%',
-		'Electro DMG%',
-		'Cryo DMG%',
-		'Anemo DMG%',
-		'Geo DMG%',
-		'Dendro DMG%',
-	],
-	Circlet: ['HP%', 'ATK%', 'DEF%', 'CRIT Rate', 'CRIT DMG', 'Healing Bonus'],
-};
-
-const SUB_STATS = [
-	'HP',
-	'ATK',
-	'DEF',
-	'HP%',
-	'ATK%',
-	'DEF%',
-	'Energy Recharge',
-	'Elemental Mastery',
-	'CRIT Rate',
-	'CRIT DMG',
-];
+// ── UI Constants ──────────────────────────────────────────────────────
 
 const ARTIFACT_QUIPS = [
 	'Another day, another trash artifact. Welcome to Genshin.',
@@ -140,188 +44,12 @@ const ARTIFACT_QUIPS = [
 	'The domain heard you wanted CRIT and chose violence.',
 ];
 
-// ── Artifact Types & Logic ────────────────────────────────────────────
-
-interface Artifact {
-	set: string;
-	slot: string;
-	rarity: number;
-	mainStat: string;
-	substats: { name: string; value: string }[];
-}
-
-function rollArtifact(set: string): Artifact {
-	const slots = Object.keys(MAIN_STATS);
-	const slot = slots[Math.floor(Math.random() * slots.length)];
-
-	// Wiki-accurate main stat weighted selection
-	const mainStatWeights: Record<string, Record<string, number>> = {
-		Flower: { HP: 100 },
-		Plume: { ATK: 100 },
-		Sands: {
-			'HP%': 26.68,
-			'ATK%': 26.66,
-			'DEF%': 26.66,
-			'Energy Recharge': 10,
-			'Elemental Mastery': 10,
-		},
-		Goblet: {
-			'HP%': 19.25,
-			'ATK%': 19.25,
-			'DEF%': 19,
-			'Pyro DMG%': 5,
-			'Hydro DMG%': 5,
-			'Electro DMG%': 5,
-			'Cryo DMG%': 5,
-			'Anemo DMG%': 5,
-			'Geo DMG%': 5,
-			'Dendro DMG%': 5,
-		},
-		Circlet: {
-			'HP%': 22,
-			'ATK%': 22,
-			'DEF%': 22,
-			'CRIT Rate': 10,
-			'CRIT DMG': 10,
-			'Healing Bonus': 10,
-			'Elemental Mastery': 4,
-		},
-	};
-
-	const weights = mainStatWeights[slot] || {};
-	const main = weightedPick(weights);
-
-	// Wiki-accurate substat weights (crit substats are rarer)
-	const subWeights: Record<string, number> = {
-		HP: 6,
-		ATK: 6,
-		DEF: 6,
-		'HP%': 4,
-		'ATK%': 4,
-		'DEF%': 4,
-		'Elemental Mastery': 4,
-		'Energy Recharge': 4,
-		'CRIT Rate': 3,
-		'CRIT DMG': 3,
-	};
-
-	// Wiki-accurate substat roll values (4 tiers per stat)
-	const subRolls: Record<string, number[]> = {
-		HP: [209.13, 239.0, 268.88, 298.75],
-		ATK: [13.62, 15.56, 17.51, 19.45],
-		DEF: [16.2, 18.52, 20.83, 23.15],
-		'HP%': [4.08, 4.66, 5.25, 5.83],
-		'ATK%': [4.08, 4.66, 5.25, 5.83],
-		'DEF%': [5.1, 5.83, 6.56, 7.29],
-		'Elemental Mastery': [16.32, 18.65, 20.98, 23.31],
-		'Energy Recharge': [4.53, 5.18, 5.83, 6.48],
-		'CRIT Rate': [2.72, 3.11, 3.5, 3.89],
-		'CRIT DMG': [5.44, 6.22, 6.99, 7.77],
-	};
-
-	// Remove main stat from substat pool
-	const availPool = { ...subWeights };
-	// Remove the main stat and any variant (e.g., "CRIT Rate" main blocks "CRIT Rate" sub)
-	for (const key of Object.keys(availPool)) {
-		if (key === main || main.startsWith(key)) {
-			delete availPool[key];
-		}
-	}
-
-	// 20% chance for 4 starting substats (wiki-accurate)
-	const subCount = Math.random() < 0.2 ? 4 : 3;
-	const picked: { name: string; value: string }[] = [];
-	const currentPool = { ...availPool };
-
-	for (let i = 0; i < subCount; i++) {
-		const stat = weightedPick(currentPool);
-		if (!stat) break;
-		delete currentPool[stat]; // Each substat can only appear once
-
-		const tiers = subRolls[stat];
-		if (tiers) {
-			// Pick a random roll tier (equal 25% each)
-			const rollValue = tiers[Math.floor(Math.random() * 4)];
-			const isPercent =
-				stat.includes('%') ||
-				['CRIT Rate', 'CRIT DMG', 'Energy Recharge'].includes(stat);
-			picked.push({
-				name: stat,
-				value: isPercent
-					? `${rollValue.toFixed(1)}%`
-					: `${Math.round(rollValue)}`,
-			});
-		}
-	}
-
-	return {
-		set,
-		slot,
-		rarity: Math.random() > 0.15 ? 5 : 4,
-		mainStat: main,
-		substats: picked,
-	};
-}
-
-/** Weighted random pick from {name: weight} map */
-function weightedPick(weights: Record<string, number>): string {
-	const entries = Object.entries(weights);
-	const total = entries.reduce((sum, [, w]) => sum + w, 0);
-	let r = Math.random() * total;
-	for (const [name, w] of entries) {
-		r -= w;
-		if (r <= 0) return name;
-	}
-	return entries[entries.length - 1]?.[0] ?? '';
-}
-
-// ── Wish Simulator Constants ──────────────────────────────────────────
+// ── UI Helpers ────────────────────────────────────────────────────────
 
 function getCVColorClass(cv: number): string {
 	if (cv >= 30) return 'text-green-400';
 	if (cv >= 20) return 'text-yellow-400';
 	return 'text-guild-dim';
-}
-
-const SLOT_META: Record<string, { label: string; iconSuffix: string }> = {
-	Flower: { label: 'Flower of Life', iconSuffix: '_4' },
-	Plume: { label: 'Plume of Death', iconSuffix: '_2' },
-	Sands: { label: 'Sands of Eon', iconSuffix: '_5' },
-	Goblet: { label: 'Goblet of Eonothem', iconSuffix: '_1' },
-	Circlet: { label: 'Circlet of Logos', iconSuffix: '_3' },
-};
-
-const MAIN_STAT_VALUES: Record<string, string> = {
-	HP: '4,780',
-	ATK: '311',
-	'HP%': '46.6%',
-	'ATK%': '46.6%',
-	'DEF%': '58.3%',
-	'Energy Recharge': '51.8%',
-	'Elemental Mastery': '187',
-	'Pyro DMG%': '46.6%',
-	'Hydro DMG%': '46.6%',
-	'Electro DMG%': '46.6%',
-	'Cryo DMG%': '46.6%',
-	'Anemo DMG%': '46.6%',
-	'Geo DMG%': '46.6%',
-	'Dendro DMG%': '46.6%',
-	'CRIT Rate': '31.1%',
-	'CRIT DMG': '62.2%',
-	'Healing Bonus': '35.9%',
-};
-
-function getArtifactPieceIcon(setName: string, slot: string): string | null {
-	for (const domain of ARTIFACT_DOMAINS) {
-		for (const set of domain.sets) {
-			if (set.name === setName) {
-				const baseIcon = set.icon.replace(/_\d+$/, '');
-				const suffix = SLOT_META[slot]?.iconSuffix ?? '_4';
-				return `${YATTA_ASSETS}/${baseIcon}${suffix}.png`;
-			}
-		}
-	}
-	return null;
 }
 
 function getScoreGrade(cv: number): { grade: string; color: string } {
@@ -331,221 +59,6 @@ function getScoreGrade(cv: number): { grade: string; color: string } {
 	if (cv >= 10) return { grade: 'B', color: 'text-blue-400' };
 	return { grade: 'C', color: 'text-guild-dim' };
 }
-
-type BannerType = 'character' | 'weapon' | 'standard';
-
-interface WishResult {
-	rarity: 3 | 4 | 5;
-	itemType: 'character' | 'weapon';
-	name: string;
-	isFeatured: boolean;
-	pullNumber: number;
-	pityCount: number;
-	banner: BannerType;
-	fiftyFiftyOutcome?: 'won' | 'lost' | 'guaranteed' | 'radiance';
-}
-
-interface BannerPity {
-	pity5: number;
-	pity4: number;
-	guaranteed: boolean;
-	capturingRadianceActive: boolean;
-}
-
-const BANNER_CONFIG: Record<
-	BannerType,
-	{
-		hardPity: number;
-		softPityStart: number;
-		softPityIncrease: number;
-		label: string;
-		description: string;
-	}
-> = {
-	character: {
-		hardPity: 90,
-		softPityStart: 73,
-		softPityIncrease: 0.06,
-		label: 'Character Event Wish',
-		description: 'Boosted drop rate for the featured 5\u2605 character',
-	},
-	weapon: {
-		hardPity: 80,
-		softPityStart: 62,
-		softPityIncrease: 0.07,
-		label: 'Weapon Event Wish',
-		description: 'Boosted drop rate for featured 5\u2605 weapons',
-	},
-	standard: {
-		hardPity: 90,
-		softPityStart: 73,
-		softPityIncrease: 0.06,
-		label: 'Standard Wish',
-		description: 'Standard wish pool with no rate-up items',
-	},
-};
-
-const BASE_5_RATE = 0.006;
-const BASE_4_RATE = 0.051;
-const GUARANTEED_4_PITY = 10;
-const WISH_COST = 160;
-const STARTING_PRIMOGEMS = 28800;
-
-function get5StarRate(pity: number, banner: BannerType): number {
-	const config = BANNER_CONFIG[banner];
-	if (pity + 1 >= config.hardPity) return 1.0;
-	if (pity >= config.softPityStart) {
-		const softPulls = pity - config.softPityStart;
-		return Math.min(
-			BASE_5_RATE + config.softPityIncrease * (softPulls + 1),
-			1.0,
-		);
-	}
-	return BASE_5_RATE;
-}
-
-function performSingleWish(
-	banner: BannerType,
-	pity: BannerPity,
-	pullNumber: number,
-): { result: WishResult; newPity: BannerPity } {
-	const newPity: BannerPity = { ...pity };
-	const rate5 = get5StarRate(newPity.pity5, banner);
-	const is4Guaranteed = newPity.pity4 >= GUARANTEED_4_PITY - 1;
-	const roll = Math.random();
-
-	let rarity: 3 | 4 | 5;
-	let itemType: 'character' | 'weapon';
-	let name: string;
-	let isFeatured = false;
-	let fiftyFiftyOutcome: WishResult['fiftyFiftyOutcome'];
-
-	if (roll < rate5) {
-		// ── 5-star ──
-		rarity = 5;
-		const pityHit = newPity.pity5 + 1;
-		newPity.pity5 = 0;
-		newPity.pity4 = 0;
-
-		if (banner === 'character') {
-			itemType = 'character';
-			if (newPity.guaranteed) {
-				name = 'Featured Character';
-				isFeatured = true;
-				fiftyFiftyOutcome = 'guaranteed';
-				newPity.guaranteed = false;
-				newPity.capturingRadianceActive = false;
-			} else {
-				// 50/50 with Capturing Radiance mechanic
-				const baseWinRate = 0.5;
-				const radianceChance = newPity.capturingRadianceActive ? 0.1 : 0;
-				const totalWinRate = baseWinRate + radianceChance;
-
-				if (Math.random() < totalWinRate) {
-					name = 'Featured Character';
-					isFeatured = true;
-					// Determine if it was radiance or natural win
-					if (
-						radianceChance > 0 &&
-						Math.random() < radianceChance / totalWinRate
-					) {
-						fiftyFiftyOutcome = 'radiance';
-					} else {
-						fiftyFiftyOutcome = 'won';
-					}
-					newPity.guaranteed = false;
-					newPity.capturingRadianceActive = false;
-				} else {
-					name = 'Standard Character';
-					isFeatured = false;
-					fiftyFiftyOutcome = 'lost';
-					newPity.guaranteed = true;
-					newPity.capturingRadianceActive = true;
-				}
-			}
-		} else if (banner === 'weapon') {
-			itemType = 'weapon';
-			if (newPity.guaranteed) {
-				name = 'Featured Weapon';
-				isFeatured = true;
-				fiftyFiftyOutcome = 'guaranteed';
-				newPity.guaranteed = false;
-			} else if (Math.random() < 0.5) {
-				name = 'Featured Weapon';
-				isFeatured = true;
-				fiftyFiftyOutcome = 'won';
-			} else {
-				name = 'Standard Weapon';
-				isFeatured = false;
-				fiftyFiftyOutcome = 'lost';
-				newPity.guaranteed = true;
-			}
-		} else {
-			// Standard banner: no rate-up, no 50/50
-			if (Math.random() < 0.5) {
-				name = 'Standard Character';
-				itemType = 'character';
-			} else {
-				name = 'Standard Weapon';
-				itemType = 'weapon';
-			}
-			isFeatured = false;
-			fiftyFiftyOutcome = undefined;
-		}
-
-		return {
-			result: {
-				rarity,
-				itemType,
-				name,
-				isFeatured,
-				pullNumber,
-				pityCount: pityHit,
-				banner,
-				fiftyFiftyOutcome,
-			},
-			newPity,
-		};
-	}
-
-	if (roll < rate5 + BASE_4_RATE || is4Guaranteed) {
-		// ── 4-star ──
-		rarity = 4;
-		newPity.pity5 += 1;
-		newPity.pity4 = 0;
-
-		if (Math.random() < 0.5) {
-			name = 'Character';
-			itemType = 'character';
-		} else {
-			name = 'Weapon';
-			itemType = 'weapon';
-		}
-	} else {
-		// ── 3-star ──
-		rarity = 3;
-		newPity.pity5 += 1;
-		newPity.pity4 += 1;
-		name = 'Weapon';
-		itemType = 'weapon';
-	}
-
-	return {
-		result: {
-			rarity,
-			itemType,
-			name,
-			isFeatured: false,
-			pullNumber,
-			pityCount: rarity === 4 ? pity.pity4 + 1 : 0,
-			banner,
-			fiftyFiftyOutcome: undefined,
-		},
-		newPity,
-	};
-}
-
-// ── Rarity helpers ────────────────────────────────────────────────────
 
 const RARITY_COLORS = {
 	text: { 5: 'text-amber-400', 4: 'text-purple-400', 3: 'text-blue-400' },
@@ -623,7 +136,7 @@ export default function SimulatorPage() {
 
 	// ── Artifact Roller State ─────────────────────────────────────────
 	const [selectedDomainIdx, setSelectedDomainIdx] = useState(0);
-	const [artifacts, setArtifacts] = useState<Artifact[]>([]);
+	const [artifacts, setArtifacts] = useState<RolledArtifact[]>([]);
 	const [resin, setResin] = useState(0);
 
 	// ── Wish Logic ────────────────────────────────────────────────────
@@ -976,19 +489,19 @@ export default function SimulatorPage() {
 									<div className='h-px bg-white/5' />
 
 									<StatRow
-										label='5\u2605 Obtained'
+										label='5&#9733; Obtained'
 										value={wishStats.fiveStarCount}
 										labelClass='text-amber-400'
 										valueClass='text-amber-400'
 									/>
 									<StatRow
-										label='4\u2605 Obtained'
+										label='4&#9733; Obtained'
 										value={wishStats.fourStarCount}
 										labelClass='text-purple-400'
 										valueClass='text-purple-400'
 									/>
 									<StatRow
-										label='Avg 5\u2605 Pity'
+										label='Avg 5&#9733; Pity'
 										value={
 											wishStats.fiveStarCount > 0 ? wishStats.avgPity : '\u2014'
 										}
