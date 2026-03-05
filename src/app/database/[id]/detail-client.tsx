@@ -260,7 +260,7 @@ export function CharacterDetailClient({ detail, entry }: Props) {
 							fill
 							className='object-cover object-top'
 							priority={true}
-							quality={95}
+							quality={100}
 							sizes='(max-width: 768px) 100vw, 320px'
 							onLoad={() => {
 								// Hero art loaded

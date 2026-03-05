@@ -14,6 +14,7 @@ interface LiveStreamer {
   url: string;
   startedAt: string;
   profileImage: string;
+  language: string;
 }
 
 // ── Twitch helpers ──────────────────────────────────────────────────────
@@ -74,6 +75,7 @@ interface TwitchStream {
   viewer_count: number;
   thumbnail_url: string;
   started_at: string;
+  language: string;
 }
 
 interface TwitchUser {
@@ -150,6 +152,7 @@ async function fetchTwitchLive(): Promise<LiveStreamer[]> {
       url: `https://twitch.tv/${s.user_login}`,
       startedAt: s.started_at,
       profileImage: profileImages.get(s.user_id) || "",
+      language: s.language || "en",
     }));
   } catch {
     return [];
@@ -189,6 +192,7 @@ async function fetchYouTubeLive(): Promise<LiveStreamer[]> {
         url: `https://youtube.com/watch?v=${item.id.videoId}`,
         startedAt: item.snippet.publishedAt,
         profileImage: "",
+        language: "unknown",
       }),
     );
   } catch {
@@ -217,9 +221,20 @@ export async function GET(): Promise<NextResponse> {
 
   const twitchStreams = twitch.status === "fulfilled" ? twitch.value : [];
   const youtubeStreams = youtube.status === "fulfilled" ? youtube.value : [];
-  const all = [...twitchStreams, ...youtubeStreams].sort(
-    (a, b) => b.viewers - a.viewers,
+  // Dedup: skip YouTube streamers whose name matches a Twitch streamer
+  const twitchNames = new Set(twitchStreams.map((s) => s.name.toLowerCase()));
+  const dedupedYoutube = youtubeStreams.filter(
+    (yt) => !twitchNames.has(yt.name.toLowerCase()),
   );
+
+  // Sort by language priority (EN > FR > other), then by viewers
+  const LANG_PRIORITY: Record<string, number> = { en: 0, fr: 1 };
+  const all = [...twitchStreams, ...dedupedYoutube].sort((a, b) => {
+    const langA = LANG_PRIORITY[a.language] ?? 2;
+    const langB = LANG_PRIORITY[b.language] ?? 2;
+    if (langA !== langB) return langA - langB;
+    return b.viewers - a.viewers;
+  });
 
   // Cache the result in Redis if available
   if (all.length > 0) {

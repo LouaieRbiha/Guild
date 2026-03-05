@@ -45,6 +45,7 @@ interface LiveStreamer {
   url: string;
   startedAt: string;
   profileImage: string;
+  language: string;
 }
 
 // ── Data ─────────────────────────────────────────────────────────────────
@@ -340,6 +341,11 @@ export default function StreamersPage() {
                         <Badge className="absolute top-2 right-2 bg-black/60 text-white text-[11px]">
                           <Eye size={12} className="mr-1" />
                           {streamer.viewers.toLocaleString()}
+                        </Badge>
+                      )}
+                      {streamer.language && streamer.language !== "unknown" && (
+                        <Badge className="absolute bottom-2 left-2 bg-black/60 text-white text-[10px] uppercase">
+                          {streamer.language}
                         </Badge>
                       )}
                     </div>

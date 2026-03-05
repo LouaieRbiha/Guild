@@ -196,7 +196,11 @@ export function WishAnimation({
       <button
         onClick={(e) => {
           e.stopPropagation();
-          onComplete();
+          if (isMultiPull) {
+            setPhase("summary");
+          } else {
+            onComplete();
+          }
         }}
         className="absolute bottom-6 right-6 flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white/60 hover:text-white text-sm transition-colors cursor-pointer z-10"
       >
@@ -512,12 +516,12 @@ function SummaryGrid({
 
       <motion.button
         onClick={onDismiss}
-        className="mt-8 px-6 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-white/70 hover:text-white text-sm transition-colors cursor-pointer"
+        className="mt-6 px-6 py-3 rounded-lg bg-guild-accent hover:bg-guild-accent/80 text-white font-medium transition-colors cursor-pointer"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.6 }}
       >
-        Close
+        Back to Simulator
       </motion.button>
     </div>
   );
