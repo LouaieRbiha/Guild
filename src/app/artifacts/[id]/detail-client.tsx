@@ -234,7 +234,7 @@ function ArtifactPieceCard({ piece, rarity, expanded, onToggle }: ArtifactPieceC
           <div className={cn("relative shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-linear-to-t", gradient)}>
             {!imgErr ? (
               <Image
-                src={`${YATTA_ASSETS}/reliquary/${piece.icon}.png`}
+                src={`${YATTA_ASSETS}/${piece.icon}.png`}
                 alt={piece.name}
                 fill
                 sizes="64px"

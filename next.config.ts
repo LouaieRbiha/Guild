@@ -17,6 +17,22 @@ const nextConfig: NextConfig = {
 				hostname: 'gi.yatta.moe',
 				pathname: '/assets/**',
 			},
+			{
+				protocol: 'https',
+				hostname: 'static-cdn.jtvnw.net',
+			},
+			{
+				protocol: 'https',
+				hostname: '*.jtvnw.net',
+			},
+			{
+				protocol: 'https',
+				hostname: 'i.ytimg.com',
+			},
+			{
+				protocol: 'https',
+				hostname: 'yt3.ggpht.com',
+			},
 		],
 	},
 };

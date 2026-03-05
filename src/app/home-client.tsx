@@ -259,7 +259,7 @@ export function HomeClient({
             <div className="hidden md:grid md:grid-cols-2 gap-4">
             {/* Character Banner Card */}
             {charBanner ? (
-              <Card className="overflow-hidden relative min-h-80 border-white/5 p-0 gap-0">
+              <Card className="overflow-hidden relative min-h-96 border-white/5 p-0 gap-0">
                 {/* Background splash art — crossfade between featured chars */}
                 {featured5StarChars.map((char, idx) => {
                   const url = charGachaUrl(char.id);
@@ -269,22 +269,22 @@ export function HomeClient({
                       src={url}
                       alt={char.name}
                       fill
-                      quality={95}
+                      quality={100}
                       className={cn(
                         "object-cover object-top transition-opacity duration-700",
-                        idx === activeCharIdx ? "opacity-40" : "opacity-0"
+                        idx === activeCharIdx ? "opacity-80" : "opacity-0"
                       )}
                       sizes="(max-width: 768px) 100vw, 50vw"
                       priority={idx === 0}
                     />
                   );
                 })}
-                <div className="absolute inset-0 bg-linear-to-t from-card via-card/80 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-card via-card/40 to-transparent" />
 
-                <div className="relative z-10 p-6 flex flex-col justify-between h-full min-h-80">
+                <div className="relative z-10 p-6 flex flex-col justify-between h-full min-h-96">
                   {/* Top label + version */}
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-guild-muted">
+                    <span className="text-sm text-white/70 drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
                       Character Event Wish
                     </span>
                     {charBanner.version && (
@@ -305,7 +305,7 @@ export function HomeClient({
                           >
                             <h3
                               className={cn(
-                                "text-2xl font-bold transition-all duration-500 group-hover/name:text-guild-accent",
+                                "text-2xl font-bold transition-all duration-500 group-hover/name:text-guild-accent drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]",
                                 idx === activeCharIdx
                                   ? "text-white scale-105 origin-left"
                                   : "text-white/50"
@@ -517,7 +517,7 @@ export function HomeClient({
             <div className="md:hidden relative">
               <div className="overflow-hidden rounded-xl">
                 {activeBannerIdx === 0 && charBanner ? (
-                  <Card className="overflow-hidden relative min-h-80 border-white/5 p-0 gap-0">
+                  <Card className="overflow-hidden relative min-h-96 border-white/5 p-0 gap-0">
                     {featured5StarChars.map((char, idx) => {
                       const url = charGachaUrl(char.id);
                       return (
@@ -526,17 +526,17 @@ export function HomeClient({
                           src={url}
                           alt={char.name}
                           fill
-                          quality={95}
+                          quality={100}
                           className={cn(
                             "object-cover object-top transition-opacity duration-700",
-                            idx === activeCharIdx ? "opacity-40" : "opacity-0"
+                            idx === activeCharIdx ? "opacity-80" : "opacity-0"
                           )}
                           sizes="100vw"
                         />
                       );
                     })}
-                    <div className="absolute inset-0 bg-linear-to-t from-card via-card/80 to-transparent" />
-                    <div className="relative z-10 p-6 flex flex-col justify-between h-full min-h-80">
+                    <div className="absolute inset-0 bg-linear-to-t from-card via-card/40 to-transparent" />
+                    <div className="relative z-10 p-6 flex flex-col justify-between h-full min-h-96">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-guild-muted">Character Event Wish</span>
                         {charBanner.version && (
@@ -547,7 +547,7 @@ export function HomeClient({
                         {featured5StarChars.map((char, idx) => (
                           <Link key={char.id} href={`/database/${char.id}`} className="flex items-center gap-3">
                             <h3 className={cn(
-                              "text-2xl font-bold transition-all duration-500",
+                              "text-2xl font-bold transition-all duration-500 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]",
                               idx === activeCharIdx ? "text-white scale-105 origin-left" : "text-white/50"
                             )}>{char.name}</h3>
                             <ElementBadge element={char.element} />

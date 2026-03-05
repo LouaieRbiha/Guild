@@ -344,10 +344,28 @@ export default function StreamersPage() {
                       )}
                     </div>
                     <CardContent className="p-3 space-y-1">
+                      <div className="flex items-center gap-2">
+                        {streamer.profileImage ? (
+                          <Image
+                            src={streamer.profileImage}
+                            alt={streamer.name}
+                            width={24}
+                            height={24}
+                            className="rounded-full shrink-0"
+                            unoptimized
+                          />
+                        ) : (
+                          <div className="w-6 h-6 rounded-full bg-guild-elevated shrink-0 flex items-center justify-center">
+                            <span className="text-[10px] font-bold text-guild-muted">
+                              {streamer.name[0]}
+                            </span>
+                          </div>
+                        )}
+                        <p className="text-xs text-guild-muted truncate">{streamer.name}</p>
+                      </div>
                       <p className="text-sm font-medium leading-snug line-clamp-1 group-hover:text-guild-accent transition-colors">
                         {streamer.title}
                       </p>
-                      <p className="text-xs text-guild-muted">{streamer.name}</p>
                     </CardContent>
                   </Card>
                 </a>
