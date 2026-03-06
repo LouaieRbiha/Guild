@@ -11,7 +11,6 @@ import {
 	Gift,
 	History,
 	Map,
-	Shield,
 	Swords,
 	Trophy,
 	Tv,
@@ -109,7 +108,7 @@ const NAV_CARDS = [
 	},
 	{
 		href: '/abyss',
-		icon: Shield,
+		icon: AbyssIcon,
 		title: 'Endgame',
 		description: 'Spiral Abyss and Stygian Onslaught guides and usage rates',
 	},

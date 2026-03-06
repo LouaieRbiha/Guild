@@ -1,6 +1,7 @@
 'use client';
 
 import {
+	AbyssIcon,
 	BuildIcon,
 	CompassIcon,
 	FateIcon,
@@ -11,7 +12,7 @@ import {
 	WeaponIcon,
 } from '@/components/icons/genshin-icons';
 import { cn } from '@/lib/utils';
-import { Calendar, Gamepad2, History, MoreHorizontal, Shield, Trophy, X } from 'lucide-react';
+import { Calendar, Gamepad2, History, MoreHorizontal, Trophy, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
@@ -38,7 +39,7 @@ const MORE_ITEMS: MobileNavItem[] = [
 	{ href: '/artifacts', icon: FlowerIcon, label: 'Artifacts' },
 	{ href: '/calendar', icon: Calendar, label: 'Calendar' },
 	{ href: '/banners', icon: History, label: 'Banners' },
-	{ href: '/abyss', icon: Shield, label: 'Endgame' },
+	{ href: '/abyss', icon: AbyssIcon, label: 'Endgame' },
 	{ href: '/map', icon: CompassIcon, label: 'Map' },
 	{ href: '/simulator', icon: FateIcon, label: 'Simulator' },
 	{ href: '/wordle', icon: Gamepad2, label: 'Genshindle' },

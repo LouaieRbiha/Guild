@@ -60,205 +60,204 @@ export interface StygianStage {
   tips?: string;
 }
 
-// ── Spiral Abyss Data (v6.4 Phase 1) ────────────────────────────────
+// ── Spiral Abyss Data (v6.4 Luna V) ─────────────────────────────────
 
-export const ABYSS_VERSION = "6.4 Phase 1";
+export const ABYSS_VERSION = "6.4 Luna V";
 export const ABYSS_CYCLE = "March 1 - March 16, 2026";
 
 export const ABYSS_FLOORS: AbyssFloor[] = [
   {
     floor: 9,
-    disorder: "Characters on the field will continuously have their HP restored.",
+    disorder: "Characters' Lunar reaction DMG increased by 50%.",
     chambers: [
       {
         chamber: 1,
         firstHalf: [
-          { name: "Hilichurl Fighter x3", hp: "25,000" },
-          { name: "Stonehide Lawachurl", hp: "180,000", element: "Geo" },
+          { name: "Close Combat Storm Landcruiser x1" },
+          { name: "Force Recon Storm Landcruiser x1" },
+          { name: "Close Combat Scout Landcruiser x1" },
         ],
         secondHalf: [
-          { name: "Cryo Abyss Mage", hp: "120,000", element: "Cryo" },
-          { name: "Hydro Abyss Mage", hp: "120,000", element: "Hydro" },
+          { name: "Fluid Avatar of Lava", hp: "350,000", element: "Pyro" },
         ],
       },
       {
         chamber: 2,
         firstHalf: [
-          { name: "Ruin Guard", hp: "250,000" },
-          { name: "Ruin Scout", hp: "200,000" },
+          { name: "Force Recon Ground Effect Landcruiser x1" },
+          { name: "Force Recon Scout Landcruiser x2" },
+          { name: "Cutting Edge All-Purpose Storm Landcruiser x1" },
         ],
         secondHalf: [
-          { name: "Electro Cicin Mage", hp: "180,000", element: "Electro" },
-          { name: "Mirror Maiden", hp: "200,000", element: "Hydro" },
+          { name: "Ruin Grader", hp: "400,000" },
         ],
       },
       {
         chamber: 3,
         firstHalf: [
-          { name: "Geovishap", hp: "280,000", element: "Geo" },
+          { name: "Cutting Edge Fire Support Ground Effect Landcruiser x2" },
+          { name: "Force Recon Scout Landcruiser x3" },
         ],
         secondHalf: [
-          { name: "Primo Geovishap", hp: "350,000", element: "Geo" },
+          { name: "Blazing Brilliance: Frostnight Scion", hp: "500,000", element: "Cryo" },
         ],
       },
     ],
   },
   {
     floor: 10,
-    disorder: "After the active character triggers a Swirl reaction, all party members gain 20% ATK for 8s.",
+    disorder: "Characters' Lunar reaction DMG increased by 50%.",
     chambers: [
       {
         chamber: 1,
         firstHalf: [
-          { name: "Fatui Skirmisher — Hydrogunner", hp: "200,000", element: "Hydro" },
-          { name: "Fatui Skirmisher — Electrohammer", hp: "200,000", element: "Electro" },
-          { name: "Fatui Skirmisher — Cryogunner", hp: "200,000", element: "Cryo" },
+          { name: "Close Combat Storm Landcruiser x1" },
+          { name: "Oprichniki Line Trooper x2" },
+          { name: "Oprichniki Fireblade Shock Trooper x1" },
         ],
         secondHalf: [
-          { name: "Eremite Scorching Loremaster", hp: "220,000", element: "Pyro" },
-          { name: "Eremite Ravenbeak Halberdier", hp: "180,000" },
+          { name: "Foliar-Swift Wayob Manifestation", hp: "500,000", element: "Dendro" },
         ],
       },
       {
         chamber: 2,
         firstHalf: [
-          { name: "Ruin Drake: Skywatch", hp: "350,000" },
-          { name: "Ruin Drake: Earthguard", hp: "350,000" },
+          { name: "Force Recon Storm Landcruiser x1" },
+          { name: "Oprichniki Vanguard x2" },
+          { name: "Oprichniki Thunderblitz Gvardiya x1", element: "Electro" },
         ],
         secondHalf: [
-          { name: "Consecrated Scorpion", hp: "300,000", element: "Dendro" },
-          { name: "Consecrated Flying Serpent", hp: "300,000", element: "Dendro" },
+          { name: "Tangled Vines: Frostnight Scion", hp: "550,000", element: "Cryo" },
         ],
       },
       {
         chamber: 3,
         firstHalf: [
-          { name: "Aeonblight Drake", hp: "500,000" },
+          { name: "Oprichniki Medic x1" },
+          { name: "Oprichniki Vanguard x2" },
+          { name: "Oprichniki Hailstorm Canoneer x1", element: "Cryo" },
         ],
         secondHalf: [
-          { name: "Jadeplume Terrorshroom", hp: "500,000", element: "Dendro" },
+          { name: "Radiant Bladehorn", hp: "600,000", element: "Pyro" },
         ],
-        tips: "Use ranged characters to stun the Aeonblight Drake mid-air.",
       },
     ],
   },
   {
     floor: 11,
-    disorder: "DMG dealt by all party members' Elemental Burst is increased by 75%.",
+    disorder: "All party members gain a 60% Hydro DMG Bonus and a 60% Geo DMG Bonus.",
     chambers: [
       {
         chamber: 1,
         firstHalf: [
-          { name: "Fatui Agent x2", hp: "250,000", element: "Pyro" },
-          { name: "Fatui Mirror Maiden", hp: "300,000", element: "Hydro" },
+          { name: "Large Pyro Slime x8", element: "Pyro" },
+          { name: "Pyro Slime x40", element: "Pyro" },
         ],
         secondHalf: [
-          { name: "Consecrated Red Vulture", hp: "280,000", element: "Pyro" },
-          { name: "Consecrated Horned Crocodile", hp: "280,000" },
+          { name: "Primordial Bathysmal Vishap x12", element: "Hydro" },
         ],
+        tips: "Use AoE Hydro to clear the slime waves quickly. Vishaps spawn in groups of 3.",
       },
       {
         chamber: 2,
         firstHalf: [
-          { name: "Primal Construct: Repulsor", hp: "350,000" },
-          { name: "Primal Construct: Prospector", hp: "300,000" },
+          { name: "Assault Specialist Mek x2" },
+          { name: "Eremite Stone Enchanter", element: "Geo" },
+          { name: "Eremite Galehunter", element: "Anemo" },
         ],
         secondHalf: [
-          { name: "Black Serpent Knight: Windcutter", hp: "350,000" },
-          { name: "Abyss Herald: Wicked Torrents", hp: "400,000", element: "Hydro" },
+          { name: "Praetorian Golem x6", element: "Geo" },
         ],
+        tips: "Mek enemies appear first, then Eremites. Golems spawn in pairs across 3 waves.",
       },
       {
         chamber: 3,
         firstHalf: [
-          { name: "Icewind Suite", hp: "800,000", element: "Cryo" },
+          { name: "Radiant Glacial Wolf", hp: "800,000", element: "Cryo" },
         ],
         secondHalf: [
-          { name: "Experimental Field Generator", hp: "700,000" },
+          { name: "Tainted Water-Spouting Phantasm", hp: "700,000", element: "Hydro" },
         ],
-        tips: "The Icewind Suite has two phases — focus the Coppelia (ranged) form first.",
+        tips: "Hydro DPS for wolf, Geo DPS for phantasm. Match the floor disorder bonuses.",
       },
     ],
   },
   {
     floor: 12,
-    disorder: "When the active character's Normal, Charged, or Plunging Attack hits an opponent affected by Pyro, an explosion occurs dealing AoE Pyro DMG. CD: 2s.",
+    disorder: "1st Half: Lunar-Charged DMG increased by 75%. 2nd Half: Lunar-Crystallize DMG increased by 75%.",
     chambers: [
       {
         chamber: 1,
         firstHalf: [
-          { name: "Gloomhound x2", hp: "400,000" },
-          { name: "Voidshadow Hound", hp: "500,000" },
+          { name: "Fishers of Hidden Depths x15", element: "Hydro" },
         ],
         secondHalf: [
-          { name: "Frost Operative", hp: "450,000", element: "Cryo" },
-          { name: "Wind Operative", hp: "450,000", element: "Anemo" },
+          { name: "Frostnight Herra", hp: "900,000", element: "Cryo", notes: "Cryo boss with shield phase" },
         ],
       },
       {
         chamber: 2,
         firstHalf: [
-          { name: "Solitary Suanni", hp: "1,000,000" },
+          { name: "Sternshield Crab x2", element: "Geo" },
+          { name: "Emperor of Fire and Iron", hp: "1,000,000", element: "Pyro", notes: "Boss wave 2" },
         ],
         secondHalf: [
-          { name: "Local Legend — Rockfond Rifthound Lord", hp: "900,000", element: "Geo" },
+          { name: "Wilderness Hunter x4" },
         ],
+        tips: "Crabs appear first, then the Emperor spawns. Front-load burst damage on the Emperor.",
       },
       {
         chamber: 3,
         firstHalf: [
-          { name: "Incandescent Remembrance of Burning Steel", hp: "1,800,000", element: "Pyro", notes: "Snezhnaya elite boss" },
+          { name: "Lord of the Hidden Depths — Whisperer of Nightmares", hp: "1,800,000", element: "Hydro", notes: "Final boss — use Electro for Lunar-Charged" },
         ],
         secondHalf: [
-          { name: "Hydro Tulpa", hp: "1,500,000", element: "Hydro" },
+          { name: "Legatus Golem", hp: "1,500,000", element: "Geo", notes: "Final boss — use Hydro for Lunar-Crystallize" },
         ],
-        tips: "Use Hydro against the Burning Steel boss to extinguish its flame armor. The Hydro Tulpa is weak to Freeze.",
+        tips: "First half: Electro + Hydro for Lunar-Charged. Second half: Geo + Hydro for Lunar-Crystallize.",
       },
     ],
     bosses: [
       {
-        name: "Incandescent Remembrance of Burning Steel",
+        name: "Lord of the Hidden Depths — Whisperer of Nightmares",
         hp: "1,800,000",
-        icon: "UI_MonsterIcon_Automaton_IncandBurn",
-        description: "A formidable Snezhnayan machine that coats itself in blazing Pyro armor. Extinguish its flames with Hydro to create a vulnerability window, then unleash your strongest attacks.",
+        description: "A dangerous Hydro entity that conjures nightmare illusions. Use Electro to trigger Lunar-Charged reactions for bonus damage. Stay mobile during its sweeping attacks.",
         resistances: [
-          { element: "Pyro", value: 70 },
-          { element: "Hydro", value: -20 },
-          { element: "Electro", value: 10 },
+          { element: "Pyro", value: 10 },
+          { element: "Hydro", value: 70 },
+          { element: "Electro", value: -10 },
           { element: "Cryo", value: 10 },
           { element: "Anemo", value: 10 },
           { element: "Geo", value: 10 },
           { element: "Dendro", value: 10 },
         ],
-        weaknesses: ["Hydro damage (negative resistance)", "Reactions that apply Hydro"],
+        weaknesses: ["Electro DMG (negative resistance)", "Lunar-Charged reactions"],
         tips: [
-          "Use Hydro to strip its Pyro armor for a DPS window",
-          "Avoid Pyro DPS entirely — 70% resistance",
-          "Stay mobile during charge attacks",
-          "Hydro characters like Neuvillette and Yelan excel here",
+          "Electro DPS like Clorinde, Raiden, or Varesa excel here",
+          "Avoid Hydro DPS — 70% resistance",
+          "Dodge the nightmare field AoE or use shields",
+          "The Lunar-Charged disorder gives 75% bonus to Electro+Hydro reactions",
         ],
       },
       {
-        name: "Hydro Tulpa",
+        name: "Legatus Golem",
         hp: "1,500,000",
-        icon: "UI_MonsterIcon_Narcissusborn_Normal_01",
-        image: "https://gi.yatta.moe/assets/UI/monster/UI_MonsterIcon_Narcissusborn_Normal_01.png",
-        description: "An ancient Hydro entity that creates mirages of itself. Freeze the real body to interrupt devastating attacks. Destroy mirages quickly before they explode.",
+        description: "A massive Geo construct that generates crystallize shields. Use Hydro to trigger Lunar-Crystallize for devastating reactions. Break its core during the stagger window.",
         resistances: [
           { element: "Pyro", value: 10 },
-          { element: "Hydro", value: 70 },
+          { element: "Hydro", value: -10 },
           { element: "Electro", value: 10 },
-          { element: "Cryo", value: -20 },
+          { element: "Cryo", value: 10 },
           { element: "Anemo", value: 10 },
-          { element: "Geo", value: 10 },
+          { element: "Geo", value: 70 },
           { element: "Dendro", value: 10 },
         ],
-        weaknesses: ["Cryo damage (negative resistance)", "Freeze reactions"],
+        weaknesses: ["Hydro DMG (negative resistance)", "Lunar-Crystallize reactions"],
         tips: [
-          "Freeze the Tulpa to interrupt its attacks",
-          "Avoid Hydro DPS — 70% resistance",
-          "The Tulpa summons mirages — destroy them quickly",
-          "Cryo characters like Ayaka and Ganyu are ideal",
+          "Geo DPS like Navia or Itto paired with Hydro supports",
+          "Avoid pure Geo DPS — 70% resistance, use Geo+Hydro for Lunar-Crystallize",
+          "Attack the exposed core during stagger for massive damage",
+          "The Lunar-Crystallize disorder gives 75% bonus to Geo+Hydro reactions",
         ],
       },
     ],
@@ -288,112 +287,86 @@ export const STYGIAN_CYCLE = "March 3 - March 17, 2026";
 export const STYGIAN_STAGES: StygianStage[] = [
   {
     stage: 1,
-    name: "Abyssal Vanguard",
+    name: "Hexadecatonic Mandragora",
     enemies: [
-      { name: "Shadowy Husk: Standard Bearer x2", hp: "300,000" },
-      { name: "Shadowy Husk: Line Breaker x2", hp: "300,000" },
-      { name: "Black Serpent Knight: Windcutter", hp: "500,000" },
+      { name: "Hexadecatonic Mandragora", hp: "800,000", element: "Dendro" },
+      { name: "Mandragora Spore x4", hp: "100,000", element: "Dendro" },
     ],
     modifiers: [
-      { name: "Abyssal Erosion", description: "Active character loses 1.5% HP per second. Defeating enemies restores 5% HP.", type: "debuff" },
-      { name: "Nightfall's Blessing", description: "After using an Elemental Burst, all party members gain 30% ATK for 10s.", type: "buff" },
-    ],
-    tips: "Start with a burst rotation to trigger the ATK buff immediately. Prioritize the Standard Bearers who can heal allies.",
-  },
-  {
-    stage: 2,
-    name: "Frozen Dominion",
-    enemies: [
-      { name: "Frostarm Lawachurl", hp: "600,000", element: "Cryo" },
-      { name: "Ice Shieldwall Mitachurl x2", hp: "250,000", element: "Cryo" },
-      { name: "Cryo Abyss Mage x2", hp: "200,000", element: "Cryo" },
-    ],
-    modifiers: [
-      { name: "Permafrost Field", description: "The arena periodically freezes. Characters standing on ice take Cryo DMG every 2s.", type: "debuff" },
+      { name: "Spore Bloom", description: "The Mandragora splits into 4 spores periodically. Use Anemo to group them and AoE to eliminate quickly.", type: "mechanic" },
       { name: "Elemental Surge: Pyro", description: "Pyro DMG is increased by 60% for all characters.", type: "buff" },
-      { name: "Shatter Bonus", description: "Shattering frozen enemies deals 200% bonus DMG.", type: "mechanic" },
-    ],
-    tips: "Pyro carries like Mavuika, Hu Tao, or Diluc trivialize this stage. Use shields to avoid Cryo chip damage.",
-  },
-  {
-    stage: 3,
-    name: "Thunderous Keep",
-    enemies: [
-      { name: "Electro Regisvine", hp: "800,000", element: "Electro" },
-    ],
-    modifiers: [
-      { name: "Lightning Strikes", description: "Random lightning strikes deal Electro DMG to characters every 5s.", type: "debuff" },
-      { name: "Overclocked", description: "When Overloaded is triggered, deal an additional 150% AoE DMG.", type: "buff" },
-      { name: "Weakpoint Exposed", description: "Attacking the Regisvine's weak point deals 300% CRIT DMG.", type: "mechanic" },
+      { name: "Dendro Erosion", description: "Standing in the bloom field deals Dendro DMG every 2s and reduces healing by 30%.", type: "debuff" },
     ],
     boss: {
-      name: "Electro Regisvine",
+      name: "Hexadecatonic Mandragora",
       hp: "800,000",
-      icon: "UI_MonsterIcon_Regisvine_Electric",
-      image: "https://gi.yatta.moe/assets/UI/monster/UI_MonsterIcon_Regisvine_Electric.png",
-      description: "A massive Electro-infused plant with a vulnerable corolla and root system. Strike weak points when exposed for massive damage. Use Pyro reactions for the Overloaded bonus.",
+      description: "A monstrous Dendro plant that periodically splits into small spores. Group the spores with Anemo and use Pyro for the elemental surge bonus. Burning and Overloaded reactions are especially effective.",
       resistances: [
-        { element: "Pyro", value: 10 },
+        { element: "Pyro", value: -20 },
         { element: "Hydro", value: 10 },
-        { element: "Electro", value: 70 },
-        { element: "Cryo", value: 10 },
-        { element: "Anemo", value: 10 },
-        { element: "Geo", value: 10 },
-        { element: "Dendro", value: -10 },
-      ],
-      weaknesses: ["Dendro DMG (negative resistance)", "Pyro for Overloaded bonus"],
-      tips: ["Target the corolla (top) or roots (bottom) to stun it", "Use Pyro to trigger the Overloaded bonus modifier", "Dendro applies Quicken for even more reaction damage"],
-    },
-    tips: "Bring a Pyro character to trigger the Overclocked bonus. Target the weak point immediately when exposed for massive damage.",
-  },
-  {
-    stage: 4,
-    name: "Abyssal Sovereign",
-    enemies: [
-      { name: "Abyss Lector: Violet Lightning", hp: "500,000", element: "Electro" },
-      { name: "Abyss Lector: Fathomless Flames", hp: "500,000", element: "Pyro" },
-    ],
-    modifiers: [
-      { name: "Dual Shields", description: "Both Lectors deploy Elemental shields simultaneously. Both shields must be broken within 15s of each other.", type: "mechanic" },
-      { name: "Resonant Wrath", description: "If one Lector is defeated before the other, the remaining one enrages, gaining 50% ATK.", type: "debuff" },
-      { name: "Shield Breaker", description: "Elemental reactions deal 200% bonus DMG to Lector shields.", type: "buff" },
-    ],
-    tips: "Bring both Cryo (for Pyro shields) and Hydro (for Electro shields). Try to evenly damage both and break shields within the time window.",
-  },
-  {
-    stage: 5,
-    name: "The Final Descent",
-    enemies: [
-      { name: "All-Devouring Narwhal", hp: "2,000,000", element: "Hydro" },
-    ],
-    modifiers: [
-      { name: "Spatial Rift", description: "Characters are periodically pulled into the Narwhal's domain. Escape by dealing enough DMG.", type: "mechanic" },
-      { name: "Abyssal Fury", description: "Every 30s, the Narwhal deals a massive AoE attack. Shield or dodge to survive.", type: "debuff" },
-      { name: "Final Stand", description: "Below 30% HP, all party members gain 50% CRIT Rate and 100% CRIT DMG.", type: "buff" },
-    ],
-    boss: {
-      name: "All-Devouring Narwhal",
-      hp: "2,000,000",
-      icon: "UI_MonsterIcon_Ptahur_Devourer",
-      image: "https://gi.yatta.moe/assets/UI/monster/UI_MonsterIcon_Ptahur_Devourer.png",
-      description: "The terrifying creature from beyond. Periodically pulls characters into a pocket dimension. Deal enough damage to escape, and unleash everything below 30% HP when the CRIT buff activates.",
-      resistances: [
-        { element: "Pyro", value: 10 },
-        { element: "Hydro", value: 70 },
         { element: "Electro", value: 10 },
         { element: "Cryo", value: 10 },
         { element: "Anemo", value: 10 },
         { element: "Geo", value: 10 },
-        { element: "Dendro", value: 10 },
+        { element: "Dendro", value: 70 },
       ],
-      weaknesses: ["Non-Hydro damage", "Pyro carries", "Burst damage during stun phases"],
+      weaknesses: ["Pyro DMG (negative resistance)", "Anemo grouping for spores", "Burning/Burgeon reactions"],
       tips: [
-        "Avoid Hydro DPS — 70% resistance",
-        "When pulled into the domain, focus all damage to escape quickly",
-        "The Final Stand buff at 30% HP makes your team incredibly strong — save bursts",
-        "Shields are critical for surviving the AoE fury attacks",
+        "Use Anemo to group spores quickly before they explode",
+        "Pyro carries get 60% DMG bonus from the modifier",
+        "Avoid Dendro DPS — 70% resistance",
+        "Clear spores within time limit or they regenerate the boss HP",
       ],
     },
-    tips: "Save your strongest burst rotation for when the Narwhal drops below 30% to take advantage of the massive CRIT buffs.",
+    tips: "Bring Pyro DPS and Anemo support. Mavuika, Hu Tao, or Diluc with Kazuha for grouping.",
+  },
+  {
+    stage: 2,
+    name: "Knuckle Duckle",
+    enemies: [
+      { name: "Knuckle Duckle", hp: "1,000,000", element: "Hydro" },
+      { name: "Shield Device x2", hp: "150,000" },
+    ],
+    modifiers: [
+      { name: "Shield Protocol", description: "Knuckle Duckle deploys energy shields periodically. Destroy the shield devices to remove protection.", type: "mechanic" },
+      { name: "Electro-Charged Field", description: "Electro-Charged reactions deal 200% bonus DMG in this stage.", type: "buff" },
+      { name: "Tidal Surge", description: "Every 20s, a tidal wave sweeps the arena dealing Hydro DMG. Jump or use shields to avoid.", type: "debuff" },
+    ],
+    tips: "Destroy shield devices first. Use Electro-Charged teams (Raiden, Fischl + Hydro applier). AoE helps with devices.",
+  },
+  {
+    stage: 3,
+    name: "Secret Source Automaton: Overseer Device",
+    enemies: [
+      { name: "Secret Source Automaton: Overseer Device", hp: "1,200,000" },
+      { name: "Repair Drone x3", hp: "80,000" },
+    ],
+    modifiers: [
+      { name: "Repair Protocol", description: "Repair drones periodically heal the Automaton for 5% HP. Destroy them immediately.", type: "mechanic" },
+      { name: "Cryo Amplification", description: "Cryo application freezes the Automaton's joints, creating a 5s vulnerability window with 50% increased DMG taken.", type: "buff" },
+      { name: "Overload Discharge", description: "The Automaton emits AoE Electro pulses every 15s. Standing too close deals heavy Electro DMG.", type: "debuff" },
+    ],
+    boss: {
+      name: "Secret Source Automaton: Overseer Device",
+      hp: "1,200,000",
+      description: "A heavily armored automaton that deploys repair drones. Apply Cryo to freeze its joints and create vulnerability windows. Prioritize destroying repair drones, then burst during the frozen window.",
+      resistances: [
+        { element: "Pyro", value: 10 },
+        { element: "Hydro", value: 10 },
+        { element: "Electro", value: 30 },
+        { element: "Cryo", value: -20 },
+        { element: "Anemo", value: 10 },
+        { element: "Geo", value: 10 },
+        { element: "Dendro", value: 10 },
+      ],
+      weaknesses: ["Cryo DMG (negative resistance)", "Freeze reactions for vulnerability", "AoE to clear repair drones"],
+      tips: [
+        "Apply Cryo to freeze joints for a 5s damage window",
+        "Destroy repair drones immediately or they heal the boss",
+        "Freeze teams (Ayaka, Ganyu, Citlali) are ideal",
+        "Keep distance during Electro discharge pulses",
+      ],
+    },
+    tips: "Freeze teams are recommended. Ayaka or Ganyu with Hydro support. Kill repair drones on sight.",
   },
 ];

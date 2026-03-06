@@ -10,9 +10,10 @@ import {
 	PrimogemIcon,
 	VisionIcon,
 	WeaponIcon,
+	AbyssIcon,
 } from '@/components/icons/genshin-icons';
 import { cn } from '@/lib/utils';
-import { Calendar, Gamepad2, History, Shield, Trophy } from 'lucide-react';
+import { Calendar, Gamepad2, History, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -33,7 +34,7 @@ const navItems: NavItem[] = [
 	{ href: '/artifacts', icon: FlowerIcon, label: 'Artifacts' },
 	{ href: '/calendar', icon: Calendar, label: 'Calendar' },
 	{ href: '/banners', icon: History, label: 'Banners' },
-	{ href: '/abyss', icon: Shield, label: 'Endgame' },
+	{ href: '/abyss', icon: AbyssIcon, label: 'Endgame' },
 	{ href: '/map', icon: CompassIcon, label: 'Map' },
 	{ href: '/simulator', icon: FateIcon, label: 'Simulator' },
 	{ href: '/wordle', icon: Gamepad2, label: 'Genshindle' },

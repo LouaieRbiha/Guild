@@ -1,17 +1,18 @@
 'use client';
 
 import type { BannerHistoryEntry } from '@/app/api/banners/history/route';
-import { charGachaUrl, charIconUrl } from '@/lib/characters';
+import { ALL_CHARACTERS, charGachaUrl, charIconUrl } from '@/lib/characters';
 import { weaponIconUrl } from '@/lib/constants';
+import { ALL_WEAPONS } from '@/lib/weapons';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { RarityStars } from '@/components/shared';
-import { ChevronDown, History, Loader2, Search, Sparkles, Swords } from 'lucide-react';
+import { ChevronDown, History, Loader2, Search, Sparkles, Swords, X } from 'lucide-react';
+import { ELEMENT_ICONS } from '@/components/icons/genshin-icons';
 
 // ── Types ───────────────────────────────────────────────────────────
 
@@ -63,6 +64,42 @@ function isActive(start: string, end: string): boolean {
 	return now >= s && now <= e;
 }
 
+const ELEMENT_ACCENT: Record<string, string> = {
+	Pyro: 'from-red-500/20 to-orange-500/10',
+	Hydro: 'from-blue-500/20 to-cyan-500/10',
+	Anemo: 'from-teal-500/20 to-emerald-500/10',
+	Electro: 'from-purple-500/20 to-violet-500/10',
+	Cryo: 'from-cyan-400/20 to-blue-400/10',
+	Geo: 'from-yellow-500/20 to-amber-500/10',
+	Dendro: 'from-green-500/20 to-lime-500/10',
+};
+
+// ── Autocomplete data ───────────────────────────────────────────────
+
+interface SuggestionItem {
+	type: 'character' | 'weapon';
+	id: string | number;
+	name: string;
+	rarity: number;
+	element?: string;
+	weaponType?: string;
+}
+
+function buildSuggestions(): SuggestionItem[] {
+	const items: SuggestionItem[] = [];
+	for (const c of ALL_CHARACTERS) {
+		items.push({ type: 'character', id: c.id, name: c.name, rarity: c.rarity, element: c.element });
+	}
+	for (const w of ALL_WEAPONS) {
+		if (w.rarity >= 4) {
+			items.push({ type: 'weapon', id: w.id, name: w.name, rarity: w.rarity, weaponType: w.type });
+		}
+	}
+	return items;
+}
+
+const ALL_SUGGESTIONS = buildSuggestions();
+
 // ── Main Client Component ───────────────────────────────────────────
 
 const INITIAL_COUNT = 5;
@@ -79,8 +116,31 @@ export function BannerHistoryClient({
 }) {
 	const [visibleCount, setVisibleCount] = useState(INITIAL_COUNT);
 	const [search, setSearch] = useState('');
+	const [showSuggestions, setShowSuggestions] = useState(false);
+	const searchRef = useRef<HTMLDivElement>(null);
+	const inputRef = useRef<HTMLInputElement>(null);
 	const sentinelRef = useRef<HTMLDivElement>(null);
 	const versionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+	// Close dropdown on outside click
+	useEffect(() => {
+		function handleClick(e: MouseEvent) {
+			if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+				setShowSuggestions(false);
+			}
+		}
+		document.addEventListener('mousedown', handleClick);
+		return () => document.removeEventListener('mousedown', handleClick);
+	}, []);
+
+	// Filter autocomplete suggestions
+	const suggestions = useMemo(() => {
+		const q = search.trim().toLowerCase();
+		if (!q || q.length < 1) return [];
+		return ALL_SUGGESTIONS
+			.filter((s) => s.name.toLowerCase().includes(q))
+			.slice(0, 8);
+	}, [search]);
 
 	// Filter groups by character/weapon search
 	const filteredGroups = useMemo(() => {
@@ -128,16 +188,19 @@ export function BannerHistoryClient({
 
 	const handleVersionSelect = useCallback((version: string) => {
 		if (!version) return;
-		// Ensure the selected version is visible
 		const idx = groups.findIndex((g) => g.version === version);
 		if (idx === -1) return;
 		setVisibleCount((prev) => Math.max(prev, idx + 1));
-		// Scroll after state update
 		requestAnimationFrame(() => {
 			const el = versionRefs.current.get(version);
 			if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 		});
 	}, [groups]);
+
+	const selectSuggestion = useCallback((name: string) => {
+		setSearch(name);
+		setShowSuggestions(false);
+	}, []);
 
 	return (
 		<div className='max-w-5xl mx-auto space-y-8'>
@@ -171,19 +234,84 @@ export function BannerHistoryClient({
 				)}
 			</div>
 
-			{/* Search */}
-			<div className='relative'>
-				<Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-guild-dim' />
-				<Input
+			{/* Search with autocomplete */}
+			<div ref={searchRef} className='relative'>
+				<Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-guild-dim z-10' />
+				<input
+					ref={inputRef}
 					value={search}
-					onChange={(e) => setSearch(e.target.value)}
+					onChange={(e) => { setSearch(e.target.value); setShowSuggestions(true); }}
+					onFocus={() => setShowSuggestions(true)}
 					placeholder='Search character or weapon...'
-					className='pl-9 bg-guild-card border-guild-border/30 text-sm h-9'
+					className='w-full pl-9 pr-20 bg-guild-card border border-guild-border/30 rounded-lg text-sm h-10 text-foreground placeholder:text-guild-dim focus:border-guild-accent focus:outline-none transition-colors'
 				/>
 				{search && (
-					<span className='absolute right-3 top-1/2 -translate-y-1/2 text-xs text-guild-muted'>
-						{filteredGroups.reduce((sum, g) => sum + g.phases.length, 0)} results
-					</span>
+					<div className='absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2'>
+						<span className='text-xs text-guild-muted'>
+							{filteredGroups.reduce((sum, g) => sum + g.phases.length, 0)} results
+						</span>
+						<button onClick={() => { setSearch(''); setShowSuggestions(false); }} className='p-0.5 hover:bg-guild-elevated rounded cursor-pointer'>
+							<X className='h-3.5 w-3.5 text-guild-dim' />
+						</button>
+					</div>
+				)}
+
+				{/* Autocomplete dropdown */}
+				{showSuggestions && suggestions.length > 0 && (
+					<div className='absolute top-full mt-1 left-0 right-0 bg-guild-card border border-guild-border/30 rounded-lg shadow-xl shadow-black/30 overflow-hidden z-50'>
+						{suggestions.map((s) => {
+							const EI = s.element ? ELEMENT_ICONS[s.element] : null;
+							return (
+								<button
+									key={`${s.type}-${s.id}`}
+									onClick={() => selectSuggestion(s.name)}
+									className='w-full flex items-center gap-3 px-3 py-2 hover:bg-guild-elevated/60 transition-colors cursor-pointer text-left'
+								>
+									{s.type === 'character' ? (
+										<div className={cn(
+											'w-8 h-8 rounded-full overflow-hidden relative shrink-0 ring-1',
+											s.rarity === 5 ? 'ring-amber-400/50' : 'ring-purple-400/50',
+										)}>
+											<Image
+												src={charIconUrl(s.id as string)}
+												alt={s.name}
+												fill
+												className='object-cover'
+												sizes='32px'
+												unoptimized
+											/>
+										</div>
+									) : (
+										<div className={cn(
+											'w-8 h-8 flex items-center justify-center rounded-lg shrink-0 ring-1',
+											s.rarity === 5 ? 'ring-amber-400/50 bg-amber-500/10' : 'ring-purple-400/50 bg-purple-500/10',
+										)}>
+											<Image
+												src={weaponIconUrl(s.id as number)}
+												alt={s.name}
+												width={24}
+												height={24}
+												className='object-contain'
+												sizes='24px'
+												unoptimized
+											/>
+										</div>
+									)}
+									<div className='flex-1 min-w-0'>
+										<div className='flex items-center gap-1.5'>
+											<span className='text-sm font-medium truncate'>{s.name}</span>
+											{EI && <EI size={14} />}
+										</div>
+										<span className='text-[10px] text-guild-dim'>
+											{s.type === 'character' ? 'Character' : 'Weapon'}
+											{' · '}
+											{s.rarity === 5 ? '★★★★★' : '★★★★'}
+										</span>
+									</div>
+								</button>
+							);
+						})}
+					</div>
 				)}
 			</div>
 
@@ -293,13 +421,18 @@ function CharacterBannerCard({
 		return () => clearInterval(timer);
 	}, [featured5.length]);
 
+	const primaryElement = featured5[activeIdx]?.element ?? featured5[0]?.element;
+	const gradientClass = primaryElement ? ELEMENT_ACCENT[primaryElement] : 'from-guild-accent/10 to-guild-card';
+
 	return (
 		<Card className={cn(
-			'overflow-hidden p-0 gap-0',
-			active ? 'border-guild-accent/40 ring-1 ring-guild-accent/20' : 'border-guild-border/30',
+			'overflow-hidden p-0 gap-0 transition-all duration-500',
+			active
+				? 'border-guild-accent/40 ring-1 ring-guild-accent/20 shadow-lg shadow-guild-accent/5'
+				: 'border-guild-border/30 hover:border-guild-border/50',
 		)}>
 			{/* Splash art area with crossfade */}
-			<div className='relative h-44 overflow-hidden bg-guild-card'>
+			<div className='relative h-48 overflow-hidden bg-guild-card'>
 				{featured5.length > 0 ? (
 					<>
 						{featured5.map((char, idx) => (
@@ -309,23 +442,25 @@ function CharacterBannerCard({
 									alt={char.name}
 									fill
 									className={cn(
-										'object-cover object-top transition-opacity duration-700',
-										idx === activeIdx ? 'opacity-70' : 'opacity-0',
+										'object-cover object-[50%_20%] transition-opacity duration-700',
+										idx === activeIdx ? 'opacity-80' : 'opacity-0',
 									)}
 									sizes='(max-width: 1024px) 100vw, 50vw'
 									unoptimized
 								/>
 							</Link>
 						))}
-						<div className='absolute inset-0 bg-gradient-to-t from-guild-card via-guild-card/30 to-transparent' />
+						{/* Element-tinted gradient overlay */}
+						<div className={cn('absolute inset-0 bg-gradient-to-t', gradientClass)} />
+						<div className='absolute inset-0 bg-gradient-to-t from-guild-card via-guild-card/40 to-transparent' />
 					</>
 				) : (
-					<div className='absolute inset-0 bg-gradient-to-br from-guild-accent/10 to-guild-card' />
+					<div className={cn('absolute inset-0 bg-gradient-to-br', gradientClass)} />
 				)}
 
 				{/* Banner type badge */}
-				<div className='absolute top-2 left-2'>
-					<Badge className='bg-black/50 backdrop-blur-sm text-white/80 border-white/10 text-[10px] gap-1'>
+				<div className='absolute top-2.5 left-2.5'>
+					<Badge className='bg-black/50 backdrop-blur-sm text-white/90 border-white/10 text-[11px] gap-1 px-2 py-0.5'>
 						<Sparkles className='h-3 w-3' />
 						Character
 					</Badge>
@@ -333,7 +468,7 @@ function CharacterBannerCard({
 
 				{/* Navigation dots for multiple chars */}
 				{featured5.length > 1 && (
-					<div className='absolute top-2 right-2 flex items-center gap-1'>
+					<div className='absolute top-2.5 right-2.5 flex items-center gap-1'>
 						{featured5.map((_, idx) => (
 							<button
 								key={idx}
@@ -341,7 +476,7 @@ function CharacterBannerCard({
 								className={cn(
 									'h-1.5 rounded-full transition-all duration-300 cursor-pointer',
 									idx === activeIdx
-										? 'w-4 bg-guild-accent'
+										? 'w-5 bg-guild-accent'
 										: 'w-1.5 bg-white/30 hover:bg-white/50',
 								)}
 							/>
@@ -350,22 +485,26 @@ function CharacterBannerCard({
 				)}
 
 				{/* Featured 5-star names */}
-				<div className='absolute bottom-2 left-3 right-3'>
+				<div className='absolute bottom-2.5 left-3 right-3'>
 					<div className='flex items-end gap-2 flex-wrap'>
 						{featured5.length > 0 ? (
-							featured5.map((char, idx) => (
-								<Link key={char.id} href={`/database/${char.id}`} className='hover:opacity-80'>
-									<span className={cn(
-										'font-bold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] transition-all duration-500',
-										idx === activeIdx ? 'text-xl' : 'text-base opacity-60',
-									)}>
-										{char.name}
-									</span>
-								</Link>
-							))
+							featured5.map((char, idx) => {
+								const EI = ELEMENT_ICONS[char.element];
+								return (
+									<Link key={char.id} href={`/database/${char.id}`} className='hover:opacity-80'>
+										<span className={cn(
+											'font-bold text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] transition-all duration-500 flex items-center gap-1.5',
+											idx === activeIdx ? 'text-xl' : 'text-sm opacity-50',
+										)}>
+											{char.name}
+											{idx === activeIdx && EI && <EI size={16} />}
+										</span>
+									</Link>
+								);
+							})
 						) : (
 							banner.featured.map((id) => (
-								<span key={id} className='text-xl font-bold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]'>
+								<span key={id} className='text-xl font-bold text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]'>
 									{id.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
 								</span>
 							))
@@ -375,30 +514,30 @@ function CharacterBannerCard({
 			</div>
 
 			{/* 4-star row */}
-			<CardContent className='px-3 py-2.5'>
-				<div className='flex items-center gap-2 flex-wrap'>
-					<span className='text-xs text-guild-dim font-medium shrink-0'>4&#9733;</span>
+			<CardContent className='px-3 py-3'>
+				<div className='flex items-center gap-2.5 flex-wrap'>
+					<span className='text-sm text-amber-400/80 font-semibold shrink-0'>4★</span>
 					{featured4.length > 0 ? (
 						featured4.map((char) => (
 							<Link key={char.id} href={`/database/${char.id}`} className='flex items-center gap-1.5 group/fc'>
-								<div className='w-7 h-7 rounded-full overflow-hidden border border-guild-border/50 relative shrink-0'>
+								<div className='w-8 h-8 rounded-full overflow-hidden border border-purple-400/30 relative shrink-0'>
 									<Image
 										src={charIconUrl(char.id)}
 										alt={char.name}
 										fill
 										className='object-cover'
-										sizes='28px'
+										sizes='32px'
 										unoptimized
 									/>
 								</div>
-								<span className='text-xs text-guild-muted group-hover/fc:text-white transition-colors'>
+								<span className='text-sm text-guild-muted group-hover/fc:text-white transition-colors'>
 									{char.name}
 								</span>
 							</Link>
 						))
 					) : (
 						banner.featuredRare.map((id) => (
-							<span key={id} className='text-xs text-guild-muted'>
+							<span key={id} className='text-sm text-guild-muted'>
 								{id.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
 							</span>
 						))
@@ -426,26 +565,31 @@ function WeaponBannerCard({
 
 	return (
 		<Card className={cn(
-			'overflow-hidden p-0 gap-0',
-			active ? 'border-purple-400/40 ring-1 ring-purple-400/20' : 'border-guild-border/30',
+			'overflow-hidden p-0 gap-0 transition-all duration-500',
+			active
+				? 'border-purple-400/40 ring-1 ring-purple-400/20 shadow-lg shadow-purple-500/5'
+				: 'border-guild-border/30 hover:border-guild-border/50',
 		)}>
-			<div className='relative h-44 overflow-hidden bg-guild-card'>
-				<div className='absolute inset-0 bg-gradient-to-br from-purple-500/5 via-guild-card to-guild-accent-2/5' />
+			<div className='relative h-48 overflow-hidden bg-guild-card'>
+				<div className='absolute inset-0 bg-gradient-to-br from-purple-500/8 via-guild-card to-amber-500/5' />
 
 				{/* Weapon icons */}
-				<div className='absolute inset-0 flex items-center justify-center gap-6'>
+				<div className='absolute inset-0 flex items-center justify-center gap-8'>
 					{featured5.length > 0 ? (
 						featured5.map((wpn) => (
-							<Link key={wpn.id} href={`/weapons/${wpn.id}`} className='hover:scale-110 transition-transform'>
-								<Image
-									src={weaponIconUrl(wpn.id)}
-									alt={wpn.name}
-									width={96}
-									height={96}
-									className='object-contain drop-shadow-[0_4px_16px_rgba(0,0,0,0.5)]'
-									sizes='96px'
-									unoptimized
-								/>
+							<Link key={wpn.id} href={`/weapons/${wpn.id}`} className='hover:scale-110 transition-transform duration-300'>
+								<div className='relative'>
+									<Image
+										src={weaponIconUrl(wpn.id)}
+										alt={wpn.name}
+										width={100}
+										height={100}
+										className='object-contain drop-shadow-[0_4px_20px_rgba(0,0,0,0.6)]'
+										sizes='100px'
+										unoptimized
+									/>
+									<div className='absolute inset-0 bg-gradient-to-t from-amber-500/10 to-transparent rounded-lg' />
+								</div>
 							</Link>
 						))
 					) : (
@@ -454,21 +598,21 @@ function WeaponBannerCard({
 				</div>
 
 				{/* Badge */}
-				<div className='absolute top-2 left-2'>
-					<Badge className='bg-black/50 backdrop-blur-sm text-white/80 border-white/10 text-[10px] gap-1'>
+				<div className='absolute top-2.5 left-2.5'>
+					<Badge className='bg-black/50 backdrop-blur-sm text-white/90 border-white/10 text-[11px] gap-1 px-2 py-0.5'>
 						<Swords className='h-3 w-3' />
 						Weapon
 					</Badge>
 				</div>
 
 				{/* Weapon names */}
-				<div className='absolute bottom-2 left-3 right-3'>
-					<div className='flex flex-col gap-0.5'>
+				<div className='absolute bottom-2.5 left-3 right-3'>
+					<div className='flex flex-col gap-1'>
 						{featured5.length > 0 ? (
 							featured5.map((wpn) => (
 								<Link key={wpn.id} href={`/weapons/${wpn.id}`} className='hover:opacity-80'>
 									<div className='flex items-center gap-1.5'>
-										<span className='text-base font-bold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]'>
+										<span className='text-base font-bold text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]'>
 											{wpn.name}
 										</span>
 										<RarityStars rarity={wpn.rarity} size='xs' />
@@ -477,7 +621,7 @@ function WeaponBannerCard({
 							))
 						) : (
 							banner.featured.map((id) => (
-								<span key={id} className='text-base font-bold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]'>
+								<span key={id} className='text-base font-bold text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]'>
 									{id.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
 								</span>
 							))
@@ -487,29 +631,29 @@ function WeaponBannerCard({
 			</div>
 
 			{/* 4-star weapons */}
-			<CardContent className='px-3 py-2.5'>
-				<div className='flex items-center gap-2 flex-wrap'>
-					<span className='text-xs text-guild-dim font-medium shrink-0'>4&#9733;</span>
+			<CardContent className='px-3 py-3'>
+				<div className='flex items-center gap-2.5 flex-wrap'>
+					<span className='text-sm text-purple-400/80 font-semibold shrink-0'>4★</span>
 					{featured4.length > 0 ? (
 						featured4.map((wpn) => (
 							<Link key={wpn.id} href={`/weapons/${wpn.id}`} className='flex items-center gap-1.5 group/fw'>
 								<Image
 									src={weaponIconUrl(wpn.id)}
 									alt={wpn.name}
-									width={22}
-									height={22}
+									width={24}
+									height={24}
 									className='object-contain shrink-0'
-									sizes='22px'
+									sizes='24px'
 									unoptimized
 								/>
-								<span className='text-xs text-guild-muted group-hover/fw:text-white transition-colors'>
+								<span className='text-sm text-guild-muted group-hover/fw:text-white transition-colors'>
 									{wpn.name}
 								</span>
 							</Link>
 						))
 					) : (
 						banner.featuredRare.map((id) => (
-							<span key={id} className='text-xs text-guild-muted'>
+							<span key={id} className='text-sm text-guild-muted'>
 								{id.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
 							</span>
 						))
