@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import useSWR from "swr";
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { ALL_CHARACTERS, charIconUrl } from "@/lib/characters";
-import type { CharacterEntry, Tier, Role, TierEntry } from "@/types";
+import type { CharacterEntry, Tier, Role } from "@/types";
 import { ELEMENT_ICONS } from "@/components/icons/genshin-icons";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Loader2, BarChart3, TrendingUp } from "lucide-react";
+import { Loader2, BarChart3, TrendingUp, RotateCcw } from "lucide-react";
 import type { AbyssRatesData, AbyssCharacterRate } from "@/app/api/abyss/route";
 import type { StygianRatesData, StygianCharacterRate } from "@/app/api/abyss/stygian/route";
 import {
@@ -36,6 +36,16 @@ const SOURCE_LABELS: Record<DataSource, string> = {
   combined: "Abyss + Stygian",
   abyss: "Abyss Only",
   stygian: "Stygian Only",
+};
+
+const CUSTOM_TIERLIST_KEY = "guild-custom-tierlist";
+
+const PLACEHOLDER_COLORS: Record<Tier, { border: string; bg: string }> = {
+  SS: { border: "border-red-400", bg: "bg-red-500/10" },
+  S: { border: "border-orange-400", bg: "bg-orange-500/10" },
+  A: { border: "border-purple-400", bg: "bg-purple-500/10" },
+  B: { border: "border-blue-400", bg: "bg-blue-500/10" },
+  C: { border: "border-gray-400", bg: "bg-gray-500/10" },
 };
 
 // ── Lookups ───────────────────────────────────────────────────────────
@@ -156,6 +166,33 @@ export default function TierListPage() {
   const [roleFilter, setRoleFilter] = useState<"All" | Role>("All");
   const [source, setSource] = useState<DataSource>("combined");
 
+  // ── Drag-and-drop state ─────────────────────────────────────────────
+  const [customOverrides, setCustomOverrides] = useState<Record<string, Tier>>({});
+  const [draggedCharId, setDraggedCharId] = useState<string | null>(null);
+  const [dragOverTier, setDragOverTier] = useState<Tier | null>(null);
+  const [dropIndex, setDropIndex] = useState<number>(-1);
+
+  // Load custom overrides from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(CUSTOM_TIERLIST_KEY);
+      if (stored) {
+        setCustomOverrides(JSON.parse(stored));
+      }
+    } catch {
+      // Ignore parse errors
+    }
+  }, []);
+
+  // Persist overrides to localStorage when they change
+  useEffect(() => {
+    if (Object.keys(customOverrides).length > 0) {
+      localStorage.setItem(CUSTOM_TIERLIST_KEY, JSON.stringify(customOverrides));
+    } else {
+      localStorage.removeItem(CUSTOM_TIERLIST_KEY);
+    }
+  }, [customOverrides]);
+
   const swrFetcher = (url: string) => fetch(url).then((r) => r.json()).then((d) => {
     if (d.error) throw new Error(d.error);
     return d;
@@ -180,17 +217,116 @@ export default function TierListPage() {
     return ranked.filter((entry) => entry.roles.includes(roleFilter));
   }, [ranked, roleFilter]);
 
-  // Group by tier
+  // Original tier map (for detecting moved characters)
+  const originalTierMap = useMemo(() => {
+    const map = new Map<string, Tier>();
+    for (const entry of filtered) {
+      map.set(entry.id, entry.tier);
+    }
+    return map;
+  }, [filtered]);
+
+  // Apply custom overrides on top of data-derived tiers
+  const withOverrides = useMemo(() => {
+    if (Object.keys(customOverrides).length === 0) return filtered;
+    return filtered.map((entry) => {
+      const override = customOverrides[entry.id];
+      if (override) {
+        return { ...entry, tier: override };
+      }
+      return entry;
+    });
+  }, [filtered, customOverrides]);
+
+  // Group by tier (using overridden tiers)
   const grouped = useMemo(() => {
     const map = new Map<Tier, RankedChar[]>();
     for (const tier of TIER_ORDER) {
       map.set(tier, []);
     }
-    for (const entry of filtered) {
+    for (const entry of withOverrides) {
       map.get(entry.tier)?.push(entry);
     }
     return map;
-  }, [filtered]);
+  }, [withOverrides]);
+
+  // ── Drag handlers ───────────────────────────────────────────────────
+
+  const handleDragStart = useCallback((e: React.DragEvent, charId: string) => {
+    e.dataTransfer.setData("text/plain", charId);
+    e.dataTransfer.effectAllowed = "move";
+    setDraggedCharId(charId);
+  }, []);
+
+  const handleDragEnd = useCallback(() => {
+    setDraggedCharId(null);
+    setDragOverTier(null);
+    setDropIndex(-1);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent, tier: Tier) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverTier(tier);
+
+    // Calculate insertion index based on cursor position relative to cards
+    const container = e.currentTarget as HTMLElement;
+    const cards = Array.from(container.querySelectorAll("[data-char-card]"));
+    let insertIdx = cards.length;
+
+    for (let i = 0; i < cards.length; i++) {
+      const rect = cards[i].getBoundingClientRect();
+      const midX = rect.left + rect.width / 2;
+      if (e.clientX < midX) {
+        insertIdx = i;
+        break;
+      }
+    }
+
+    setDropIndex(insertIdx);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    const related = e.relatedTarget as HTMLElement | null;
+    if (!related || !(e.currentTarget as HTMLElement).contains(related)) {
+      setDragOverTier(null);
+      setDropIndex(-1);
+    }
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent, tier: Tier) => {
+    e.preventDefault();
+    const charId = e.dataTransfer.getData("text/plain");
+    if (!charId) return;
+
+    const originalTier = originalTierMap.get(charId);
+
+    // If dropping back to original tier, remove the override
+    if (originalTier === tier) {
+      setCustomOverrides((prev) => {
+        const next = { ...prev };
+        delete next[charId];
+        return next;
+      });
+    } else {
+      setCustomOverrides((prev) => ({
+        ...prev,
+        [charId]: tier,
+      }));
+    }
+
+    setDraggedCharId(null);
+    setDragOverTier(null);
+    setDropIndex(-1);
+  }, [originalTierMap]);
+
+  const resetOverrides = useCallback(() => {
+    setCustomOverrides({});
+  }, []);
+
+  const hasCustomizations = Object.keys(customOverrides).length > 0;
+
+  // ── Render ──────────────────────────────────────────────────────────
 
   if (loading) {
     return (
@@ -224,6 +360,22 @@ export default function TierListPage() {
           </span>
         )}
       </div>
+
+      {/* Custom tier changes banner */}
+      {hasCustomizations && (
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-guild-accent/30 bg-guild-accent/5 px-4 py-2.5">
+          <span className="text-sm text-guild-accent font-medium">
+            You have custom tier changes
+          </span>
+          <button
+            onClick={resetOverrides}
+            className="flex items-center gap-1.5 rounded-md bg-guild-accent/15 px-3 py-1.5 text-xs font-medium text-guild-accent transition-colors hover:bg-guild-accent/25"
+          >
+            <RotateCcw className="h-3 w-3" />
+            Reset to Default
+          </button>
+        </div>
+      )}
 
       {/* Data source + Role Filter */}
       <Card className="p-4 gap-3">
@@ -279,8 +431,17 @@ export default function TierListPage() {
       <div className="space-y-3">
         {TIER_ORDER.map((tier) => {
           const entries = grouped.get(tier) || [];
-          if (entries.length === 0) return null;
           const colors = TIER_COLORS[tier];
+          const phColors = PLACEHOLDER_COLORS[tier];
+          const isDropTarget = dragOverTier === tier && draggedCharId != null;
+
+          // Don't hide empty tiers when dragging (user might want to drop there)
+          if (entries.length === 0 && !draggedCharId) return null;
+
+          // Build the list of rendered items, inserting placeholder at dropIndex
+          const renderItems: { type: "card"; entry: RankedChar }[] = entries
+            .filter((e) => e.id !== draggedCharId || dragOverTier !== tier)
+            .map((entry) => ({ type: "card" as const, entry }));
 
           return (
             <div
@@ -307,82 +468,144 @@ export default function TierListPage() {
                 </span>
               </div>
 
-              {/* Characters */}
-              <div className="flex-1 flex flex-wrap gap-2 p-3 bg-guild-card/50">
-                {entries.map((entry) => {
+              {/* Characters (drop zone) */}
+              <div
+                className={cn(
+                  "flex-1 flex flex-wrap gap-2 p-3 bg-guild-card/50 min-h-[96px] transition-colors",
+                  isDropTarget && "bg-guild-card/80"
+                )}
+                onDragOver={(e) => handleDragOver(e, tier)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, tier)}
+              >
+                {renderItems.map((item, idx) => {
+                  const { entry } = item;
                   const char = CHAR_BY_NAME.get(entry.name);
                   if (!char) return null;
                   const EI = ELEMENT_ICONS[char.element];
+                  const isMoved = customOverrides[entry.id] != null;
+                  const isDragged = draggedCharId === entry.id;
 
                   return (
-                    <Link
-                      key={entry.name}
-                      href={`/database/${char.id}`}
-                      className="group"
-                    >
-                      <div
-                        className={cn(
-                          "flex flex-col items-center gap-1 rounded-lg p-2 w-[72px] sm:w-[80px] transition-colors",
-                          "bg-guild-elevated/50 hover:bg-guild-elevated border border-transparent hover:border-guild-border"
-                        )}
-                        title={`${entry.name} — Pick rate: ${entry.score.toFixed(1)}%`}
-                      >
-                        {/* Icon */}
-                        <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden bg-guild-elevated/50">
-                          <Image
-                            src={charIconUrl(char.id)}
-                            alt={char.name}
-                            fill
-                            sizes="56px"
-                            className="object-cover"
-                            quality={100}
-                          />
-                          {EI && (
-                            <div className="absolute bottom-0 right-0 bg-black/70 rounded-full p-0.5">
-                              <EI size={12} />
-                            </div>
+                    <React.Fragment key={entry.id}>
+                      {/* Drop placeholder before this card */}
+                      {isDropTarget && dropIndex === idx && (
+                        <div
+                          className={cn(
+                            "flex flex-col items-center justify-center rounded-lg w-[72px] sm:w-[80px] h-[120px] sm:h-[136px]",
+                            "border-2 border-dashed transition-all duration-150",
+                            phColors.border,
+                            phColors.bg,
+                            "animate-in fade-in zoom-in-95"
                           )}
-                        </div>
-
-                        {/* Name */}
-                        <p className="text-[10px] sm:text-xs font-medium text-center text-foreground/90 leading-tight line-clamp-2 w-full">
-                          {char.name}
-                        </p>
-
-                        {/* Usage rate */}
-                        <div className="flex items-center gap-0.5">
-                          <TrendingUp className="h-2.5 w-2.5 text-guild-dim" />
-                          <span className="text-[9px] sm:text-[10px] text-guild-dim font-mono">
-                            {entry.score.toFixed(1)}%
-                          </span>
-                        </div>
-
-                        {/* Role badges */}
-                        {entry.roles.length > 0 && (
-                          <div className="flex flex-wrap justify-center gap-0.5">
-                            {entry.roles.map((role) => (
-                              <span
-                                key={role}
-                                className={cn(
-                                  "text-[8px] sm:text-[9px] px-1 py-px rounded-sm font-medium leading-tight",
-                                  ROLE_COLORS[role]
-                                )}
-                              >
-                                {role === "Main DPS"
-                                  ? "DPS"
-                                  : role === "Sub DPS"
-                                    ? "Sub"
-                                    : role === "Support"
-                                      ? "Sup"
-                                      : "Heal"}
-                              </span>
-                            ))}
-                          </div>
+                          aria-hidden
+                        />
+                      )}
+                      <div
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, entry.id)}
+                        onDragEnd={handleDragEnd}
+                        data-char-card
+                        className={cn(
+                          "group",
+                          isDragged && "opacity-50"
                         )}
+                      >
+                        <Link
+                          href={`/database/${char.id}`}
+                        >
+                          <div
+                            className={cn(
+                              "relative flex flex-col items-center gap-1 rounded-lg p-2 w-[72px] sm:w-[80px] transition-colors",
+                              "bg-guild-elevated/50 hover:bg-guild-elevated border hover:border-guild-border",
+                              isMoved
+                                ? "border-guild-accent/40"
+                                : "border-transparent"
+                            )}
+                            title={`${entry.name} — Pick rate: ${entry.score.toFixed(1)}%`}
+                          >
+                            {/* Moved indicator dot */}
+                            {isMoved && (
+                              <div className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-guild-accent" />
+                            )}
+
+                            {/* Icon */}
+                            <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden bg-guild-elevated/50">
+                              <Image
+                                src={charIconUrl(char.id)}
+                                alt={char.name}
+                                fill
+                                sizes="56px"
+                                className="object-cover"
+                                quality={100}
+                              />
+                              {EI && (
+                                <div className="absolute bottom-0 right-0 bg-black/70 rounded-full p-0.5">
+                                  <EI size={12} />
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Name */}
+                            <p className="text-[10px] sm:text-xs font-medium text-center text-foreground/90 leading-tight line-clamp-2 w-full">
+                              {char.name}
+                            </p>
+
+                            {/* Usage rate */}
+                            <div className="flex items-center gap-0.5">
+                              <TrendingUp className="h-2.5 w-2.5 text-guild-dim" />
+                              <span className="text-[9px] sm:text-[10px] text-guild-dim font-mono">
+                                {entry.score.toFixed(1)}%
+                              </span>
+                            </div>
+
+                            {/* Role badges */}
+                            {entry.roles.length > 0 && (
+                              <div className="flex flex-wrap justify-center gap-0.5">
+                                {entry.roles.map((role) => (
+                                  <span
+                                    key={role}
+                                    className={cn(
+                                      "text-[8px] sm:text-[9px] px-1 py-px rounded-sm font-medium leading-tight",
+                                      ROLE_COLORS[role]
+                                    )}
+                                  >
+                                    {role === "Main DPS"
+                                      ? "DPS"
+                                      : role === "Sub DPS"
+                                        ? "Sub"
+                                        : role === "Support"
+                                          ? "Sup"
+                                          : "Heal"}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </Link>
                       </div>
-                    </Link>
+                    </React.Fragment>
                   );
                 })}
+                {/* Drop placeholder at end of list */}
+                {isDropTarget && dropIndex >= renderItems.length && (
+                  <div
+                    className={cn(
+                      "flex flex-col items-center justify-center rounded-lg w-[72px] sm:w-[80px] h-[120px] sm:h-[136px]",
+                      "border-2 border-dashed transition-all duration-150",
+                      phColors.border,
+                      phColors.bg,
+                      "animate-in fade-in zoom-in-95"
+                    )}
+                    aria-hidden
+                  />
+                )}
+                {/* Empty tier message when dragging */}
+                {entries.length === 0 && draggedCharId && !isDropTarget && (
+                  <div className="flex items-center justify-center w-full text-xs text-guild-dim">
+                    Drop here
+                  </div>
+                )}
               </div>
             </div>
           );
