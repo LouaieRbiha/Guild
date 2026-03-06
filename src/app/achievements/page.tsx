@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMounted } from '@/hooks/use-mounted';
 import {
   Search,
   Check,
@@ -209,7 +210,7 @@ function saveCompletedIds(ids: Set<string>) {
 
 export default function AchievementsPage() {
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<AchievementCategory | 'All'>('All');
   const [completionFilter, setCompletionFilter] = useState<CompletionFilter>('all');
@@ -218,7 +219,6 @@ export default function AchievementsPage() {
   // Load from localStorage on mount
   useEffect(() => {
     setCompletedIds(loadCompletedIds());
-    setMounted(true);
   }, []);
 
   // Persist when completedIds change

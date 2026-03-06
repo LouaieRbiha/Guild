@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMounted } from '@/hooks/use-mounted';
 import { CalendarCheck, Check, Gift, Sparkles, Star, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PrimogemIcon } from '@/components/icons/genshin-icons';
@@ -123,7 +124,7 @@ export default function DailyCheckInPage() {
 		lastClaimDate: null,
 	});
 	const [claimAnim, setClaimAnim] = useState<number | null>(null);
-	const [mounted, setMounted] = useState(false);
+	const mounted = useMounted();
 
 	// Load from localStorage on mount
 	useEffect(() => {
@@ -146,7 +147,6 @@ export default function DailyCheckInPage() {
 		}
 
 		setState(loaded);
-		setMounted(true);
 	}, []);
 
 	// Persist whenever state changes (after mount)

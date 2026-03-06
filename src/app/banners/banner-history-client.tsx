@@ -4,7 +4,7 @@ import type { BannerHistoryEntry } from '@/app/api/banners/history/route';
 import { ALL_CHARACTERS, charGachaUrl, charIconUrl } from '@/lib/characters';
 import { weaponIconUrl } from '@/lib/constants';
 import { ALL_WEAPONS } from '@/lib/weapons';
-import { cn } from '@/lib/utils';
+import { cn, formatDateShort } from '@/lib/utils';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -51,11 +51,6 @@ export interface ResolvedVersionGroup {
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────
-
-function formatDateShort(dateStr: string): string {
-	const d = new Date(dateStr.replace(' ', 'T') + 'Z');
-	return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
 
 function isActive(start: string, end: string, now: Date): boolean {
 	const s = new Date(start.replace(' ', 'T') + 'Z');
@@ -357,7 +352,7 @@ export function BannerHistoryClient({
 												Phase {phaseIdx + 1}
 											</span>
 											<span className='text-xs text-guild-dim'>
-												{formatDateShort(phase.start)} &mdash; {formatDateShort(phase.end)}
+												{formatDateShort(phase.start, true)} &mdash; {formatDateShort(phase.end, true)}
 											</span>
 											{active && (
 												<Badge className='bg-green-500/15 text-green-400 border-green-500/30 text-[10px] px-1.5 py-0'>

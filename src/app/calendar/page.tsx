@@ -19,7 +19,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatDateShort, formatDateRange, daysUntil } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Countdown } from "@/components/shared";
 import { CURRENT_VERSION, PERMANENT_EVENTS } from "@/data/events";
@@ -73,24 +73,6 @@ const TYPE_CONFIG: Record<
     icon: RefreshCw,
   },
 };
-
-// ── Helpers ─────────────────────────────────────────────────────────────
-
-function formatDateShort(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-}
-
-function formatDateRange(start: string, end: string): string {
-  return `${formatDateShort(start)} — ${formatDateShort(end)}`;
-}
-
-function daysUntil(dateStr: string): number {
-  const diff = new Date(dateStr).getTime() - Date.now();
-  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
-}
 
 function daysBetween(startStr: string, endStr: string): number {
   const diff = new Date(endStr).getTime() - new Date(startStr).getTime();

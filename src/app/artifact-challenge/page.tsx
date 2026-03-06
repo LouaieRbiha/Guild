@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMounted } from '@/hooks/use-mounted';
 import { cn } from '@/lib/utils';
 import {
 	Award,
@@ -237,13 +238,12 @@ export default function ArtifactChallengePage() {
 		highestCV: 0,
 		history: [],
 	});
-	const [mounted, setMounted] = useState(false);
+	const mounted = useMounted();
 	const [rollAnim, setRollAnim] = useState(false);
 
 	// Load stats on mount
 	useEffect(() => {
 		setStats(loadStats());
-		setMounted(true);
 	}, []);
 
 	// Save stats when changed

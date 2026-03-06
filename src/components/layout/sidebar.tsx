@@ -136,7 +136,6 @@ export function Sidebar() {
 	const [showLeaks, setShowLeaks] = useState(false);
 	const [hasNewLeaks, setHasNewLeaks] = useState(false);
 	const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
-	const [mounted, setMounted] = useState(false);
 
 	// Load collapsed state & leaks setting
 	useEffect(() => {
@@ -151,7 +150,6 @@ export function Sidebar() {
 				setShowLeaks(parsed.showLeaks ?? false);
 			}
 		} catch {}
-		setMounted(true);
 
 		function handleSettingsChange(e: Event) {
 			const detail = (e as CustomEvent).detail;
