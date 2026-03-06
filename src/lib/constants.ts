@@ -58,7 +58,7 @@ export function elementIconUrl(element: string): string {
 }
 
 export function weaponIconUrl(id: number): string {
-  return `/api/images/weapons/${id}/icon.png`;
+  return `/assets/weapons/${id}/icon.png`;
 }
 
 export const SUBSTAT_COLORS: Record<string, string> = {
