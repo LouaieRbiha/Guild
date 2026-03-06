@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ElementBadge } from "@/components/shared";
 import { ALL_CHARACTERS, charIconUrl } from "@/lib/characters";
-import { ELEMENT_COLORS } from "@/lib/constants";
+import { ELEMENT_COLORS, YATTA_MONSTER } from "@/lib/constants";
 import {
   ABYSS_FLOORS,
   ABYSS_VERSION,
@@ -50,13 +50,28 @@ const ELEMENT_BAR_COLORS: Record<string, string> = {
 // ── Enemy Row ────────────────────────────────────────────────────────────
 
 function EnemyRow({ enemy }: { enemy: AbyssEnemy }) {
+  const [imgError, setImgError] = useState(false);
   return (
     <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-white/3 hover:bg-white/6 transition-colors">
       <div className="flex items-center gap-2 min-w-0">
-        <span className={cn(
-          "w-2 h-2 rounded-full shrink-0",
-          enemy.element ? (ELEMENT_BAR_COLORS[enemy.element] ?? "bg-gray-500") : "bg-gray-600"
-        )} />
+        {enemy.icon && !imgError ? (
+          <div className="w-6 h-6 rounded overflow-hidden bg-white/5 shrink-0">
+            <Image
+              src={`${YATTA_MONSTER}/${enemy.icon}.png`}
+              alt={enemy.name}
+              width={24}
+              height={24}
+              className="object-cover"
+              onError={() => setImgError(true)}
+              unoptimized
+            />
+          </div>
+        ) : (
+          <span className={cn(
+            "w-2 h-2 rounded-full shrink-0",
+            enemy.element ? (ELEMENT_BAR_COLORS[enemy.element] ?? "bg-gray-500") : "bg-gray-600"
+          )} />
+        )}
         <span className="text-sm text-foreground truncate">{enemy.name}</span>
         {enemy.element && <ElementBadge element={enemy.element} showIcon className="text-[10px] shrink-0" />}
       </div>

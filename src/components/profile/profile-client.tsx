@@ -19,6 +19,8 @@ import {
 	elBg,
 	elColor,
 	estimateResin,
+	estimateResinForPiece,
+	getPieceRoast,
 	getRoast,
 	getTier,
 	getTierLabel,
@@ -28,6 +30,7 @@ import {
 	scoreColor,
 	tierBadge,
 } from '@/lib/scoring';
+import { CHARACTER_BUILDS } from '@/data/character-builds';
 import { cn } from '@/lib/utils';
 import { Download, Share2, Trophy } from 'lucide-react';
 import Image from 'next/image';
@@ -78,8 +81,12 @@ const ROLL_QUALITY_COLORS = {
 	low: 'text-guild-muted',
 };
 
-// Crit-relevant substats for DPS characters
-const CRIT_SUBS = ['CRIT Rate', 'CRIT DMG'];
+// Get important substats for a character from build data, fallback to CRIT stats
+function getImportantSubs(charName: string): string[] {
+	const build = CHARACTER_BUILDS[charName];
+	if (build) return build.substats;
+	return ['CRIT Rate', 'CRIT DMG'];
+}
 
 interface ProfileClientProps {
 	profile: EnkaProfile;
@@ -109,6 +116,39 @@ export function ProfileClient({
 
 	// Akasha leaderboard ranking for the selected character (if available)
 	const ranking = rankings[selected.name];
+
+	const importantSubs = getImportantSubs(selected.name);
+
+	// Aggregate total rolls per substat across all artifacts
+	const totalRolls: Record<string, { rolls: number; value: number; quality: 'high' | 'mid' | 'low' }> = {};
+	for (const art of selected.artifacts) {
+		for (const sub of art.substats) {
+			const rolls = estimateRollCount(sub.name, sub.value);
+			const numVal = parseFloat(sub.value);
+			if (isNaN(numVal)) continue;
+			if (!totalRolls[sub.name]) {
+				totalRolls[sub.name] = { rolls: 0, value: 0, quality: 'low' };
+			}
+			totalRolls[sub.name].rolls += rolls;
+			totalRolls[sub.name].value += numVal;
+		}
+	}
+	// Calculate overall quality for each aggregated substat
+	for (const [name, data] of Object.entries(totalRolls)) {
+		const tiers = ROLL_VALUES[name];
+		if (!tiers) continue;
+		const maxPossible = tiers[3] * data.rolls;
+		const ratio = data.value / maxPossible;
+		data.quality = ratio >= 0.85 ? 'high' : ratio >= 0.65 ? 'mid' : 'low';
+	}
+
+	// Sort: important subs first, then by roll count
+	const sortedRollEntries = Object.entries(totalRolls).sort(([aName, aData], [bName, bData]) => {
+		const aImp = importantSubs.includes(aName) ? 0 : 1;
+		const bImp = importantSubs.includes(bName) ? 0 : 1;
+		if (aImp !== bImp) return aImp - bImp;
+		return bData.rolls - aData.rolls;
+	});
 
 	return (
 		<div className='max-w-5xl mx-auto space-y-6'>
@@ -456,11 +496,13 @@ export function ProfileClient({
 								{selected.artifacts.map((a, i) => {
 									const s = artifactScores[i];
 									const SI = SLOT_ICONS[a.slot];
+									const pieceRoast = getPieceRoast(s, `${profile.uid}-${selected.name}-${a.slot}`);
 									return (
 										<div
 											key={a.slot}
-											className='flex items-center gap-3 p-3 rounded-lg bg-guild-elevated border border-white/5'
+											className='rounded-lg bg-guild-elevated border border-white/5 overflow-hidden'
 										>
+											<div className='flex items-center gap-3 p-3'>
 											{a.icon && (
 												<div className='w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-guild-card border border-white/5'>
 													<FallbackImage
@@ -483,33 +525,38 @@ export function ProfileClient({
 														{a.mainStat}
 													</span>
 												</div>
-												<div className='flex flex-wrap gap-x-3 gap-y-1 mt-1'>
+												<div className='grid grid-cols-2 gap-x-3 gap-y-1.5 mt-1'>
 													{a.substats.map((sub) => {
 														const rolls = estimateRollCount(
 															sub.name,
 															sub.value,
 														);
 														const quality = rollQuality(sub.name, sub.value);
-														const isCrit = CRIT_SUBS.includes(sub.name);
+														const isImportant = importantSubs.includes(sub.name);
 														return (
-															<span
+															<div
 																key={sub.name}
 																className={cn(
-																	'text-xs flex items-center gap-1',
-																	isCrit
+																	'flex flex-col',
+																	isImportant
 																		? 'text-white font-medium'
 																		: ROLL_QUALITY_COLORS[quality],
 																)}
 															>
-																{sub.name}{' '}
-																<span className='font-mono'>{sub.value}</span>
-																{/* Roll dots */}
-																<span className='flex items-center gap-px ml-0.5'>
-																	{Array.from({ length: Math.min(rolls, 5) }).map((_, dotIdx) => (
+																<span className='text-xs flex items-center gap-1'>
+																	{isImportant && (
+																		<span className='w-1 h-1 rounded-full bg-guild-accent shrink-0' />
+																	)}
+																	{sub.name}{' '}
+																	<span className='font-mono'>{sub.value}</span>
+																</span>
+																{/* Roll dots below the substat */}
+																<span className='flex items-center gap-0.5 mt-0.5 ml-0.5'>
+																	{Array.from({ length: Math.min(rolls, 6) }).map((_, dotIdx) => (
 																		<span
 																			key={dotIdx}
 																			className={cn(
-																				'w-1 h-1 rounded-full',
+																				'w-1.5 h-1.5 rounded-full',
 																				quality === 'high'
 																					? 'bg-emerald-400'
 																					: quality === 'mid'
@@ -519,7 +566,7 @@ export function ProfileClient({
 																		/>
 																	))}
 																</span>
-															</span>
+															</div>
 														);
 													})}
 												</div>
@@ -547,7 +594,20 @@ export function ProfileClient({
 														</div>
 													) : null;
 												})()}
+												<div className='text-[9px] text-guild-dim font-mono'>
+													~{estimateResinForPiece(s).resin}
+												</div>
 											</div>
+											</div>
+											{/* Per-piece roast for extreme pieces */}
+											{pieceRoast && (
+												<div className={cn(
+													'text-[11px] italic px-3 pb-2',
+													s <= 35 ? 'text-red-400/70' : 'text-emerald-400/70',
+												)}>
+													{pieceRoast}
+												</div>
+											)}
 										</div>
 									);
 								})}
@@ -557,12 +617,206 @@ export function ProfileClient({
 									</p>
 								)}
 							</div>
+
+							{/* Total Roll Summary */}
+							{sortedRollEntries.length > 0 && (
+								<div className='mt-3 p-3 rounded-lg bg-guild-card border border-white/5'>
+									<h4 className='text-[10px] font-medium text-guild-muted uppercase tracking-wider mb-2'>
+										Total Rolls
+									</h4>
+									<div className='flex flex-wrap gap-x-4 gap-y-2'>
+										{sortedRollEntries.map(([name, data]) => {
+											const isImportant = importantSubs.includes(name);
+											const isPercent = name.includes('%') || name === 'CRIT Rate' || name === 'CRIT DMG' || name === 'Energy Recharge';
+											return (
+												<div
+													key={name}
+													className={cn(
+														'flex items-center gap-1.5 text-xs',
+														isImportant
+															? 'text-white font-medium'
+															: 'text-guild-muted',
+													)}
+												>
+													<span className={cn(
+														'font-mono text-[11px] font-bold px-1 py-0.5 rounded',
+														data.quality === 'high'
+															? 'bg-emerald-500/20 text-emerald-400'
+															: data.quality === 'mid'
+																? 'bg-yellow-500/20 text-yellow-400'
+																: 'bg-white/5 text-guild-dim',
+													)}>
+														x{data.rolls}
+													</span>
+													<span>{name}</span>
+													<span className='font-mono text-guild-dim'>
+														{data.value.toFixed(isPercent ? 1 : 0)}{isPercent ? '%' : ''}
+													</span>
+												</div>
+											);
+										})}
+									</div>
+								</div>
+							)}
+
+							{/* Recommended Substats */}
+							{CHARACTER_BUILDS[selected.name] && (
+								<div className='mt-2 flex items-center gap-2 flex-wrap'>
+									<span className='text-[10px] font-medium text-guild-muted uppercase tracking-wider'>
+										Priority:
+									</span>
+									{CHARACTER_BUILDS[selected.name].substats.map((sub, i) => (
+										<span
+											key={sub}
+											className={cn(
+												'text-[10px] px-1.5 py-0.5 rounded',
+												i === 0
+													? 'bg-guild-accent/20 text-guild-accent font-medium'
+													: 'bg-white/5 text-guild-dim',
+											)}
+										>
+											{sub}
+										</span>
+									))}
+								</div>
+							)}
 						</div>
 					</div>
 				</div>
 			</div>
 
-			{/* THE ROAST 🔥 */}
+			{/* BUILD IMPROVEMENT */}
+			{selected.artifacts.length > 0 && CHARACTER_BUILDS[selected.name] && (() => {
+				const build = CHARACTER_BUILDS[selected.name];
+				// Analyze current sets
+				const setCounts: Record<string, number> = {};
+				for (const a of selected.artifacts) {
+					setCounts[a.set] = (setCounts[a.set] || 0) + 1;
+				}
+				// Check if current sets match recommended
+				const has4pc = Object.values(setCounts).some(c => c >= 4);
+				const recSets = build.artifactSets;
+				const matchedSets = recSets.filter(s => setCounts[s] && setCounts[s] >= 2);
+
+				// Find weakest piece (lowest score)
+				const weakestIdx = artifactScores.indexOf(Math.min(...artifactScores));
+				const weakestArt = selected.artifacts[weakestIdx];
+
+				// Check main stats for sands/goblet/circlet
+				const mainStatIssues: { slot: string; current: string; recommended: string }[] = [];
+				for (const a of selected.artifacts) {
+					const slot = a.slot.toLowerCase();
+					let rec: string | undefined;
+					if (slot.includes('sands') || slot.includes('hourglass')) rec = build.mainStats.sands;
+					else if (slot.includes('goblet') || slot.includes('cup')) rec = build.mainStats.goblet;
+					else if (slot.includes('circlet') || slot.includes('crown') || slot.includes('hat')) rec = build.mainStats.circlet;
+					if (rec) {
+						const recOptions = rec.split('/').map(s => s.trim());
+						const currentMain = a.mainStat.replace(/[0-9.%+]+/g, '').trim();
+						const matches = recOptions.some(r => currentMain.toLowerCase().includes(r.toLowerCase()) || r.toLowerCase().includes(currentMain.toLowerCase()));
+						if (!matches) {
+							mainStatIssues.push({ slot: a.slot, current: a.mainStat, recommended: rec });
+						}
+					}
+				}
+
+				return (
+					<div className='guild-card p-5 space-y-4'>
+						<h3 className='text-sm font-bold flex items-center gap-2 text-guild-muted uppercase tracking-wider'>
+							How to Improve
+						</h3>
+
+						{/* Set Analysis */}
+						<div className='space-y-2'>
+							<div className='text-xs text-guild-muted'>Current Sets</div>
+							<div className='flex flex-wrap gap-2'>
+								{Object.entries(setCounts).map(([set, count]) => {
+									const isRec = recSets.includes(set);
+									return (
+										<span
+											key={set}
+											className={cn(
+												'text-xs px-2 py-1 rounded border',
+												isRec
+													? 'bg-green-500/10 border-green-500/20 text-green-400'
+													: 'bg-white/5 border-white/5 text-guild-muted',
+											)}
+										>
+											{count}pc {set}
+										</span>
+									);
+								})}
+							</div>
+							{matchedSets.length === 0 && (
+								<p className='text-xs text-orange-400'>
+									None of your sets match recommendations. Consider farming: {recSets.join(', ')}
+								</p>
+							)}
+							{matchedSets.length > 0 && !has4pc && recSets.length === 1 && (
+								<p className='text-xs text-yellow-400'>
+									You have a 2pc {matchedSets[0]} but this character benefits from a full 4pc. Farm more pieces to complete the set.
+								</p>
+							)}
+						</div>
+
+						{/* Recommended Sets */}
+						<div className='space-y-2'>
+							<div className='text-xs text-guild-muted'>Recommended Sets</div>
+							<div className='flex flex-wrap gap-2'>
+								{recSets.map((set) => (
+									<span
+										key={set}
+										className='text-xs px-2 py-1 rounded bg-guild-accent/10 border border-guild-accent/20 text-guild-accent'
+									>
+										{recSets.length === 1 ? '4pc' : '2pc'} {set}
+									</span>
+								))}
+							</div>
+						</div>
+
+						{/* Main Stat Issues */}
+						{mainStatIssues.length > 0 && (
+							<div className='space-y-2'>
+								<div className='text-xs text-orange-400 font-medium'>Main Stat Mismatches</div>
+								{mainStatIssues.map((issue) => (
+									<div key={issue.slot} className='text-xs flex items-center gap-2'>
+										<span className='text-guild-muted'>{issue.slot}:</span>
+										<span className='text-red-400 line-through'>{issue.current}</span>
+										<span className='text-guild-dim'>→</span>
+										<span className='text-green-400'>{issue.recommended}</span>
+									</div>
+								))}
+							</div>
+						)}
+
+						{/* Weakest Piece */}
+						{weakestArt && (
+							<div className='p-3 rounded-lg bg-red-500/5 border border-red-500/10'>
+								<div className='text-xs text-red-400 font-medium mb-1'>Weakest Piece</div>
+								<div className='text-xs text-guild-muted'>
+									<span className='text-white'>{weakestArt.slot}</span>
+									{' '}— scored {artifactScores[weakestIdx]}/100 ({grade(artifactScores[weakestIdx])}).
+									Replacing this piece would improve your build the most.
+								</div>
+							</div>
+						)}
+
+						{/* Main Stats Recommendation */}
+						<div className='grid grid-cols-3 gap-2'>
+							{(['sands', 'goblet', 'circlet'] as const).map((slot) => (
+								<div key={slot} className='text-center p-2 rounded bg-white/5'>
+									<div className='text-[10px] text-guild-muted uppercase'>{slot}</div>
+									<div className='text-xs text-white font-medium mt-0.5'>
+										{build.mainStats[slot]}
+									</div>
+								</div>
+							))}
+						</div>
+					</div>
+				);
+			})()}
+
+			{/* THE ROAST */}
 			{selected.artifacts.length > 0 && (
 				<div className='guild-card p-6 space-y-6 guild-glow'>
 					<div className='flex items-center justify-between'>

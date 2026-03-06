@@ -491,7 +491,12 @@ export function HomeClient({
 											</div>
 
 											{bannerEndDate && (
-												<Countdown target={bannerEndDate} label='Ends in' />
+												<div className='space-y-1'>
+													<Countdown target={bannerEndDate} label='Ends in' />
+													<div className='text-[10px] text-guild-dim text-right'>
+														{bannerEndDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+													</div>
+												</div>
 											)}
 										</div>
 									</div>
@@ -625,10 +630,15 @@ export function HomeClient({
 											<span className='text-sm text-guild-muted drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]'>
 												Weapon Event Wish
 											</span>
-											<Countdown
-												target={parseBannerDate(weaponBanner.end)}
-												label='Ends in'
-											/>
+											<div className='space-y-1'>
+												<Countdown
+													target={parseBannerDate(weaponBanner.end)}
+													label='Ends in'
+												/>
+												<div className='text-[10px] text-guild-dim text-right'>
+													{parseBannerDate(weaponBanner.end).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+												</div>
+											</div>
 										</div>
 									</div>
 								</Card>
@@ -836,10 +846,15 @@ export function HomeClient({
 												<span className='text-sm text-guild-muted drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]'>
 													Weapon Event Wish
 												</span>
-												<Countdown
-													target={parseBannerDate(weaponBanner.end)}
-													label='Ends in'
-												/>
+												<div className='space-y-1'>
+													<Countdown
+														target={parseBannerDate(weaponBanner.end)}
+														label='Ends in'
+													/>
+													<div className='text-[10px] text-guild-dim text-right'>
+														{parseBannerDate(weaponBanner.end).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+													</div>
+												</div>
 											</div>
 										</div>
 									</Card>

@@ -3,6 +3,7 @@ export interface AbyssEnemy {
   element?: string;  // element affinity if relevant
   hp?: string;       // e.g., "350,000"
   notes?: string;
+  icon?: string;     // Yatta.moe monster icon ID
 }
 
 export interface EnemyResistance {
@@ -89,7 +90,7 @@ export const ABYSS_FLOORS: AbyssFloor[] = [
           { name: "Cutting Edge All-Purpose Storm Landcruiser x1" },
         ],
         secondHalf: [
-          { name: "Ruin Grader", hp: "400,000" },
+          { name: "Ruin Grader", hp: "400,000", icon: "UI_MonsterIcon_Konungmathr" },
         ],
       },
       {
@@ -99,7 +100,7 @@ export const ABYSS_FLOORS: AbyssFloor[] = [
           { name: "Force Recon Scout Landcruiser x3" },
         ],
         secondHalf: [
-          { name: "Blazing Brilliance: Frostnight Scion", hp: "500,000", element: "Cryo" },
+          { name: "Blazing Brilliance: Frostnight Scion", hp: "500,000", element: "Cryo", icon: "UI_MonsterIcon_Moonbeast_Ice" },
         ],
       },
     ],
@@ -116,7 +117,7 @@ export const ABYSS_FLOORS: AbyssFloor[] = [
           { name: "Oprichniki Fireblade Shock Trooper x1" },
         ],
         secondHalf: [
-          { name: "Foliar-Swift Wayob Manifestation", hp: "500,000", element: "Dendro" },
+          { name: "Foliar-Swift Wayob Manifestation", hp: "500,000", element: "Dendro", icon: "UI_MonsterIcon_Fungus_Raptor_05" },
         ],
       },
       {
@@ -127,7 +128,7 @@ export const ABYSS_FLOORS: AbyssFloor[] = [
           { name: "Oprichniki Thunderblitz Gvardiya x1", element: "Electro" },
         ],
         secondHalf: [
-          { name: "Tangled Vines: Frostnight Scion", hp: "550,000", element: "Cryo" },
+          { name: "Tangled Vines: Frostnight Scion", hp: "550,000", element: "Cryo", icon: "UI_MonsterIcon_Moonbeast_Ice" },
         ],
       },
       {
@@ -138,7 +139,7 @@ export const ABYSS_FLOORS: AbyssFloor[] = [
           { name: "Oprichniki Hailstorm Canoneer x1", element: "Cryo" },
         ],
         secondHalf: [
-          { name: "Radiant Bladehorn", hp: "600,000", element: "Pyro" },
+          { name: "Radiant Bladehorn", hp: "600,000", element: "Pyro", icon: "UI_MonsterIcon_Magbeast_Rhino" },
         ],
       },
     ],
@@ -154,7 +155,7 @@ export const ABYSS_FLOORS: AbyssFloor[] = [
           { name: "Pyro Slime x40", element: "Pyro" },
         ],
         secondHalf: [
-          { name: "Primordial Bathysmal Vishap x12", element: "Hydro" },
+          { name: "Primordial Bathysmal Vishap x12", element: "Hydro", icon: "UI_MonsterIcon_Drake_Deepsea_Water" },
         ],
         tips: "Use AoE Hydro to clear the slime waves quickly. Vishaps spawn in groups of 3.",
       },
@@ -173,10 +174,10 @@ export const ABYSS_FLOORS: AbyssFloor[] = [
       {
         chamber: 3,
         firstHalf: [
-          { name: "Radiant Glacial Wolf", hp: "800,000", element: "Cryo" },
+          { name: "Radiant Glacial Wolf", hp: "800,000", element: "Cryo", icon: "UI_MonsterIcon_Magbeast_Steppenwolf" },
         ],
         secondHalf: [
-          { name: "Tainted Water-Spouting Phantasm", hp: "700,000", element: "Hydro" },
+          { name: "Tainted Water-Spouting Phantasm", hp: "700,000", element: "Hydro", icon: "UI_MonsterIcon_Necalevia_Big" },
         ],
         tips: "Hydro DPS for wolf, Geo DPS for phantasm. Match the floor disorder bonuses.",
       },
@@ -189,17 +190,17 @@ export const ABYSS_FLOORS: AbyssFloor[] = [
       {
         chamber: 1,
         firstHalf: [
-          { name: "Fishers of Hidden Depths x15", element: "Hydro" },
+          { name: "Fishers of Hidden Depths x15", element: "Hydro", icon: "UI_MonsterIcon_Lloigor_Sub" },
         ],
         secondHalf: [
-          { name: "Frostnight Herra", hp: "900,000", element: "Cryo", notes: "Cryo boss with shield phase" },
+          { name: "Frostnight Herra", hp: "900,000", element: "Cryo", notes: "Cryo boss with shield phase", icon: "UI_MonsterIcon_HerraFrost" },
         ],
       },
       {
         chamber: 2,
         firstHalf: [
-          { name: "Sternshield Crab x2", element: "Geo" },
-          { name: "Emperor of Fire and Iron", hp: "1,000,000", element: "Pyro", notes: "Boss wave 2" },
+          { name: "Sternshield Crab x2", element: "Geo", icon: "UI_MonsterIcon_HermitCrab_Primo" },
+          { name: "Emperor of Fire and Iron", hp: "1,000,000", element: "Pyro", notes: "Boss wave 2", icon: "UI_MonsterIcon_HermitCrab_Primo" },
         ],
         secondHalf: [
           { name: "Wilderness Hunter x4" },
@@ -209,10 +210,10 @@ export const ABYSS_FLOORS: AbyssFloor[] = [
       {
         chamber: 3,
         firstHalf: [
-          { name: "Lord of the Hidden Depths — Whisperer of Nightmares", hp: "1,800,000", element: "Hydro", notes: "Final boss — use Electro for Lunar-Charged" },
+          { name: "Lord of the Hidden Depths — Whisperer of Nightmares", hp: "1,800,000", element: "Hydro", notes: "Final boss — use Electro for Lunar-Charged", icon: "UI_MonsterIcon_Lloigor_Primo" },
         ],
         secondHalf: [
-          { name: "Legatus Golem", hp: "1,500,000", element: "Geo", notes: "Final boss — use Hydro for Lunar-Crystallize" },
+          { name: "Legatus Golem", hp: "1,500,000", element: "Geo", notes: "Final boss — use Hydro for Lunar-Crystallize", icon: "UI_MonsterIcon_Golem_Centaur" },
         ],
         tips: "First half: Electro + Hydro for Lunar-Charged. Second half: Geo + Hydro for Lunar-Crystallize.",
       },
@@ -221,6 +222,8 @@ export const ABYSS_FLOORS: AbyssFloor[] = [
       {
         name: "Lord of the Hidden Depths — Whisperer of Nightmares",
         hp: "1,800,000",
+        icon: "UI_MonsterIcon_Lloigor_Primo",
+        image: "https://gi.yatta.moe/assets/UI/monster/UI_MonsterIcon_Lloigor_Primo.png",
         description: "A dangerous Hydro entity that conjures nightmare illusions. Use Electro to trigger Lunar-Charged reactions for bonus damage. Stay mobile during its sweeping attacks.",
         resistances: [
           { element: "Pyro", value: 10 },
@@ -242,6 +245,8 @@ export const ABYSS_FLOORS: AbyssFloor[] = [
       {
         name: "Legatus Golem",
         hp: "1,500,000",
+        icon: "UI_MonsterIcon_Golem_Centaur",
+        image: "https://gi.yatta.moe/assets/UI/monster/UI_MonsterIcon_Golem_Centaur.png",
         description: "A massive Geo construct that generates crystallize shields. Use Hydro to trigger Lunar-Crystallize for devastating reactions. Break its core during the stagger window.",
         resistances: [
           { element: "Pyro", value: 10 },
@@ -289,8 +294,8 @@ export const STYGIAN_STAGES: StygianStage[] = [
     stage: 1,
     name: "Hexadecatonic Mandragora",
     enemies: [
-      { name: "Hexadecatonic Mandragora", hp: "800,000", element: "Dendro" },
-      { name: "Mandragora Spore x4", hp: "100,000", element: "Dendro" },
+      { name: "Hexadecatonic Mandragora", hp: "800,000", element: "Dendro", icon: "UI_MonsterIcon_Fungus_Raptor_05" },
+      { name: "Mandragora Spore x4", hp: "100,000", element: "Dendro", icon: "UI_MonsterIcon_Fungus_Raptor_05" },
     ],
     modifiers: [
       { name: "Spore Bloom", description: "The Mandragora splits into 4 spores periodically. Use Anemo to group them and AoE to eliminate quickly.", type: "mechanic" },
@@ -300,6 +305,7 @@ export const STYGIAN_STAGES: StygianStage[] = [
     boss: {
       name: "Hexadecatonic Mandragora",
       hp: "800,000",
+      image: "https://gi.yatta.moe/assets/UI/monster/UI_MonsterIcon_Fungus_Raptor_05.png",
       description: "A monstrous Dendro plant that periodically splits into small spores. Group the spores with Anemo and use Pyro for the elemental surge bonus. Burning and Overloaded reactions are especially effective.",
       resistances: [
         { element: "Pyro", value: -20 },
@@ -324,7 +330,7 @@ export const STYGIAN_STAGES: StygianStage[] = [
     stage: 2,
     name: "Knuckle Duckle",
     enemies: [
-      { name: "Knuckle Duckle", hp: "1,000,000", element: "Hydro" },
+      { name: "Knuckle Duckle", hp: "1,000,000", element: "Hydro", icon: "UI_MonsterIcon_Gastrobot_01" },
       { name: "Shield Device x2", hp: "150,000" },
     ],
     modifiers: [
@@ -338,7 +344,7 @@ export const STYGIAN_STAGES: StygianStage[] = [
     stage: 3,
     name: "Secret Source Automaton: Overseer Device",
     enemies: [
-      { name: "Secret Source Automaton: Overseer Device", hp: "1,200,000" },
+      { name: "Secret Source Automaton: Overseer Device", hp: "1,200,000", icon: "UI_MonsterIcon_DragonCollar" },
       { name: "Repair Drone x3", hp: "80,000" },
     ],
     modifiers: [
@@ -349,6 +355,7 @@ export const STYGIAN_STAGES: StygianStage[] = [
     boss: {
       name: "Secret Source Automaton: Overseer Device",
       hp: "1,200,000",
+      image: "https://gi.yatta.moe/assets/UI/monster/UI_MonsterIcon_DragonCollar.png",
       description: "A heavily armored automaton that deploys repair drones. Apply Cryo to freeze its joints and create vulnerability windows. Prioritize destroying repair drones, then burst during the frozen window.",
       resistances: [
         { element: "Pyro", value: 10 },

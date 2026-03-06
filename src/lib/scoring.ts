@@ -53,6 +53,15 @@ export function scoreCharacterBuild(char: Character): number {
 
 // ── Resin estimation ───────────────────────────────────────────────────
 
+export function estimateResinForPiece(score: number) {
+  // Per-piece resin cost: based on probability of rolling this quality
+  // ~20 resin per domain run, ~2 useful pieces per 3 runs avg
+  // Higher score = exponentially more attempts needed
+  const baseRuns = Math.round(3 + (score / 100) ** 2 * 200);
+  const resin = baseRuns * 20;
+  return { resin, days: Math.round(resin / 180) };
+}
+
 export function estimateResin(avgScore: number) {
   // Based on probability of getting artifacts with this score
   // Higher score = exponentially more resin needed
@@ -161,6 +170,50 @@ const ROASTS: Record<string, string[]> = {
     "Most players need 40+ days to get artifacts this good. Either you're dedicated or you sold your soul to RNGesus.",
   ],
 };
+
+// Per-piece roasts for particularly bad artifacts
+const PIECE_ROASTS: Record<string, string[]> = {
+  terrible: [
+    "This piece belongs in the strongbox. Actually, even the strongbox would reject it.",
+    "I've seen 4-star artifacts with better rolls than this.",
+    "Every single roll went into the worst possible substat. Impressive, in a depressing way.",
+    "This artifact is actively making your character weaker. Unequip it and throw it into the ocean.",
+    "The domain gave you this as a joke. You equipped it as a tragedy.",
+    "This piece has the same energy as bringing a water gun to a boss fight.",
+    "Flat DEF and flat HP said 'we got you fam' and they really did. Got you good.",
+    "If artifacts had feelings, this one would be ashamed of itself.",
+    "This piece rolled like a drunk character dodging — everywhere except where it should.",
+  ],
+  bad: [
+    "This piece is trying its best. Its best just isn't very good.",
+    "One or two rolls went right. The rest went on vacation.",
+    "This artifact has 'I'll do' energy. But barely.",
+    "You kept this because you had nothing better. I understand. I don't approve, but I understand.",
+    "The substats on this piece are having an identity crisis.",
+    "This piece got one good roll and then immediately gave up, like your motivation to farm.",
+  ],
+  decent: [
+    "Not bad! A few more rolls in the right place and this could've been great.",
+    "This piece is the definition of 'close but no cigar.'",
+    "Decent piece. Your character isn't complaining, but they're not celebrating either.",
+    "A solid B effort. Like homework you did at 2am but still passed.",
+  ],
+  great: [
+    "Now THIS is a piece worth keeping. The rolls actually cooperated for once.",
+    "This artifact understood the assignment. Mostly.",
+    "Every time you look at this piece, thank the RNG gods and move on before they take it back.",
+  ],
+};
+
+export function getPieceRoast(score: number, seed: string): string | null {
+  let pool: string[];
+  if (score <= 20) pool = PIECE_ROASTS.terrible;
+  else if (score <= 35) pool = PIECE_ROASTS.bad;
+  else if (score >= 80) pool = PIECE_ROASTS.great;
+  else return null; // don't roast mid pieces individually
+  const hash = simpleHash(seed);
+  return pool[hash % pool.length];
+}
 
 export function getTier(score: number): string {
   if (score <= 2) return "catastrophic";
