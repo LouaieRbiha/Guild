@@ -10,6 +10,7 @@ import {
 	PrimogemIcon,
 	VisionIcon,
 	WeaponIcon,
+	TrophyIcon,
 } from '@/components/icons/genshin-icons';
 import { cn } from '@/lib/utils';
 import {
@@ -72,7 +73,7 @@ const MORE_SECTIONS: MoreSection[] = [
 			{ href: '/teams', icon: Users, label: 'Teams' },
 			{ href: '/team-builder', icon: LayoutGrid, label: 'Builder' },
 			{ href: '/compare', icon: GitCompare, label: 'Compare' },
-			{ href: '/build-compare', icon: ArrowLeftRight, label: 'Build Cmp' },
+			{ href: '/build-compare', icon: TrophyIcon, label: 'Build Fight' },
 			{ href: '/abyss', icon: AbyssIcon, label: 'Endgame' },
 			{ href: '/achievements', icon: Award, label: 'Achieve.' },
 			{ href: '/map', icon: CompassIcon, label: 'Map' },

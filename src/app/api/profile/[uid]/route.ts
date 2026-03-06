@@ -19,16 +19,23 @@ export async function GET(
   try {
     const profile = await fetchAkashaProfile(uid);
     return NextResponse.json({ source: "akasha", ...profile });
-  } catch (akashaErr) {
+  } catch (akashaErr: any) {
     console.warn(`[Profile] Akasha failed for ${uid}:`, akashaErr);
+
+    let akashaErrorMsg = akashaErr instanceof Error ? akashaErr.message : String(akashaErr);
 
     try {
       const enkaProfile = await fetchEnkaProfile(uid);
-      return NextResponse.json({ source: "enka", ...enkaProfile });
-    } catch (enkaErr) {
+      return NextResponse.json({ source: "enka", ...enkaProfile, akashaError: akashaErrorMsg });
+    } catch (enkaErr: any) {
       console.error(`[Profile] Both APIs failed for ${uid}:`, enkaErr);
+      let enkaErrorMsg = enkaErr instanceof Error ? enkaErr.message : String(enkaErr);
       return NextResponse.json(
-        { error: "Could not fetch profile. Both Akasha and Enka APIs are unavailable." },
+        {
+          error: "Could not fetch profile. Both Akasha and Enka APIs are unavailable.",
+          akashaError: akashaErrorMsg,
+          enkaError: enkaErrorMsg,
+        },
         { status: 502 }
       );
     }

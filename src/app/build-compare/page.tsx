@@ -429,8 +429,8 @@ export default function BuildComparePage() {
       {/* Header */}
       <div className="text-center space-y-2">
         <div className="flex items-center justify-center gap-3">
-          <GitCompareArrows className="w-7 h-7 text-guild-accent" />
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Build Compare</h1>
+          <Trophy className="w-7 h-7 text-guild-accent" />
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Build Fight</h1>
         </div>
         <p className="text-guild-muted text-sm">
           Compare builds between two players side by side
