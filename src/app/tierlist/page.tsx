@@ -294,7 +294,8 @@ export default function TierListPage() {
 
   const autoScroll = useCallback(() => {
     if (scrollSpeedRef.current !== 0) {
-      window.scrollBy(0, scrollSpeedRef.current);
+      const scrollEl = document.getElementById("main-content") || document.documentElement;
+      scrollEl.scrollBy(0, scrollSpeedRef.current);
       scrollRafRef.current = requestAnimationFrame(autoScroll);
     } else {
       scrollRafRef.current = 0;
