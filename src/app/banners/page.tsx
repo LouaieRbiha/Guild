@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import type { BannerHistoryEntry } from '@/app/api/banners/history/route';
 import { ALL_CHARACTERS } from '@/lib/characters';
-import type { CharacterEntry } from '@/lib/characters';
-import { ALL_WEAPONS, type WeaponEntry } from '@/lib/weapons';
+import type { CharacterEntry, WeaponEntry } from '@/types';
+import { ALL_WEAPONS } from '@/lib/weapons';
 import { BannerHistoryClient, type ResolvedVersionGroup } from './banner-history-client';
 
 export const metadata: Metadata = {

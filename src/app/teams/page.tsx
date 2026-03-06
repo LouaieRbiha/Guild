@@ -3,7 +3,8 @@
 import { useState, useMemo } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { ALL_CHARACTERS, charIconUrl, type CharacterEntry } from "@/lib/characters";
+import { ALL_CHARACTERS, charIconUrl } from "@/lib/characters";
+import type { CharacterEntry } from "@/types";
 import { ELEMENT_COLORS } from "@/lib/constants";
 import { ELEMENT_ICONS } from "@/components/icons/genshin-icons";
 import { Badge } from "@/components/ui/badge";

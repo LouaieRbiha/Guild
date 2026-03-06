@@ -14,7 +14,7 @@ import { Countdown, ElementBadge, RarityStars } from '@/components/shared';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import type { ActiveBanners, BannerWeaponInfo } from '@/lib/banners/types';
-import type { CharacterEntry } from '@/lib/characters';
+import type { CharacterEntry } from '@/types';
 import { charGachaUrl, charIconUrl } from '@/lib/characters';
 import { weaponIconUrl } from '@/lib/constants';
 import { cn } from '@/lib/utils';

@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import type { ActiveBanners, BannerWeaponInfo } from '@/lib/banners/types';
-import type { CharacterEntry } from '@/lib/characters';
+import type { CharacterEntry } from '@/types';
 
 import { BannerSection } from './home/banner-section';
 import { parseBannerDate, getNextAbyssReset } from './home/banner-helpers';

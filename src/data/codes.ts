@@ -6,14 +6,9 @@ export interface RedemptionCode {
 	expiresAt?: string; // ISO date, optional
 }
 
-export const ACTIVE_CODES: RedemptionCode[] = [
-	{
-		code: 'GENSHINGIFT',
-		rewards: ['Primogems x50', "Hero's Wit x3"],
-		source: 'Permanent',
-		addedAt: '2020-09-28',
-	},
-];
+import codesJson from "./json/codes.json";
+
+export const ACTIVE_CODES: RedemptionCode[] = codesJson;
 
 export function getActiveCodes(): RedemptionCode[] {
 	const now = Date.now();

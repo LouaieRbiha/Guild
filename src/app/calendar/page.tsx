@@ -24,7 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Countdown } from "@/components/shared";
 import { CURRENT_VERSION, PERMANENT_EVENTS } from "@/data/events";
 import { TALENT_BOOK_SCHEDULE } from "@/data/farming-schedule";
-import type { GameEvent } from "@/data/events";
+import type { GameEvent } from "@/types";
 
 // ── Constants ───────────────────────────────────────────────────────────
 

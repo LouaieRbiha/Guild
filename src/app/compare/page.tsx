@@ -7,16 +7,14 @@ import {
   ALL_CHARACTERS,
   charIconUrl,
   charGachaUrl,
-  type CharacterEntry,
 } from "@/lib/characters";
+import type { CharacterEntry, Tier, TierEntry } from "@/types";
 import { ELEMENT_COLORS } from "@/lib/constants";
 import { ELEMENT_ICONS } from "@/components/icons/genshin-icons";
 import { CHARACTER_BUILDS } from "@/data/character-builds";
 import {
   TIER_LIST,
   TIER_COLORS,
-  type Tier,
-  type TierEntry,
 } from "@/data/tier-list";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";

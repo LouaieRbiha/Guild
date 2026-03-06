@@ -13,22 +13,9 @@ export interface BannerPhase {
   };
 }
 
-export const BANNER_HISTORY: BannerPhase[] = [
-  {
-    version: "6.4",
-    phase: 1,
-    start: "2026-02-25T10:00:00Z",
-    end: "2026-03-17T06:59:59Z",
-    characters: {
-      featured5: ["Varka", "Flins"],
-      featured4: ["Bennett", "Xiangling", "Sucrose"],
-    },
-    weapons: {
-      featured5: ["Gest of the Mighty Wolf", "Bloodsoaked Ruins"],
-      featured4: ["Sacrificer's Staff", "Favonius Sword", "Favonius Greatsword", "Sacrificial Fragments", "Sacrificial Bow"],
-    },
-  },
-];
+import bannersJson from "./json/banners.json";
+
+export const BANNER_HISTORY: BannerPhase[] = bannersJson;
 
 export function getActiveBanner(): BannerPhase | null {
   const now = new Date();

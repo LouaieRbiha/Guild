@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { ElementBadge } from "@/components/shared";
 import { ALL_CHARACTERS, charIconUrl } from "@/lib/characters";
 import { ELEMENT_COLORS, monsterIconUrl } from "@/lib/constants";
+import type { AbyssFloor, AbyssBoss, AbyssEnemy, StygianStage, TeamComp } from "@/types";
 import {
   ABYSS_FLOORS,
   ABYSS_VERSION,
@@ -22,11 +23,6 @@ import {
   STYGIAN_STAGES,
   STYGIAN_VERSION,
   STYGIAN_CYCLE,
-  type AbyssFloor,
-  type AbyssBoss,
-  type AbyssEnemy,
-  type StygianStage,
-  type TeamComp,
 } from "@/data/abyss";
 
 // ── Helpers ──────────────────────────────────────────────────────────────

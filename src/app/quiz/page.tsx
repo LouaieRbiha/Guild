@@ -6,7 +6,8 @@ import { Brain, Eye, Flame, RotateCcw, Trophy, Zap, ChevronRight, Star } from "l
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ALL_CHARACTERS, charIconUrl, type CharacterEntry } from "@/lib/characters";
+import { ALL_CHARACTERS, charIconUrl } from "@/lib/characters";
+import type { CharacterEntry } from "@/types";
 import { ELEMENT_COLORS } from "@/lib/constants";
 import { CHARACTER_BUILDS } from "@/data/character-builds";
 

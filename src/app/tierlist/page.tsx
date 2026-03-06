@@ -5,7 +5,8 @@ import useSWR from "swr";
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { ALL_CHARACTERS, charIconUrl, type CharacterEntry } from "@/lib/characters";
+import { ALL_CHARACTERS, charIconUrl } from "@/lib/characters";
+import type { CharacterEntry, Tier, Role, TierEntry } from "@/types";
 import { ELEMENT_ICONS } from "@/components/icons/genshin-icons";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -16,9 +17,6 @@ import {
   TIER_LIST,
   TIER_COLORS,
   TIER_ORDER,
-  type Tier,
-  type Role,
-  type TierEntry,
 } from "@/data/tier-list";
 
 // ── Constants ─────────────────────────────────────────────────────────

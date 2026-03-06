@@ -1,7 +1,7 @@
 'use client';
 
 import { ALL_CHARACTERS, charIconUrl, ELEMENT_ICONS } from '@/lib/characters';
-import type { CharacterEntry } from '@/lib/characters';
+import type { CharacterEntry } from '@/types';
 import { CHARACTER_META } from '@/data/character-meta';
 import { cn } from '@/lib/utils';
 import { Clock, HelpCircle, X, Trophy, Target, BarChart3, Share2, Check } from 'lucide-react';

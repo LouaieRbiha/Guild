@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getActiveBanner } from '@/data/banners';
 import type { BannerWeaponInfo } from '@/lib/banners/types';
-import type { CharacterEntry } from '@/lib/characters';
+import type { CharacterEntry } from '@/types';
 import { ALL_CHARACTERS } from '@/lib/characters';
 import { ALL_WEAPONS } from '@/lib/weapons';
 import { HomeClient } from './home-client';

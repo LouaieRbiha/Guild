@@ -2,9 +2,8 @@
 // Sources: Game8 wiki, paimon.moe, community statistical analysis
 
 import { ALL_CHARACTERS, charIconUrl, charGachaUrl } from '@/lib/characters';
-import type { CharacterEntry } from '@/lib/characters';
+import type { CharacterEntry, WeaponEntry } from '@/types';
 import { ALL_WEAPONS } from '@/lib/weapons';
-import type { WeaponEntry } from '@/lib/weapons';
 import { weaponIconUrl } from '@/lib/constants';
 import { getActiveBanner } from '@/data/banners';
 

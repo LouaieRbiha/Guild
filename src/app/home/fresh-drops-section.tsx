@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { ELEMENT_ICONS } from '@/components/icons/genshin-icons';
 import { RarityStars } from '@/components/shared';
 import { Card } from '@/components/ui/card';
-import type { CharacterEntry } from '@/lib/characters';
+import type { CharacterEntry } from '@/types';
 import { charGachaUrl } from '@/lib/characters';
 import { ELEMENT_COLORS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
