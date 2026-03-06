@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useCallback, useEffect } from "react";
+import React, { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import useSWR from "swr";
 import Image from "next/image";
 import Link from "next/link";
@@ -39,6 +39,11 @@ const SOURCE_LABELS: Record<DataSource, string> = {
 };
 
 const CUSTOM_TIERLIST_KEY = "guild-custom-tierlist";
+
+interface CustomTierData {
+  tiers: Record<string, Tier>;     // charId -> custom tier
+  order: Record<string, string[]>; // tier -> ordered charId[]
+}
 
 const PLACEHOLDER_COLORS: Record<Tier, { border: string; bg: string }> = {
   SS: { border: "border-red-400", bg: "bg-red-500/10" },
@@ -167,31 +172,40 @@ export default function TierListPage() {
   const [source, setSource] = useState<DataSource>("combined");
 
   // ── Drag-and-drop state ─────────────────────────────────────────────
-  const [customOverrides, setCustomOverrides] = useState<Record<string, Tier>>({});
+  const [customData, setCustomData] = useState<CustomTierData>({ tiers: {}, order: {} });
   const [draggedCharId, setDraggedCharId] = useState<string | null>(null);
   const [dragOverTier, setDragOverTier] = useState<Tier | null>(null);
   const [dropIndex, setDropIndex] = useState<number>(-1);
+  const dragCardRef = useRef<HTMLDivElement | null>(null);
 
-  // Load custom overrides from localStorage on mount
+  // Load custom data from localStorage on mount
   useEffect(() => {
     try {
       const stored = localStorage.getItem(CUSTOM_TIERLIST_KEY);
       if (stored) {
-        setCustomOverrides(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+        // Migrate old format (plain Record<string, Tier>) to new format
+        if (parsed && !parsed.tiers && !parsed.order) {
+          setCustomData({ tiers: parsed, order: {} });
+        } else {
+          setCustomData(parsed);
+        }
       }
     } catch {
       // Ignore parse errors
     }
   }, []);
 
-  // Persist overrides to localStorage when they change
+  // Persist to localStorage when custom data changes
   useEffect(() => {
-    if (Object.keys(customOverrides).length > 0) {
-      localStorage.setItem(CUSTOM_TIERLIST_KEY, JSON.stringify(customOverrides));
+    const hasTiers = Object.keys(customData.tiers).length > 0;
+    const hasOrder = Object.keys(customData.order).length > 0;
+    if (hasTiers || hasOrder) {
+      localStorage.setItem(CUSTOM_TIERLIST_KEY, JSON.stringify(customData));
     } else {
       localStorage.removeItem(CUSTOM_TIERLIST_KEY);
     }
-  }, [customOverrides]);
+  }, [customData]);
 
   const swrFetcher = (url: string) => fetch(url).then((r) => r.json()).then((d) => {
     if (d.error) throw new Error(d.error);
@@ -228,17 +242,17 @@ export default function TierListPage() {
 
   // Apply custom overrides on top of data-derived tiers
   const withOverrides = useMemo(() => {
-    if (Object.keys(customOverrides).length === 0) return filtered;
+    if (Object.keys(customData.tiers).length === 0) return filtered;
     return filtered.map((entry) => {
-      const override = customOverrides[entry.id];
+      const override = customData.tiers[entry.id];
       if (override) {
         return { ...entry, tier: override };
       }
       return entry;
     });
-  }, [filtered, customOverrides]);
+  }, [filtered, customData.tiers]);
 
-  // Group by tier (using overridden tiers)
+  // Group by tier (using overridden tiers) and apply custom ordering
   const grouped = useMemo(() => {
     const map = new Map<Tier, RankedChar[]>();
     for (const tier of TIER_ORDER) {
@@ -247,14 +261,41 @@ export default function TierListPage() {
     for (const entry of withOverrides) {
       map.get(entry.tier)?.push(entry);
     }
+    // Apply custom ordering per tier
+    for (const tier of TIER_ORDER) {
+      const order = customData.order[tier];
+      if (order && order.length > 0) {
+        const tierEntries = map.get(tier) || [];
+        const entryMap = new Map(tierEntries.map((e) => [e.id, e]));
+        const ordered: RankedChar[] = [];
+        // First add entries in custom order
+        for (const id of order) {
+          const entry = entryMap.get(id);
+          if (entry) {
+            ordered.push(entry);
+            entryMap.delete(id);
+          }
+        }
+        // Then append any remaining entries not in the custom order
+        for (const entry of entryMap.values()) {
+          ordered.push(entry);
+        }
+        map.set(tier, ordered);
+      }
+    }
     return map;
-  }, [withOverrides]);
+  }, [withOverrides, customData.order]);
 
   // ── Drag handlers ───────────────────────────────────────────────────
 
   const handleDragStart = useCallback((e: React.DragEvent, charId: string) => {
     e.dataTransfer.setData("text/plain", charId);
     e.dataTransfer.effectAllowed = "move";
+    // Use the card element as drag image instead of browser default (which shows URL)
+    const cardEl = (e.currentTarget as HTMLElement).querySelector("[data-char-inner]") as HTMLElement | null;
+    if (cardEl) {
+      e.dataTransfer.setDragImage(cardEl, cardEl.offsetWidth / 2, cardEl.offsetHeight / 2);
+    }
     setDraggedCharId(charId);
   }, []);
 
@@ -294,37 +335,61 @@ export default function TierListPage() {
     }
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent, tier: Tier) => {
+  const handleDrop = useCallback((e: React.DragEvent, targetTier: Tier) => {
     e.preventDefault();
     const charId = e.dataTransfer.getData("text/plain");
     if (!charId) return;
 
     const originalTier = originalTierMap.get(charId);
+    // Find which tier the character is currently in (with overrides applied)
+    const currentTier = customData.tiers[charId] || originalTier;
 
-    // If dropping back to original tier, remove the override
-    if (originalTier === tier) {
-      setCustomOverrides((prev) => {
-        const next = { ...prev };
-        delete next[charId];
-        return next;
-      });
-    } else {
-      setCustomOverrides((prev) => ({
-        ...prev,
-        [charId]: tier,
-      }));
-    }
+    setCustomData((prev) => {
+      const nextTiers = { ...prev.tiers };
+      const nextOrder = { ...prev.order };
+
+      // Remove from source tier's order array
+      if (currentTier && nextOrder[currentTier]) {
+        nextOrder[currentTier] = nextOrder[currentTier].filter((id) => id !== charId);
+        if (nextOrder[currentTier].length === 0) delete nextOrder[currentTier];
+      }
+
+      // Set or remove tier override
+      if (originalTier === targetTier) {
+        delete nextTiers[charId];
+      } else {
+        nextTiers[charId] = targetTier;
+      }
+
+      // Build the target tier's order array from current grouped state
+      const targetEntries = grouped.get(targetTier) || [];
+      let currentOrder = nextOrder[targetTier]
+        ? [...nextOrder[targetTier]]
+        : targetEntries.map((e) => e.id);
+
+      // Remove charId if already present (came from same tier)
+      currentOrder = currentOrder.filter((id) => id !== charId);
+
+      // Calculate insert position — account for the placeholder index
+      // dropIndex is relative to renderItems which excludes the dragged card from this tier
+      const clampedIdx = Math.min(dropIndex, currentOrder.length);
+      currentOrder.splice(clampedIdx >= 0 ? clampedIdx : currentOrder.length, 0, charId);
+
+      nextOrder[targetTier] = currentOrder;
+
+      return { tiers: nextTiers, order: nextOrder };
+    });
 
     setDraggedCharId(null);
     setDragOverTier(null);
     setDropIndex(-1);
-  }, [originalTierMap]);
+  }, [originalTierMap, customData.tiers, grouped, dropIndex]);
 
   const resetOverrides = useCallback(() => {
-    setCustomOverrides({});
+    setCustomData({ tiers: {}, order: {} });
   }, []);
 
-  const hasCustomizations = Object.keys(customOverrides).length > 0;
+  const hasCustomizations = Object.keys(customData.tiers).length > 0 || Object.keys(customData.order).length > 0;
 
   // ── Render ──────────────────────────────────────────────────────────
 
@@ -438,10 +503,9 @@ export default function TierListPage() {
           // Don't hide empty tiers when dragging (user might want to drop there)
           if (entries.length === 0 && !draggedCharId) return null;
 
-          // Build the list of rendered items, inserting placeholder at dropIndex
-          const renderItems: { type: "card"; entry: RankedChar }[] = entries
-            .filter((e) => e.id !== draggedCharId || dragOverTier !== tier)
-            .map((entry) => ({ type: "card" as const, entry }));
+          // Build the list of rendered items for this tier
+          // When dragging within or into this tier, keep the dragged card visible (opacity-50)
+          const renderItems = entries.map((entry) => ({ type: "card" as const, entry }));
 
           return (
             <div
@@ -483,7 +547,7 @@ export default function TierListPage() {
                   const char = CHAR_BY_NAME.get(entry.name);
                   if (!char) return null;
                   const EI = ELEMENT_ICONS[char.element];
-                  const isMoved = customOverrides[entry.id] != null;
+                  const isMoved = customData.tiers[entry.id] != null;
                   const isDragged = draggedCharId === entry.id;
 
                   return (
@@ -513,8 +577,10 @@ export default function TierListPage() {
                       >
                         <Link
                           href={`/database/${char.id}`}
+                          draggable="false"
                         >
                           <div
+                            data-char-inner
                             className={cn(
                               "relative flex flex-col items-center gap-1 rounded-lg p-2 w-[72px] sm:w-[80px] transition-colors",
                               "bg-guild-elevated/50 hover:bg-guild-elevated border hover:border-guild-border",
@@ -538,6 +604,7 @@ export default function TierListPage() {
                                 sizes="56px"
                                 className="object-cover"
                                 quality={100}
+                                draggable="false"
                               />
                               {EI && (
                                 <div className="absolute bottom-0 right-0 bg-black/70 rounded-full p-0.5">
