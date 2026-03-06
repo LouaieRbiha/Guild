@@ -116,6 +116,57 @@ body {
   --sidebar-ring: #6366F1;
 }
 
+/* ── Light Theme ─────────────────────────────────────────────────────── */
+html.light {
+  --color-background: #f5f7fb;
+  --color-foreground: #1e293b;
+  --color-guild-bg: #f5f7fb;
+  --color-guild-card: #ffffff;
+  --color-guild-elevated: #eef1f8;
+  --color-guild-accent: #4f46e5;
+  --color-guild-accent-2: #7c3aed;
+  --color-guild-gold: #d97706;
+  --color-guild-success: #059669;
+  --color-guild-danger: #dc2626;
+  --color-guild-border: #cbd5e8;
+  --color-guild-muted: #64748b;
+  --color-guild-dim: #94a3b8;
+
+  /* shadcn variables */
+  --background: 227 33% 97%;
+  --foreground: 215 28% 17%;
+  --card: 0 0% 100%;
+  --card-foreground: 215 28% 17%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 215 28% 17%;
+  --primary: 243 75% 59%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 227 25% 93%;
+  --secondary-foreground: 215 28% 17%;
+  --muted: 227 25% 93%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 227 25% 93%;
+  --accent-foreground: 215 28% 17%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 225 22% 85%;
+  --input: 225 22% 85%;
+  --ring: 243 75% 59%;
+  --chart-1: oklch(0.546 0.245 262.881);
+  --chart-2: oklch(0.637 0.237 25.331);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: #ffffff;
+  --sidebar-foreground: #1e293b;
+  --sidebar-primary: #4f46e5;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eef1f8;
+  --sidebar-accent-foreground: #1e293b;
+  --sidebar-border: #cbd5e8;
+  --sidebar-ring: #4f46e5;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -142,6 +193,17 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-guild-border);
+}
+
+/* Sidebar thin scrollbar */
+.sidebar-scroll::-webkit-scrollbar {
+  width: 2px;
+}
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+.sidebar-scroll:hover::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-guild-border) 40%, transparent);
 }
 
 html {
@@ -237,4 +299,34 @@ html {
 .guild-focus {
   outline: none;
   box-shadow: 0 0 0 2px var(--color-guild-accent);
+}
+
+/* ── Theme transition ────────────────────────────────────────────────── */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
+  transition-delay: 0s !important;
+}
+
+/* Light-mode shimmer needs dark gradient instead of white */
+html.light .animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.04), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Light-mode guild-card gets a subtle shadow instead of relying on dark border */
+html.light .guild-card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+/* Light-mode glows are slightly stronger for visibility */
+html.light .guild-glow {
+  box-shadow: 0 0 20px rgba(79, 70, 229, 0.12);
+}
+
+html.light .gold-glow {
+  box-shadow: 0 0 20px rgba(217, 119, 6, 0.2);
 }

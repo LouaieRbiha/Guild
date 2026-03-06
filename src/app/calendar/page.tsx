@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CalendarDays,
   Gift,
@@ -217,10 +217,19 @@ function VersionHeader() {
 // ── Daily Checklist ─────────────────────────────────────────────────────
 
 function DailyChecklist() {
-  const today = new Date();
-  const dayName = DAY_NAMES[today.getDay()];
-  const talentBooks = getTodaysTalentBooks(dayName);
-  const isSunday = dayName === "Sunday";
+  const [dayName, setDayName] = useState('');
+  const [dateStr, setDateStr] = useState('');
+  const [talentBooks, setTalentBooks] = useState<string[]>([]);
+  const [isSunday, setIsSunday] = useState(false);
+
+  useEffect(() => {
+    const today = new Date();
+    const name = DAY_NAMES[today.getDay()];
+    setDayName(name);
+    setDateStr(today.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }));
+    setTalentBooks(getTodaysTalentBooks(name));
+    setIsSunday(name === "Sunday");
+  }, []);
 
   return (
     <div className="rounded-2xl bg-guild-card border border-white/5 p-5 sm:p-6 space-y-4">
@@ -236,11 +245,7 @@ function DailyChecklist() {
         </div>
         <div className="text-right">
           <p className="text-sm font-medium text-white/80">
-            {today.toLocaleDateString("en-US", {
-              month: "long",
-              day: "numeric",
-              year: "numeric",
-            })}
+            {dateStr}
           </p>
         </div>
       </div>

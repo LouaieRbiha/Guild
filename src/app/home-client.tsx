@@ -5,16 +5,12 @@ import {
 	Calendar,
 	ChevronLeft,
 	ChevronRight,
-	Dices,
 	ExternalLink,
 	Gamepad2,
 	Gift,
 	History,
-	Map,
 	Swords,
 	Trophy,
-	Tv,
-	User,
 	Users,
 } from 'lucide-react';
 import Image from 'next/image';
@@ -43,7 +39,7 @@ import { cn } from '@/lib/utils';
 // ── Helpers ──────────────────────────────────────────────────────────────
 
 function parseBannerDate(dateStr: string): Date {
-	return new Date(dateStr.replace(' ', 'T') + '+08:00');
+	return new Date(dateStr);
 }
 
 function getNextAbyssReset(): Date {
@@ -91,76 +87,6 @@ const ELEMENT_GLOW: Record<string, string> = {
 	Geo: 'hover:border-yellow-500/50',
 	Dendro: 'hover:border-green-500/50',
 };
-
-// Quick navigation items
-const NAV_CARDS = [
-	{
-		href: '/database',
-		icon: Users,
-		title: 'Characters',
-		description: 'Browse all playable characters, stats, and builds',
-	},
-	{
-		href: '/weapons',
-		icon: Swords,
-		title: 'Weapons',
-		description: 'Explore weapon stats, passives, and rankings',
-	},
-	{
-		href: '/abyss',
-		icon: AbyssIcon,
-		title: 'Endgame',
-		description: 'Spiral Abyss and Stygian Onslaught guides and usage rates',
-	},
-	{
-		href: '/calendar',
-		icon: Calendar,
-		title: 'Calendar',
-		description: 'Upcoming events, banners, and farming schedules',
-	},
-	{
-		href: '/map',
-		icon: Map,
-		title: 'Map',
-		description: 'Interactive map with markers and routes',
-	},
-	{
-		href: '/simulator',
-		icon: Dices,
-		title: 'Simulator',
-		description: 'Wish simulator to test your luck for free',
-	},
-	{
-		href: '/tierlist',
-		icon: Trophy,
-		title: 'Tier List',
-		description: 'Character rankings and tier list for all roles',
-	},
-	{
-		href: '/banners',
-		icon: History,
-		title: 'Banners',
-		description: 'Browse all past and current wish banner history',
-	},
-	{
-		href: '/streamers',
-		icon: Tv,
-		title: 'Streamers',
-		description: 'Live Genshin content creators and streamers',
-	},
-	{
-		href: '/wordle',
-		icon: Gamepad2,
-		title: 'Wordle',
-		description: 'Daily Genshin character guessing game',
-	},
-	{
-		href: '/profile',
-		icon: User,
-		title: 'Profile',
-		description: 'Look up any player profile by UID',
-	},
-];
 
 // ── Redeem Codes ─────────────────────────────────────────────────────────
 
@@ -263,7 +189,10 @@ export function HomeClient({
 	const charBanner = banners.character;
 	const weaponBanner = banners.weapon;
 	const bannerEndDate = charBanner ? parseBannerDate(charBanner.end) : null;
-	const abyssResetDate = getNextAbyssReset();
+	const [abyssResetDate, setAbyssResetDate] = useState<Date | null>(null);
+	useEffect(() => {
+		setAbyssResetDate(getNextAbyssReset());
+	}, []);
 	const bannerCount = (charBanner ? 1 : 0) + (weaponBanner ? 1 : 0);
 
 	// Auto-rotate banners on mobile every 6 seconds
@@ -295,19 +224,17 @@ export function HomeClient({
 		return () => clearInterval(timer);
 	}, [featured5StarWeapons.length]);
 
-	// Today's farmable talent books
-	const todaysBooks = getTodaysTalentBooks();
-
-	const dayNames = [
-		'Sunday',
-		'Monday',
-		'Tuesday',
-		'Wednesday',
-		'Thursday',
-		'Friday',
-		'Saturday',
-	];
-	const todayName = dayNames[new Date().getDay()];
+	// Today's farmable talent books (deferred to client to avoid hydration mismatch)
+	const [todaysBooks, setTodaysBooks] = useState<string[]>([]);
+	const [todayName, setTodayName] = useState('');
+	useEffect(() => {
+		const dayNames = [
+			'Sunday', 'Monday', 'Tuesday', 'Wednesday',
+			'Thursday', 'Friday', 'Saturday',
+		];
+		setTodayName(dayNames[new Date().getDay()]);
+		setTodaysBooks(getTodaysTalentBooks());
+	}, []);
 
 	return (
 		<div className='min-h-screen text-foreground'>
@@ -944,33 +871,6 @@ export function HomeClient({
 				</div>
 			</section>
 
-			{/* ── 3. Quick Navigation ─────────────────────────────────────── */}
-			<section className='px-6 pb-12'>
-				<div className='max-w-6xl mx-auto space-y-4'>
-					<h2 className='text-xl font-bold'>Explore</h2>
-
-					<div className='grid grid-cols-2 md:grid-cols-3 gap-4'>
-						{NAV_CARDS.map((item) => (
-							<Link key={item.href} href={item.href} className='group'>
-								<Card className='h-full border-guild-border/50 transition-all duration-300 hover:border-guild-accent/30 hover:shadow-[0_0_20px_rgba(99,102,241,0.1)]'>
-									<CardContent className='flex flex-col gap-3 p-5'>
-										<div className='w-10 h-10 rounded-lg bg-guild-accent/10 flex items-center justify-center text-guild-accent group-hover:bg-guild-accent/20 transition-colors'>
-											<item.icon size={22} />
-										</div>
-										<div>
-											<h3 className='font-semibold text-sm'>{item.title}</h3>
-											<p className='text-xs text-guild-muted mt-1 leading-relaxed'>
-												{item.description}
-											</p>
-										</div>
-									</CardContent>
-								</Card>
-							</Link>
-						))}
-					</div>
-				</div>
-			</section>
-
 			{/* ── 4. Fresh Drops ──────────────────────────────────────────── */}
 			<section className='px-6 pb-12'>
 				<div className='max-w-6xl mx-auto space-y-4'>
@@ -1062,11 +962,13 @@ export function HomeClient({
 								<AbyssIcon className='text-guild-accent' size={18} />
 								Spiral Abyss
 							</div>
-							<Countdown
-								target={abyssResetDate}
-								label='Until reset'
-								className='text-3xl'
-							/>
+							{abyssResetDate && (
+								<Countdown
+									target={abyssResetDate}
+									label='Until reset'
+									className='text-3xl'
+								/>
+							)}
 						</CardContent>
 					</Card>
 

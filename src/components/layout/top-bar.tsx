@@ -4,11 +4,12 @@ import { ELEMENT_ICONS } from '@/components/icons/genshin-icons';
 import { ALL_CHARACTERS } from '@/lib/characters';
 import { cn } from '@/lib/utils';
 import { ALL_WEAPONS } from '@/lib/weapons';
-import { Eye, EyeOff, Monitor, Moon, Search, Settings, X } from 'lucide-react';
+import { Eye, EyeOff, Monitor, Moon, Search, Settings, Sun, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTheme } from '@/lib/theme';
 
 // ── Settings Storage ─────────────────────────────────────────────────
 
@@ -61,6 +62,7 @@ export function TopBar() {
 	const [search, setSearch] = useState('');
 	const [searchFocused, setSearchFocused] = useState(false);
 	const router = useRouter();
+	const { theme, toggleTheme } = useTheme();
 
 	const searchResults = useMemo(() => {
 		if (!search.trim() || search.trim().length < 2) return [];
@@ -220,6 +222,17 @@ export function TopBar() {
 							Lookup
 						</button>
 					</div>
+					<button
+						onClick={toggleTheme}
+						className='h-9 w-9 flex items-center justify-center rounded-md hover:bg-guild-elevated/50 text-guild-muted hover:text-foreground transition-colors cursor-pointer'
+						title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+					>
+						{theme === 'dark' ? (
+							<Sun className='h-4 w-4' />
+						) : (
+							<Moon className='h-4 w-4' />
+						)}
+					</button>
 					<button
 						onClick={() => setShowSettings(!showSettings)}
 						className={cn(

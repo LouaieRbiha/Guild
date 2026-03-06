@@ -13,8 +13,12 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const weapon = ALL_WEAPONS.find((w) => String(w.id) === id);
   const name = weapon?.name ?? id;
   return {
-    title: `${name} - Genshin Impact Weapon | Guild`,
-    description: `${name} weapon stats, refinement details, and recommended characters in Genshin Impact.`,
+    title: `${name} — Genshin Impact Weapon`,
+    description: `${name} weapon stats, refinement effects, and best characters in Genshin Impact.`,
+    openGraph: {
+      title: `${name} — Genshin Impact Weapon`,
+      description: `${name} stats, refinement details, and recommended characters.`,
+    },
   };
 }
 

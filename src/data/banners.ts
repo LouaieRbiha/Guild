@@ -24,8 +24,8 @@ export const BANNER_HISTORY: BannerPhase[] = [
       featured4: ["Bennett", "Xiangling", "Sucrose"],
     },
     weapons: {
-      featured5: ["Wolf's Gravestone", "Staff of the Scarlet Sands"],
-      featured4: ["The Flute", "Sacrificial Greatsword", "Dragon's Bane", "Rust", "Eye of Perception"],
+      featured5: ["Gest of the Mighty Wolf", "Bloodsoaked Ruins"],
+      featured4: ["Sacrificer's Staff", "Favonius Sword", "Favonius Greatsword", "Sacrificial Fragments", "Sacrificial Bow"],
     },
   },
 ];

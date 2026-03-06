@@ -13,8 +13,12 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const char = ALL_CHARACTERS.find((c) => c.id === id);
   const name = char?.name ?? id;
   return {
-    title: `${name} - Genshin Impact Character | Guild`,
-    description: `${name} character details, talents, constellations, and build guide for Genshin Impact.`,
+    title: `${name} — Genshin Impact Character`,
+    description: `Build guide, talents, constellations, and best artifacts for ${name} in Genshin Impact.`,
+    openGraph: {
+      title: `${name} — Genshin Impact Character`,
+      description: `Build guide, talents, constellations, and best artifacts for ${name}.`,
+    },
   };
 }
 

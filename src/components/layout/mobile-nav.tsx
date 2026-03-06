@@ -12,7 +12,24 @@ import {
 	WeaponIcon,
 } from '@/components/icons/genshin-icons';
 import { cn } from '@/lib/utils';
-import { Calendar, Gamepad2, History, MoreHorizontal, Trophy, X } from 'lucide-react';
+import {
+	ArrowLeftRight,
+	Award,
+	Brain,
+	Calendar,
+	CalendarCheck,
+	Calculator,
+	Clock,
+	Gamepad2,
+	GitCompare,
+	History,
+	LayoutGrid,
+	MoreHorizontal,
+	Target,
+	Trophy,
+	Users,
+	X,
+} from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
@@ -25,6 +42,11 @@ interface MobileNavItem {
 	label: string;
 }
 
+interface MoreSection {
+	title: string;
+	items: MobileNavItem[];
+}
+
 // Primary tabs shown in the bottom bar (max 5 for mobile)
 const PRIMARY_TABS: MobileNavItem[] = [
 	{ href: '/', icon: PrimogemIcon, label: 'Home' },
@@ -33,18 +55,51 @@ const PRIMARY_TABS: MobileNavItem[] = [
 	{ href: '/profile', icon: BuildIcon, label: 'Builds' },
 ];
 
-// Overflow items in the "More" menu
-const MORE_ITEMS: MobileNavItem[] = [
-	{ href: '/tierlist', icon: Trophy, label: 'Tier List' },
-	{ href: '/artifacts', icon: FlowerIcon, label: 'Artifacts' },
-	{ href: '/calendar', icon: Calendar, label: 'Calendar' },
-	{ href: '/banners', icon: History, label: 'Banners' },
-	{ href: '/abyss', icon: AbyssIcon, label: 'Endgame' },
-	{ href: '/map', icon: CompassIcon, label: 'Map' },
-	{ href: '/simulator', icon: FateIcon, label: 'Simulator' },
-	{ href: '/wordle', icon: Gamepad2, label: 'Genshindle' },
-	{ href: '/streamers', icon: KameraIcon, label: 'Live' },
+// Grouped overflow items in the "More" menu
+const MORE_SECTIONS: MoreSection[] = [
+	{
+		title: 'Database',
+		items: [
+			{ href: '/tierlist', icon: Trophy, label: 'Tier List' },
+			{ href: '/artifacts', icon: FlowerIcon, label: 'Artifacts' },
+		],
+	},
+	{
+		title: 'Guide',
+		items: [
+			{ href: '/calendar', icon: Calendar, label: 'Calendar' },
+			{ href: '/banners', icon: History, label: 'Banners' },
+			{ href: '/teams', icon: Users, label: 'Teams' },
+			{ href: '/team-builder', icon: LayoutGrid, label: 'Builder' },
+			{ href: '/compare', icon: GitCompare, label: 'Compare' },
+			{ href: '/build-compare', icon: ArrowLeftRight, label: 'Build Cmp' },
+			{ href: '/abyss', icon: AbyssIcon, label: 'Endgame' },
+			{ href: '/achievements', icon: Award, label: 'Achieve.' },
+			{ href: '/map', icon: CompassIcon, label: 'Map' },
+		],
+	},
+	{
+		title: 'Tools',
+		items: [
+			{ href: '/calculator', icon: Calculator, label: 'Calculator' },
+			{ href: '/planner', icon: Clock, label: 'Planner' },
+		],
+	},
+	{
+		title: 'Games',
+		items: [
+			{ href: '/simulator', icon: FateIcon, label: 'Simulator' },
+			{ href: '/wordle', icon: Gamepad2, label: 'Genshindle' },
+			{ href: '/quiz', icon: Brain, label: 'Quiz' },
+			{ href: '/daily', icon: CalendarCheck, label: 'Check-In' },
+			{ href: '/artifact-challenge', icon: Target, label: 'CV Challenge' },
+			{ href: '/streamers', icon: KameraIcon, label: 'Live' },
+		],
+	},
 ];
+
+// Flatten for "more active" check
+const ALL_MORE_ITEMS = MORE_SECTIONS.flatMap((s) => s.items);
 
 // ── Component ─────────────────────────────────────────────────────────────
 
@@ -55,12 +110,11 @@ export function MobileNav() {
 	const isActive = (href: string) =>
 		pathname === href || (href !== '/' && pathname.startsWith(href));
 
-	// Check if any "More" item is active
-	const moreActive = MORE_ITEMS.some((item) => isActive(item.href));
+	const moreActive = ALL_MORE_ITEMS.some((item) => isActive(item.href));
 
 	return (
 		<>
-			{/* Overlay for "More" menu */}
+			{/* Overlay */}
 			{moreOpen && (
 				<div
 					className='fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden'
@@ -71,8 +125,8 @@ export function MobileNav() {
 			{/* More menu popup */}
 			{moreOpen && (
 				<div className='fixed bottom-16 left-0 right-0 z-50 md:hidden px-3 pb-2'>
-					<div className='bg-guild-card border border-guild-border rounded-2xl p-3 shadow-2xl shadow-black/50'>
-						<div className='flex items-center justify-between mb-3 px-1'>
+					<div className='bg-guild-card border border-guild-border rounded-2xl p-3 shadow-2xl shadow-black/50 max-h-[70vh] overflow-y-auto'>
+						<div className='flex items-center justify-between mb-2 px-1'>
 							<span className='text-sm font-semibold text-guild-muted'>
 								More
 							</span>
@@ -83,36 +137,48 @@ export function MobileNav() {
 								<X size={16} className='text-guild-dim' />
 							</button>
 						</div>
-						<div className='grid grid-cols-3 gap-2'>
-							{MORE_ITEMS.map((item) => {
-								const active = isActive(item.href);
-								return (
-									<Link
-										key={item.href}
-										href={item.href}
-										onClick={() => setMoreOpen(false)}
-										className={cn(
-											'flex flex-col items-center gap-1.5 py-3 rounded-xl transition-colors',
-											active
-												? 'bg-guild-accent/15 text-guild-accent'
-												: 'text-guild-muted hover:bg-guild-elevated/50 hover:text-foreground',
-										)}
-									>
-										<div className="relative">
-											<item.icon size={22} />
-											{item.label === 'Live' && (
-												<span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
-													<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-													<span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
-												</span>
-											)}
-										</div>
-										<span className='text-[11px] font-medium'>
-											{item.label}
+
+						<div className='space-y-3'>
+							{MORE_SECTIONS.map((section) => (
+								<div key={section.title}>
+									<div className='px-1 mb-1.5'>
+										<span className='text-[10px] font-bold uppercase tracking-[0.12em] text-guild-dim'>
+											{section.title}
 										</span>
-									</Link>
-								);
-							})}
+									</div>
+									<div className='grid grid-cols-3 gap-1.5'>
+										{section.items.map((item) => {
+											const active = isActive(item.href);
+											return (
+												<Link
+													key={item.href}
+													href={item.href}
+													onClick={() => setMoreOpen(false)}
+													className={cn(
+														'flex flex-col items-center gap-1 py-2.5 rounded-xl transition-colors',
+														active
+															? 'bg-guild-accent/15 text-guild-accent'
+															: 'text-guild-muted hover:bg-guild-elevated/50 hover:text-foreground',
+													)}
+												>
+													<div className='relative'>
+														<item.icon size={20} />
+														{item.label === 'Live' && (
+															<span className='absolute -top-0.5 -right-0.5 flex h-2 w-2'>
+																<span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75' />
+																<span className='relative inline-flex rounded-full h-2 w-2 bg-red-500' />
+															</span>
+														)}
+													</div>
+													<span className='text-[10px] font-medium'>
+														{item.label}
+													</span>
+												</Link>
+											);
+										})}
+									</div>
+								</div>
+							))}
 						</div>
 					</div>
 				</div>

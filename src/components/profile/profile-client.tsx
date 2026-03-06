@@ -9,10 +9,12 @@ import {
 	VerdictIcon,
 } from '@/components/icons/genshin-icons';
 import { FallbackImage } from '@/components/shared';
+import { ShareBuildButton } from '@/components/profile/share-button';
 import type { AkashaCalculation } from '@/lib/akasha/types';
 import { charGachaUrl } from '@/lib/characters';
 import { ENKA_UI } from '@/lib/constants';
 import type { EnkaProfile } from '@/lib/enka/client';
+import { ALL_WEAPONS } from '@/lib/weapons';
 import {
 	barColor,
 	calculateCV,
@@ -32,7 +34,7 @@ import {
 } from '@/lib/scoring';
 import { CHARACTER_BUILDS } from '@/data/character-builds';
 import { cn } from '@/lib/utils';
-import { Download, RefreshCw, Share2, Trophy } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Check, X, Download, RefreshCw, Share2, Trophy } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
@@ -82,11 +84,70 @@ const ROLL_QUALITY_COLORS = {
 	low: 'text-guild-muted',
 };
 
+const TIER_COLORS = [
+	{ bg: 'bg-red-500/20', text: 'text-red-400' },
+	{ bg: 'bg-amber-500/20', text: 'text-amber-400' },
+	{ bg: 'bg-blue-500/20', text: 'text-blue-400' },
+	{ bg: 'bg-emerald-500/20', text: 'text-emerald-400' },
+];
+
+// Decompose a substat's total value into individual roll tiers
+function decomposeSubstatRolls(name: string, valueStr: string): { tier: number; value: number }[] {
+	const numVal = parseFloat(valueStr);
+	if (isNaN(numVal)) return [];
+	const tiers = ROLL_VALUES[name];
+	if (!tiers) return [];
+	const numRolls = estimateRollCount(name, valueStr);
+	if (numRolls <= 0) return [];
+
+	// Find counts of each tier that sum to numRolls with total closest to actual value
+	let bestCounts = [numRolls, 0, 0, 0];
+	let bestError = Infinity;
+	for (let c3 = numRolls; c3 >= 0; c3--) {
+		for (let c2 = numRolls - c3; c2 >= 0; c2--) {
+			for (let c1 = numRolls - c3 - c2; c1 >= 0; c1--) {
+				const c0 = numRolls - c3 - c2 - c1;
+				const total = c0 * tiers[0] + c1 * tiers[1] + c2 * tiers[2] + c3 * tiers[3];
+				const error = Math.abs(total - numVal);
+				if (error < bestError) {
+					bestError = error;
+					bestCounts = [c0, c1, c2, c3];
+				}
+			}
+		}
+	}
+
+	const rolls: { tier: number; value: number }[] = [];
+	for (let t = 3; t >= 0; t--) {
+		for (let i = 0; i < bestCounts[t]; i++) {
+			rolls.push({ tier: t, value: tiers[t] });
+		}
+	}
+	return rolls;
+}
+
 // Get important substats for a character from build data, fallback to CRIT stats
 function getImportantSubs(charName: string): string[] {
 	const build = CHARACTER_BUILDS[charName];
 	if (build) return build.substats;
 	return ['CRIT Rate', 'CRIT DMG'];
+}
+
+// Calculate substat efficiency: how close each artifact's substats are to max possible rolls
+function calcSubstatEfficiency(substats: { name: string; value: string }[]): number {
+	let totalActual = 0;
+	let totalMax = 0;
+	for (const sub of substats) {
+		const tiers = ROLL_VALUES[sub.name];
+		if (!tiers) continue;
+		const numVal = parseFloat(sub.value);
+		if (isNaN(numVal)) continue;
+		const rollCount = estimateRollCount(sub.name, sub.value);
+		if (rollCount <= 0) continue;
+		totalActual += numVal;
+		totalMax += tiers[3] * rollCount;
+	}
+	return totalMax > 0 ? (totalActual / totalMax) * 100 : 0;
 }
 
 interface ProfileClientProps {
@@ -125,6 +186,21 @@ export function ProfileClient({
 		// Give the server time to re-fetch, then mark done
 		setTimeout(() => setRefreshing(false), 3000);
 	}, [refreshCooldown, refreshing, router]);
+
+	// Keyboard shortcuts: arrow keys to navigate characters
+	useEffect(() => {
+		const handler = (e: KeyboardEvent) => {
+			// Don't capture when typing in an input
+			if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+			if (e.key === 'ArrowLeft') {
+				setSelectedIdx((prev) => (prev > 0 ? prev - 1 : profile.characters.length - 1));
+			} else if (e.key === 'ArrowRight') {
+				setSelectedIdx((prev) => (prev < profile.characters.length - 1 ? prev + 1 : 0));
+			}
+		};
+		window.addEventListener('keydown', handler);
+		return () => window.removeEventListener('keydown', handler);
+	}, [profile.characters.length]);
 
 	// Score artifacts
 	const artifactScores = selected.artifacts.map(scoreArtifact);
@@ -247,6 +323,15 @@ export function ProfileClient({
 
 			{/* Character Selector */}
 			<div className='flex gap-3 overflow-x-auto pb-2'>
+				{profile.characters.length > 1 && (
+					<button
+						onClick={() => setSelectedIdx((prev) => (prev > 0 ? prev - 1 : profile.characters.length - 1))}
+						className='self-center shrink-0 w-8 h-8 rounded-full bg-guild-elevated border border-white/5 flex items-center justify-center text-guild-muted hover:text-white hover:border-white/20 transition-colors'
+						aria-label='Previous character'
+					>
+						<ChevronLeft size={16} />
+					</button>
+				)}
 				{profile.characters.map((c, i) => {
 					const charRanking = rankings[c.name];
 					const topPct = charRanking && charRanking.outOf > 0
@@ -340,9 +425,16 @@ export function ProfileClient({
 						</button>
 					);
 				})}
+				{profile.characters.length > 1 && (
+					<button
+						onClick={() => setSelectedIdx((prev) => (prev < profile.characters.length - 1 ? prev + 1 : 0))}
+						className='self-center shrink-0 w-8 h-8 rounded-full bg-guild-elevated border border-white/5 flex items-center justify-center text-guild-muted hover:text-white hover:border-white/20 transition-colors'
+						aria-label='Next character'
+					>
+						<ChevronRight size={16} />
+					</button>
+				)}
 			</div>
-
-			{/* Character Detail Card */}
 			<div className='guild-card overflow-hidden'>
 				<div className='flex flex-col lg:flex-row'>
 					{/* Left: Character splash art */}
@@ -388,6 +480,11 @@ export function ProfileClient({
 							<div className='text-sm text-guild-gold mt-1'>
 								{'★'.repeat(selected.rarity)}
 							</div>
+							<ShareBuildButton
+								uid={profile.uid}
+								characterId={String(selected.id)}
+								className='mt-2'
+							/>
 						</div>
 					</div>
 
@@ -485,48 +582,59 @@ export function ProfileClient({
 						)}
 
 						{/* Akasha Ranking */}
-						{ranking && (
-							<div>
-								<h3 className='text-xs font-medium text-guild-muted uppercase tracking-wider mb-2'>
-									Akasha Leaderboard
-								</h3>
-								<div className='p-3 rounded-lg bg-guild-elevated border border-white/5 space-y-2'>
-									<div className='flex items-center justify-between'>
-										<span className='text-xs text-guild-muted flex items-center gap-1.5'>
-											<Trophy size={12} className='text-guild-gold' />
-											{ranking.name || 'Best Fit'}
-										</span>
-										<span
-											className={cn(
-												'text-xs font-bold px-2 py-0.5 rounded',
-												ranking.outOf > 0 &&
-													ranking.ranking / ranking.outOf <= 0.01
-													? 'bg-guild-gold/20 text-guild-gold'
-													: ranking.outOf > 0 &&
-														  ranking.ranking / ranking.outOf <= 0.1
-														? 'bg-green-500/20 text-green-400'
-														: 'bg-guild-accent/20 text-guild-accent',
-											)}
-										>
-											Top{' '}
-											{ranking.outOf > 0
-												? ((ranking.ranking / ranking.outOf) * 100).toFixed(1)
-												: '?'}
-											%
-										</span>
-									</div>
-									<div className='flex items-center justify-between text-sm'>
-										<span className='text-guild-muted font-mono'>
-											#{ranking.ranking.toLocaleString()} /{' '}
-											{ranking.outOf.toLocaleString()}
-										</span>
-										<span className='text-guild-gold font-mono font-bold'>
-											{Math.round(ranking.result).toLocaleString()}
-										</span>
+						{ranking && (() => {
+							const topPct = ranking.outOf > 0 ? (ranking.ranking / ranking.outOf) * 100 : null;
+							const pctColor = topPct !== null && topPct <= 1
+								? 'text-guild-gold'
+								: topPct !== null && topPct <= 10
+									? 'text-green-400'
+									: 'text-guild-accent';
+							const pctBg = topPct !== null && topPct <= 1
+								? 'bg-guild-gold/20'
+								: topPct !== null && topPct <= 10
+									? 'bg-green-500/20'
+									: 'bg-guild-accent/20';
+							const barColor = topPct !== null && topPct <= 1
+								? 'bg-guild-gold'
+								: topPct !== null && topPct <= 10
+									? 'bg-green-500'
+									: 'bg-guild-accent';
+							return (
+								<div>
+									<h3 className='text-xs font-medium text-guild-muted uppercase tracking-wider mb-2'>
+										Akasha Leaderboard
+									</h3>
+									<div className='p-4 rounded-xl bg-guild-elevated border border-white/5 space-y-3'>
+										<div className='flex items-center justify-between'>
+											<div className='flex items-center gap-2'>
+												<Trophy size={18} className='text-guild-gold' />
+												<span className='text-sm font-medium text-white'>{ranking.name || 'Best Fit'}</span>
+											</div>
+											<span className={cn('text-lg font-bold px-3 py-1 rounded-lg', pctBg, pctColor)}>
+												Top {topPct !== null ? topPct.toFixed(1) : '?'}%
+											</span>
+										</div>
+										{/* Progress bar */}
+										{topPct !== null && (
+											<div className='relative h-3 bg-white/5 rounded-full overflow-hidden'>
+												<div
+													className={cn('absolute inset-y-0 left-0 rounded-full transition-all', barColor)}
+													style={{ width: `${Math.max(2, 100 - topPct)}%` }}
+												/>
+											</div>
+										)}
+										<div className='flex items-center justify-between'>
+											<span className='text-sm text-guild-muted font-mono'>
+												#{ranking.ranking.toLocaleString()} / {ranking.outOf.toLocaleString()}
+											</span>
+											<span className='text-lg text-guild-gold font-mono font-bold'>
+												{Math.round(ranking.result).toLocaleString()}
+											</span>
+										</div>
 									</div>
 								</div>
-							</div>
-						)}
+							);
+						})()}
 
 						{/* Artifact rows */}
 						<div>
@@ -560,6 +668,84 @@ export function ProfileClient({
 									</div>
 								</div>
 							)}
+
+							{/* Build Checklist — compare current vs recommended */}
+							{CHARACTER_BUILDS[selected.name] && (() => {
+								const build = CHARACTER_BUILDS[selected.name];
+								const checks: { label: string; pass: boolean; detail: string }[] = [];
+
+								// Weapon check
+								const recWeaponIds = build.weaponIds || [];
+								const recWeaponNames = recWeaponIds.map(id => ALL_WEAPONS.find(w => w.id === id)?.name).filter(Boolean);
+								const weaponMatch = recWeaponNames.includes(selected.weapon.name);
+								checks.push({
+									label: 'Weapon',
+									pass: weaponMatch,
+									detail: weaponMatch ? selected.weapon.name : `${selected.weapon.name} (not recommended)`,
+								});
+
+								// Artifact set check
+								const setCounts: Record<string, number> = {};
+								for (const a of selected.artifacts) {
+									setCounts[a.set] = (setCounts[a.set] || 0) + 1;
+								}
+								const recSets = build.artifactSets || [];
+								const has4pc = Object.entries(setCounts).some(([s, c]) => c >= 4 && recSets.includes(s));
+								const matched2pc = recSets.filter(s => setCounts[s] && setCounts[s] >= 2);
+								const setPass = has4pc || matched2pc.length >= 2;
+								checks.push({
+									label: 'Artifact Set',
+									pass: setPass,
+									detail: setPass
+										? Object.entries(setCounts).filter(([, c]) => c >= 2).map(([s, c]) => `${c}pc ${s}`).join(', ')
+										: `No matching set (need ${recSets.join(' or ')})`,
+								});
+
+								// Main stat checks (sands, goblet, circlet)
+								for (const a of selected.artifacts) {
+									const slot = a.slot.toLowerCase();
+									let rec: string | undefined;
+									let slotLabel = '';
+									if (slot.includes('sands') || slot.includes('hourglass')) { rec = build.mainStats.sands; slotLabel = 'Sands'; }
+									else if (slot.includes('goblet') || slot.includes('cup')) { rec = build.mainStats.goblet; slotLabel = 'Goblet'; }
+									else if (slot.includes('circlet') || slot.includes('crown') || slot.includes('hat')) { rec = build.mainStats.circlet; slotLabel = 'Circlet'; }
+									if (rec && slotLabel) {
+										const pass = a.mainStat === rec;
+										checks.push({
+											label: `${slotLabel} Main`,
+											pass,
+											detail: pass ? a.mainStat : `${a.mainStat} (want ${rec})`,
+										});
+									}
+								}
+
+								return (
+									<div className='mb-3 p-3 rounded-lg bg-guild-card border border-white/5'>
+										<div className='text-[10px] text-guild-muted uppercase tracking-wider mb-2'>
+											Build Checklist
+										</div>
+										<div className='grid grid-cols-1 sm:grid-cols-2 gap-1.5'>
+											{checks.map((c) => (
+												<div key={c.label} className='flex items-center gap-2 text-xs'>
+													{c.pass ? (
+														<Check size={14} className='text-emerald-400 shrink-0' />
+													) : (
+														<X size={14} className='text-red-400 shrink-0' />
+													)}
+													<span className={cn(
+														'font-medium shrink-0',
+														c.pass ? 'text-emerald-400' : 'text-red-400',
+													)}>
+														{c.label}
+													</span>
+													<span className='text-guild-dim truncate'>{c.detail}</span>
+												</div>
+											))}
+										</div>
+									</div>
+								);
+							})()}
+
 							<div className='grid grid-cols-1 gap-3'>
 								{selected.artifacts.map((a, i) => {
 									const s = artifactScores[i];
@@ -662,8 +848,19 @@ export function ProfileClient({
 														</div>
 													) : null;
 												})()}
-												<div className='text-[10px] text-guild-dim font-mono flex items-center gap-0.5 justify-end'>
-													<ResinIcon size={10} className='text-guild-dim' />
+												{(() => {
+													const eff = calcSubstatEfficiency(a.substats);
+													return (
+														<div className={cn(
+															'text-[10px] font-mono font-semibold',
+															eff >= 85 ? 'text-emerald-400' : eff >= 70 ? 'text-blue-400' : eff >= 55 ? 'text-amber-400' : 'text-red-400',
+														)}>
+															{eff.toFixed(0)}% eff
+														</div>
+													);
+												})()}
+												<div className='text-xs text-guild-dim font-mono flex items-center gap-1 justify-end'>
+													<ResinIcon size={12} className='text-guild-dim' />
 													{estimateResinForPiece(s).resin.toLocaleString()}
 												</div>
 											</div>
@@ -732,6 +929,100 @@ export function ProfileClient({
 					</div>
 				</div>
 			</div>
+
+			{/* ROLL ANALYSIS — per-piece substat roll breakdown */}
+			{selected.artifacts.length > 0 && (
+				<div className='guild-card p-6 space-y-5'>
+					<h3 className='text-base font-bold text-guild-muted uppercase tracking-wider'>
+						Roll Analysis
+					</h3>
+					<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
+						{selected.artifacts.map((a, i) => {
+							const SI = SLOT_ICONS[a.slot];
+							return (
+								<div
+									key={a.slot}
+									className='rounded-xl bg-guild-elevated border border-white/5 p-4 space-y-3'
+								>
+									{/* Piece header */}
+									<div className='flex items-center gap-3'>
+										{a.icon && (
+											<div className='w-10 h-10 rounded-lg overflow-hidden shrink-0 bg-guild-card border border-white/10'>
+												<FallbackImage
+													src={`${ENKA_UI}/${a.icon}.png`}
+													alt={a.slot}
+													width={40}
+													height={40}
+												/>
+											</div>
+										)}
+										<div className='min-w-0 flex-1'>
+											<div className='flex items-center gap-1.5'>
+												{SI && <SI size={16} className='text-guild-muted shrink-0' />}
+												<span className='text-sm font-semibold text-white truncate'>{a.slot}</span>
+											</div>
+											<div className='text-xs text-guild-dim truncate'>{a.set}</div>
+										</div>
+										<span className={cn('text-sm font-bold font-mono shrink-0', scoreColor(artifactScores[i]))}>
+											{grade(artifactScores[i])}
+										</span>
+									</div>
+									{/* Substat roll breakdown */}
+									<div className='space-y-2.5'>
+										{a.substats.map((sub) => {
+											const rolls = decomposeSubstatRolls(sub.name, sub.value);
+											const isImportant = importantSubs.includes(sub.name);
+											return (
+												<div key={sub.name} className='space-y-1'>
+													<div className={cn(
+														'text-sm flex items-center gap-1.5',
+														isImportant ? 'text-white font-medium' : 'text-guild-muted',
+													)}>
+														{isImportant && (
+															<span className='w-1.5 h-1.5 rounded-full bg-guild-accent shrink-0' />
+														)}
+														<span className='truncate'>{sub.name}</span>
+														<span className='font-mono text-guild-dim ml-auto shrink-0'>{sub.value}</span>
+													</div>
+													<div className='flex items-center gap-1 flex-wrap'>
+														{rolls.map((roll, rollIdx) => (
+															<span
+																key={rollIdx}
+																className={cn(
+																	'text-xs font-mono px-1.5 py-0.5 rounded-md font-semibold',
+																	TIER_COLORS[roll.tier].bg,
+																	TIER_COLORS[roll.tier].text,
+																)}
+															>
+																{Number.isInteger(roll.value) ? roll.value : roll.value.toFixed(1)}
+															</span>
+														))}
+													</div>
+												</div>
+											);
+										})}
+									</div>
+								</div>
+							);
+						})}
+					</div>
+					{/* Legend */}
+					<div className='flex items-center gap-4 text-xs text-guild-dim justify-center pt-1'>
+						<span className='flex items-center gap-1.5'>
+							<span className='w-2.5 h-2.5 rounded bg-emerald-500/40' /> Max
+						</span>
+						<span className='flex items-center gap-1.5'>
+							<span className='w-2.5 h-2.5 rounded bg-blue-500/40' /> High
+						</span>
+						<span className='flex items-center gap-1.5'>
+							<span className='w-2.5 h-2.5 rounded bg-amber-500/40' /> Mid
+						</span>
+						<span className='flex items-center gap-1.5'>
+							<span className='w-2.5 h-2.5 rounded bg-red-500/40' /> Low
+						</span>
+					</div>
+				</div>
+			)}
 
 			{/* BUILD IMPROVEMENT */}
 			{selected.artifacts.length > 0 && CHARACTER_BUILDS[selected.name] && (() => {
@@ -941,35 +1232,35 @@ export function ProfileClient({
 					</div>
 
 					{/* Resin Estimate */}
-					<div className='border-t border-white/5 pt-4 space-y-4'>
-						<h4 className='text-sm font-medium text-guild-muted flex items-center gap-2'>
-							<ResinIcon className='text-guild-muted' size={18} /> Resin Cost
+					<div className='border-t border-white/5 pt-5 space-y-5'>
+						<h4 className='text-base font-semibold text-guild-muted flex items-center gap-2'>
+							<ResinIcon className='text-guild-muted' size={22} /> Resin Cost
 							Estimate
 						</h4>
 
 						{/* Per-piece breakdown */}
-						<div className='space-y-1.5'>
+						<div className='space-y-2'>
 							{selected.artifacts.map((a, i) => {
 								const s = artifactScores[i];
 								const pieceResin = estimateResinForPiece(s);
 								return (
-									<div key={a.slot} className='flex items-center justify-between text-xs'>
-										<div className='flex items-center gap-2 min-w-0'>
+									<div key={a.slot} className='flex items-center justify-between text-sm'>
+										<div className='flex items-center gap-3 min-w-0'>
 											{a.icon && (
-												<div className='w-5 h-5 rounded overflow-hidden shrink-0 bg-guild-card'>
+												<div className='w-7 h-7 rounded-lg overflow-hidden shrink-0 bg-guild-card border border-white/10'>
 													<FallbackImage
 														src={`${ENKA_UI}/${a.icon}.png`}
 														alt={a.slot}
-														width={20}
-														height={20}
+														width={28}
+														height={28}
 													/>
 												</div>
 											)}
 											<span className='text-guild-muted truncate'>{a.slot}</span>
 										</div>
-										<div className='flex items-center gap-2'>
+										<div className='flex items-center gap-3'>
 											<span className={cn(
-												'font-mono',
+												'font-mono font-semibold',
 												scoreColor(s),
 											)}>
 												{grade(s)}
@@ -981,8 +1272,8 @@ export function ProfileClient({
 									</div>
 								);
 							})}
-							<div className='flex items-center justify-between text-xs border-t border-white/5 pt-1.5 mt-1.5'>
-								<span className='text-white font-medium'>Total</span>
+							<div className='flex items-center justify-between text-sm border-t border-white/5 pt-2 mt-2'>
+								<span className='text-white font-semibold'>Total</span>
 								<span className='font-mono text-white font-bold w-16 text-right'>
 									{selected.artifacts.reduce((sum, _, i) => sum + estimateResinForPiece(artifactScores[i]).resin, 0).toLocaleString()}
 								</span>
@@ -1012,13 +1303,13 @@ export function ProfileClient({
 							).map((r) => (
 								<div
 									key={r.label}
-									className='bg-guild-elevated rounded-lg p-3 text-center'
+									className='bg-guild-elevated rounded-xl p-4 text-center'
 								>
-									<div className='text-xs text-guild-muted mb-1'>{r.label}</div>
-									<div className={cn('text-lg font-bold font-mono', r.color)}>
+									<div className='text-sm text-guild-muted mb-1'>{r.label}</div>
+									<div className={cn('text-xl font-bold font-mono', r.color)}>
 										{r.data.resin.toLocaleString()}
 									</div>
-									<div className='text-xs text-guild-muted'>
+									<div className='text-sm text-guild-muted'>
 										≈{r.data.days} days
 									</div>
 								</div>

@@ -3,10 +3,29 @@ import "./globals.css";
 import { Sidebar } from "@/components/layout/sidebar";
 import { TopBar } from "@/components/layout/top-bar";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { Analytics } from "@/components/shared/analytics";
 export const metadata: Metadata = {
-  title: "Guild — Your Genshin Impact Command Center",
-  description:
-    "Build showcase, artifact analysis, database, interactive map, and more.",
+  title: {
+    default: 'Guild — Genshin Impact Companion',
+    template: '%s | Guild',
+  },
+  description: 'Your ultimate Genshin Impact companion — build analysis, tier lists, team compositions, damage calculator, wish simulator, and more.',
+  keywords: ['Genshin Impact', 'build analyzer', 'tier list', 'damage calculator', 'wish simulator', 'artifact scorer', 'team comps'],
+  openGraph: {
+    type: 'website',
+    siteName: 'Guild',
+    title: 'Guild — Genshin Impact Companion',
+    description: 'Build analysis, tier lists, team comps, damage calculator, wish simulator, and more.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Guild — Genshin Impact Companion',
+    description: 'Build analysis, tier lists, team comps, damage calculator, and more.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
@@ -15,7 +34,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('guild-theme');if(!t){t=window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'}document.documentElement.classList.add(t)}catch(e){document.documentElement.classList.add('dark')}})()` }} />
+        <script dangerouslySetInnerHTML={{ __html: `
+          if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+              navigator.serviceWorker.register('/sw.js').catch(() => {});
+            });
+          }
+        `}} />
+      </head>
       <body className="min-h-screen bg-background text-foreground">
         <div className="flex h-screen overflow-hidden">
           <Sidebar />
@@ -24,6 +53,7 @@ export default function RootLayout({
             <main className="flex-1 overflow-y-auto p-6 pb-24 md:pb-6">{children}</main>
           </div>
           <MobileNav />
+          <Analytics />
         </div>
       </body>
     </html>

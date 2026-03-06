@@ -902,17 +902,14 @@ function MaterialsTab({
 		}
 	}
 
-	const today = new Date();
-	const dayNames = [
-		'Sunday',
-		'Monday',
-		'Tuesday',
-		'Wednesday',
-		'Thursday',
-		'Friday',
-		'Saturday',
-	];
-	const todayName = dayNames[today.getDay()];
+	const [todayName, setTodayName] = useState('');
+	useEffect(() => {
+		const dayNames = [
+			'Sunday', 'Monday', 'Tuesday', 'Wednesday',
+			'Thursday', 'Friday', 'Saturday',
+		];
+		setTodayName(dayNames[new Date().getDay()]);
+	}, []);
 
 	return (
 		<div className='space-y-6'>

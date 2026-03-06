@@ -645,10 +645,10 @@ function StygianUsageRatesSection() {
   const top = sorted.filter((c) => c[rateType] > 0).slice(0, 50);
 
   const DIFFICULTY_LABELS: Record<string, string> = {
-    "3": "Normal",
-    "4": "Hard",
-    "5": "Expert",
-    "6": "Master",
+    "3": "Hard",
+    "4": "Menacing",
+    "5": "Fearless",
+    "6": "Dire",
   };
 
   const rateLabels: Record<string, string> = {

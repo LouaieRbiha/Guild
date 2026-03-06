@@ -57,8 +57,7 @@ function formatDateShort(dateStr: string): string {
 	return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-function isActive(start: string, end: string): boolean {
-	const now = new Date();
+function isActive(start: string, end: string, now: Date): boolean {
 	const s = new Date(start.replace(' ', 'T') + 'Z');
 	const e = new Date(end.replace(' ', 'T') + 'Z');
 	return now >= s && now <= e;
@@ -117,9 +116,14 @@ export function BannerHistoryClient({
 	const [visibleCount, setVisibleCount] = useState(INITIAL_COUNT);
 	const [search, setSearch] = useState('');
 	const [showSuggestions, setShowSuggestions] = useState(false);
+	const [clientNow, setClientNow] = useState<Date | null>(null);
 	const searchRef = useRef<HTMLDivElement>(null);
 	const inputRef = useRef<HTMLInputElement>(null);
 	const sentinelRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		setClientNow(new Date());
+	}, []);
 	const versionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
 	// Close dropdown on outside click
@@ -336,7 +340,7 @@ export function BannerHistoryClient({
 						{/* Phases */}
 						<div className='space-y-4 ml-2 pl-4 border-l border-guild-border/20'>
 							{group.phases.map((phase, phaseIdx) => {
-								const active = isActive(phase.start, phase.end);
+								const active = clientNow ? isActive(phase.start, phase.end, clientNow) : false;
 								return (
 									<div key={phase.start} className='relative'>
 										{/* Timeline dot */}
