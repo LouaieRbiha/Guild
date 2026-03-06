@@ -396,7 +396,8 @@ async function main() {
   for (const weapon of WEAPONS) {
     const dir = `${PUBLIC}/weapons/${weapon.id}`;
     await mkdir(dir, { recursive: true });
-    await download(`${YATTA_CDN}/${weapon.icon}.png`, `${dir}/icon.png`);
+    const gachaIcon = weapon.icon.replace('UI_EquipIcon_', 'UI_Gacha_EquipIcon_');
+    await download(`${YATTA_CDN}/${gachaIcon}.png`, `${dir}/icon.png`);
   }
 
   console.log('\nDownloading element icons...');
