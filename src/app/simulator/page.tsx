@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import {
 	BANNER_CONFIG,
 	get5StarRate,
+	getResolvedBanner,
 	performSingleWish,
 	STARTING_PRIMOGEMS,
 	WISH_COST,
@@ -39,6 +40,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import {
 	ChevronDown,
+	Crosshair,
 	Dices,
 	Gem,
 	History,
@@ -126,20 +128,29 @@ export default function SimulatorPage() {
 		character: {
 			pity5: 0,
 			pity4: 0,
-			guaranteed: false,
+			guaranteed5: false,
+			guaranteed4: false,
 			capturingRadianceActive: false,
+			fatePoints: 0,
+			epitomizedTarget: 0,
 		},
 		weapon: {
 			pity5: 0,
 			pity4: 0,
-			guaranteed: false,
+			guaranteed5: false,
+			guaranteed4: false,
 			capturingRadianceActive: false,
+			fatePoints: 0,
+			epitomizedTarget: 0,
 		},
 		standard: {
 			pity5: 0,
 			pity4: 0,
-			guaranteed: false,
+			guaranteed5: false,
+			guaranteed4: false,
 			capturingRadianceActive: false,
+			fatePoints: 0,
+			epitomizedTarget: 0,
 		},
 	});
 	const [primogems, setPrimogems] = useState(STARTING_PRIMOGEMS);
@@ -187,22 +198,16 @@ export default function SimulatorPage() {
 	const resetWish = useCallback(() => {
 		setPityStates({
 			character: {
-				pity5: 0,
-				pity4: 0,
-				guaranteed: false,
-				capturingRadianceActive: false,
+				pity5: 0, pity4: 0, guaranteed5: false, guaranteed4: false,
+				capturingRadianceActive: false, fatePoints: 0, epitomizedTarget: 0,
 			},
 			weapon: {
-				pity5: 0,
-				pity4: 0,
-				guaranteed: false,
-				capturingRadianceActive: false,
+				pity5: 0, pity4: 0, guaranteed5: false, guaranteed4: false,
+				capturingRadianceActive: false, fatePoints: 0, epitomizedTarget: 0,
 			},
 			standard: {
-				pity5: 0,
-				pity4: 0,
-				guaranteed: false,
-				capturingRadianceActive: false,
+				pity5: 0, pity4: 0, guaranteed5: false, guaranteed4: false,
+				capturingRadianceActive: false, fatePoints: 0, epitomizedTarget: 0,
 			},
 		});
 		setPrimogems(STARTING_PRIMOGEMS);
@@ -551,9 +556,9 @@ export default function SimulatorPage() {
 										<>
 											<StatRow
 												label='50/50 Status'
-												value={currentPity.guaranteed ? 'Guaranteed' : '50/50'}
+												value={currentPity.guaranteed5 ? 'Guaranteed' : '50/50'}
 												valueClass={
-													currentPity.guaranteed
+													currentPity.guaranteed5
 														? 'text-guild-success'
 														: 'text-guild-muted'
 												}
@@ -599,6 +604,18 @@ export default function SimulatorPage() {
 													</span>
 												</div>
 											)}
+											{/* Epitomized Path (weapon banner only) */}
+											{bannerType === 'weapon' && (
+												<EpitomizedPathSection
+													pity={currentPity}
+													onTargetChange={(idx) =>
+														setPityStates((prev) => ({
+															...prev,
+															weapon: { ...prev.weapon, epitomizedTarget: idx },
+														}))
+													}
+												/>
+											)}
 										</>
 									)}
 								</div>
@@ -619,26 +636,51 @@ export default function SimulatorPage() {
 										<div
 											key={i}
 											className={cn(
-												'rounded-lg p-3 border text-center min-w-[100px] transition-all',
+												'rounded-lg p-2 border text-center min-w-[90px] max-w-[110px] transition-all',
 												RARITY_COLORS.bg[r.rarity],
 												RARITY_COLORS.border[r.rarity],
 												r.rarity === 5 && 'gold-glow',
 											)}
 										>
-											<div className='flex justify-center mb-1'>
-												<RarityStarsRow count={r.rarity} rarity={r.rarity} />
+											{r.icon && (
+												<div className='flex justify-center mb-1'>
+													<Image
+														src={r.icon}
+														alt={r.name}
+														width={48}
+														height={48}
+														className='rounded'
+														unoptimized
+													/>
+												</div>
+											)}
+											<div className='flex justify-center mb-0.5'>
+												<RarityStarsRow count={r.rarity} rarity={r.rarity} size='h-2.5 w-2.5' />
 											</div>
 											<div
 												className={cn(
-													'text-xs font-medium',
+													'text-[10px] font-medium leading-tight',
 													RARITY_COLORS.text[r.rarity],
 												)}
 											>
 												{r.name}
-												{r.rarity === 5 && r.isFeatured && '!'}
 											</div>
+											{r.rarity === 5 && r.fiftyFiftyOutcome && (
+												<div className={cn(
+													'text-[9px] mt-0.5 font-medium',
+													r.fiftyFiftyOutcome === 'won' ? 'text-guild-success' :
+													r.fiftyFiftyOutcome === 'lost' ? 'text-guild-danger' :
+													r.fiftyFiftyOutcome === 'radiance' ? 'text-amber-400' :
+													'text-guild-muted',
+												)}>
+													{r.fiftyFiftyOutcome === 'won' ? 'Won 50/50' :
+													 r.fiftyFiftyOutcome === 'lost' ? 'Lost 50/50' :
+													 r.fiftyFiftyOutcome === 'radiance' ? 'Radiance!' :
+													 'Guaranteed'}
+												</div>
+											)}
 											{r.rarity === 5 && (
-												<div className='text-[10px] text-guild-dim mt-1'>
+												<div className='text-[9px] text-guild-dim mt-0.5'>
 													Pity: {r.pityCount}
 												</div>
 											)}
@@ -946,6 +988,70 @@ export default function SimulatorPage() {
 				</div>
 			)}
 		</div>
+	);
+}
+
+// ── Epitomized Path Section ───────────────────────────────────────────
+
+function EpitomizedPathSection({
+	pity,
+	onTargetChange,
+}: {
+	pity: BannerPity;
+	onTargetChange: (idx: number) => void;
+}) {
+	const resolved = getResolvedBanner();
+	const weapons = resolved.featured5Weapons;
+
+	if (weapons.length === 0) return null;
+
+	return (
+		<>
+			<div className='h-px bg-white/5' />
+			<div className='space-y-2'>
+				<div className='flex items-center gap-1.5 text-xs font-medium'>
+					<Crosshair className='h-3.5 w-3.5 text-purple-400' />
+					<span className='text-purple-400'>Epitomized Path</span>
+				</div>
+				{/* Target weapon selector */}
+				<div className='flex gap-2'>
+					{weapons.map((wpn, idx) => (
+						<button
+							key={wpn.name}
+							onClick={() => onTargetChange(idx)}
+							className={cn(
+								'flex-1 rounded-md p-1.5 border text-[10px] font-medium transition-all cursor-pointer text-center',
+								pity.epitomizedTarget === idx
+									? 'bg-purple-500/15 border-purple-500/40 text-purple-300'
+									: 'bg-guild-elevated border-white/5 text-guild-dim hover:border-white/20',
+							)}
+						>
+							{wpn.name}
+						</button>
+					))}
+				</div>
+				{/* Fate points display */}
+				<div className='flex items-center justify-between'>
+					<span className='text-xs text-guild-muted'>Fate Points</span>
+					<div className='flex items-center gap-1.5'>
+						{[0, 1].map((point) => (
+							<div
+								key={point}
+								className={cn(
+									'w-4 h-4 rounded-full border-2 transition-colors',
+									pity.fatePoints > point
+										? 'bg-purple-400 border-purple-400'
+										: 'bg-transparent border-white/20',
+								)}
+							/>
+						))}
+						<span className='text-xs font-mono text-guild-muted ml-1'>
+							{pity.fatePoints} / 2
+						</span>
+					</div>
+				</div>
+			</div>
+		</>
 	);
 }
 

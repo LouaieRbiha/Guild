@@ -7,12 +7,18 @@ import { cn } from "@/lib/utils";
 
 // ── Types ────────────────────────────────────────────────────────────
 
+interface WishResultForAnim {
+  rarity: 3 | 4 | 5;
+  name: string;
+  itemType: "character" | "weapon";
+  icon: string;
+  splash: string;
+  isFeatured: boolean;
+  fiftyFiftyOutcome?: "won" | "lost" | "guaranteed" | "radiance";
+}
+
 interface WishAnimationProps {
-  results: Array<{
-    rarity: 3 | 4 | 5;
-    name: string;
-    itemType: "character" | "weapon";
-  }>;
+  results: WishResultForAnim[];
   onComplete: () => void;
 }
 
@@ -172,6 +178,16 @@ export function WishAnimation({
           {/* Floating particles after impact */}
           {phase === "reveal" && (
             <FloatingEmbers rarity={rarity} />
+          )}
+
+          {/* Rotating light rays for 5-star */}
+          {phase === "reveal" && rarity === 5 && (
+            <RotatingRays />
+          )}
+
+          {/* Radial sparkle burst on reveal */}
+          {(phase === "impact" || phase === "reveal") && rarity >= 4 && (
+            <SparkleBurst rarity={rarity} />
           )}
 
           {/* Result card */}
@@ -429,14 +445,87 @@ function FloatingEmbers({ rarity }: { rarity: 3 | 4 | 5 }): React.JSX.Element {
   );
 }
 
+// ── Rotating Light Rays (5-star only) ──────────────────────────────
+
+function RotatingRays(): React.JSX.Element {
+  return (
+    <motion.div
+      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+      style={{ width: 800, height: 800 }}
+      initial={{ opacity: 0, rotate: 0 }}
+      animate={{ opacity: [0, 0.4, 0.2], rotate: 360 }}
+      transition={{ duration: 8, ease: "linear", repeat: Infinity }}
+    >
+      {Array.from({ length: 12 }, (_, i) => (
+        <div
+          key={i}
+          className="absolute left-1/2 top-1/2"
+          style={{
+            width: 2,
+            height: 400,
+            background: "linear-gradient(to bottom, rgba(251, 191, 36, 0.5), transparent)",
+            transformOrigin: "top center",
+            transform: `translate(-50%, 0) rotate(${i * 30}deg)`,
+          }}
+        />
+      ))}
+    </motion.div>
+  );
+}
+
+// ── Sparkle Burst ──────────────────────────────────────────────────
+
+function SparkleBurst({ rarity }: { rarity: 3 | 4 | 5 }): React.JSX.Element {
+  const config = RARITY_CONFIG[rarity];
+  const count = rarity === 5 ? 16 : 8;
+
+  return (
+    <>
+      {Array.from({ length: count }, (_, i) => {
+        const angle = (i / count) * 360;
+        const distance = rarity === 5 ? 180 + Math.random() * 120 : 120 + Math.random() * 80;
+        const rad = (angle * Math.PI) / 180;
+        const endX = Math.cos(rad) * distance;
+        const endY = Math.sin(rad) * distance;
+
+        return (
+          <motion.div
+            key={i}
+            className="absolute left-1/2 top-1/2 rounded-full pointer-events-none"
+            style={{
+              width: rarity === 5 ? 4 : 3,
+              height: rarity === 5 ? 4 : 3,
+              backgroundColor: config.starColor,
+              boxShadow: `0 0 6px ${config.glowColor}`,
+            }}
+            initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
+            animate={{
+              x: endX,
+              y: endY,
+              opacity: 0,
+              scale: 0,
+            }}
+            transition={{
+              duration: rarity === 5 ? 1.2 : 0.8,
+              delay: 0.05 + i * 0.02,
+              ease: "easeOut",
+            }}
+          />
+        );
+      })}
+    </>
+  );
+}
+
 // ── Reveal Card ─────────────────────────────────────────────────────
 
 function RevealCard({
   result,
 }: {
-  result: { rarity: 3 | 4 | 5; name: string; itemType: "character" | "weapon" };
+  result: WishResultForAnim;
 }): React.JSX.Element {
   const config = RARITY_CONFIG[result.rarity];
+  const showImage = result.splash && result.rarity >= 4;
 
   return (
     <motion.div
@@ -453,28 +542,45 @@ function RevealCard({
           "rounded-2xl border-2 text-center backdrop-blur-sm",
           config.bg,
           config.border,
-          result.rarity === 5 ? "p-12 min-w-[260px]" : result.rarity === 4 ? "p-10" : "p-8",
+          result.rarity === 5 ? "p-8 min-w-[280px]" : result.rarity === 4 ? "p-6 min-w-[220px]" : "p-8",
         )}
         style={{
           boxShadow: `0 0 ${result.rarity === 5 ? 60 : 30}px ${config.glowColor}, 0 0 ${result.rarity === 5 ? 120 : 60}px ${config.trailColor}`,
         }}
       >
-        {/* Star icon for 5-star */}
-        {result.rarity === 5 && (
+        {/* Character/weapon image */}
+        {showImage && (
           <motion.div
-            className="flex justify-center mb-4"
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ delay: 0.2, duration: 0.6, ease: [0.34, 1.56, 0.64, 1] }}
+            className="flex justify-center mb-3"
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{
+              delay: result.rarity === 5 ? 0.15 : 0.1,
+              duration: result.rarity === 5 ? 0.6 : 0.3,
+              ease: [0.34, 1.56, 0.64, 1],
+            }}
           >
-            <div className="w-16 h-16 rounded-full bg-amber-400/20 flex items-center justify-center">
-              <Star className="h-8 w-8 text-amber-400 fill-amber-400" />
+            <div
+              className={cn(
+                "rounded-xl overflow-hidden",
+                result.rarity === 5 ? "w-32 h-32" : "w-24 h-24",
+              )}
+              style={{
+                boxShadow: `0 0 30px ${config.glowColor}`,
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={result.splash}
+                alt={result.name}
+                className="w-full h-full object-cover"
+              />
             </div>
           </motion.div>
         )}
 
         {/* Rarity stars */}
-        <div className="flex justify-center mb-3">
+        <div className="flex justify-center mb-2">
           <RarityStarsInline count={result.rarity} rarity={result.rarity} />
         </div>
 
@@ -500,6 +606,27 @@ function RevealCard({
         >
           {result.itemType}
         </motion.div>
+
+        {/* 50/50 outcome for 5-star */}
+        {result.rarity === 5 && result.fiftyFiftyOutcome && (
+          <motion.div
+            className={cn(
+              "text-xs font-medium mt-2",
+              result.fiftyFiftyOutcome === "won" ? "text-green-400" :
+              result.fiftyFiftyOutcome === "lost" ? "text-red-400" :
+              result.fiftyFiftyOutcome === "radiance" ? "text-amber-300" :
+              "text-white/50",
+            )}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+          >
+            {result.fiftyFiftyOutcome === "won" ? "Won 50/50!" :
+             result.fiftyFiftyOutcome === "lost" ? "Lost 50/50" :
+             result.fiftyFiftyOutcome === "radiance" ? "Capturing Radiance!" :
+             "Guaranteed"}
+          </motion.div>
+        )}
       </div>
     </motion.div>
   );
@@ -511,11 +638,7 @@ function SummaryGrid({
   results,
   onDismiss,
 }: {
-  results: Array<{
-    rarity: 3 | 4 | 5;
-    name: string;
-    itemType: "character" | "weapon";
-  }>;
+  results: WishResultForAnim[];
   onDismiss: () => void;
 }): React.JSX.Element {
   const sorted = [...results].sort((a, b) => b.rarity - a.rarity);
@@ -531,7 +654,7 @@ function SummaryGrid({
       </motion.h2>
 
       <motion.div
-        className="grid grid-cols-5 gap-3 max-w-2xl px-4"
+        className="grid grid-cols-5 gap-3 max-w-3xl px-4"
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.15 }}
@@ -542,7 +665,7 @@ function SummaryGrid({
             <motion.div
               key={i}
               className={cn(
-                "rounded-lg border p-3 text-center min-w-[100px]",
+                "rounded-lg border p-2 text-center min-w-[90px]",
                 cfg.bg,
                 cfg.border,
               )}
@@ -551,6 +674,16 @@ function SummaryGrid({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 + i * 0.05 }}
             >
+              {result.icon && result.rarity >= 4 && (
+                <div className="flex justify-center mb-1">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={result.icon}
+                    alt={result.name}
+                    className="w-12 h-12 rounded object-cover"
+                  />
+                </div>
+              )}
               <div className="flex justify-center mb-1">
                 <RarityStarsInline
                   count={result.rarity}
@@ -558,7 +691,7 @@ function SummaryGrid({
                   size="small"
                 />
               </div>
-              <div className={cn("text-xs font-medium", cfg.text)}>
+              <div className={cn("text-xs font-medium leading-tight", cfg.text)}>
                 {result.name}
               </div>
               <div className="text-[10px] text-white/30 capitalize mt-0.5">
@@ -632,6 +765,10 @@ function WishKeyframes(): React.JSX.Element {
       @keyframes star-twinkle {
         0%, 100% { opacity: 0.3; transform: scale(1); }
         50% { opacity: 0.8; transform: scale(1.3); }
+      }
+      @keyframes golden-pulse {
+        0%, 100% { box-shadow: 0 0 30px rgba(251, 191, 36, 0.3), 0 0 60px rgba(251, 191, 36, 0.15); }
+        50% { box-shadow: 0 0 50px rgba(251, 191, 36, 0.5), 0 0 100px rgba(251, 191, 36, 0.25); }
       }
     `}</style>
   );
