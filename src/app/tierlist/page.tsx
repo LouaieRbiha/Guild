@@ -305,7 +305,7 @@ export default function TierListPage() {
   useEffect(() => {
     if (!draggedCharId) return;
 
-    const EDGE_SIZE = 80;
+    const EDGE_SIZE = 150;
     const MAX_SPEED = 16;
 
     const onDragOver = (e: DragEvent) => {
