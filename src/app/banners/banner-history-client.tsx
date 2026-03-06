@@ -10,7 +10,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { RarityStars } from '@/components/shared';
-import { History, Loader2, Sparkles, Swords } from 'lucide-react';
+import { ChevronDown, History, Loader2, Sparkles, Swords } from 'lucide-react';
 
 // ── Types ───────────────────────────────────────────────────────────
 
@@ -78,6 +78,7 @@ export function BannerHistoryClient({
 }) {
 	const [visibleCount, setVisibleCount] = useState(INITIAL_COUNT);
 	const sentinelRef = useRef<HTMLDivElement>(null);
+	const versionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
 	const visibleGroups = groups.slice(0, visibleCount);
 	const hasMore = visibleCount < groups.length;
@@ -100,23 +101,61 @@ export function BannerHistoryClient({
 		return () => observer.disconnect();
 	}, [hasMore, groups.length]);
 
+	const handleVersionSelect = useCallback((version: string) => {
+		if (!version) return;
+		// Ensure the selected version is visible
+		const idx = groups.findIndex((g) => g.version === version);
+		if (idx === -1) return;
+		setVisibleCount((prev) => Math.max(prev, idx + 1));
+		// Scroll after state update
+		requestAnimationFrame(() => {
+			const el = versionRefs.current.get(version);
+			if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		});
+	}, [groups]);
+
 	return (
 		<div className='max-w-5xl mx-auto space-y-8'>
 			{/* Header */}
-			<div className='flex items-center gap-3'>
-				<History className='h-6 w-6 text-guild-accent' />
-				<div>
-					<h1 className='text-2xl font-bold'>Banner History</h1>
-					<p className='text-sm text-guild-muted mt-0.5'>
-						{totalCharBanners} character banners &middot; {totalWeaponBanners} weapon banners
-					</p>
+			<div className='flex items-center justify-between gap-3'>
+				<div className='flex items-center gap-3'>
+					<History className='h-6 w-6 text-guild-accent' />
+					<div>
+						<h1 className='text-2xl font-bold'>Banner History</h1>
+						<p className='text-sm text-guild-muted mt-0.5'>
+							{totalCharBanners} character banners &middot; {totalWeaponBanners} weapon banners
+						</p>
+					</div>
 				</div>
+
+				{/* Version dropdown */}
+				{groups.length > 0 && (
+					<div className='relative'>
+						<select
+							onChange={(e) => handleVersionSelect(e.target.value)}
+							defaultValue=''
+							className='appearance-none bg-guild-card border border-guild-border/30 rounded-lg px-3 py-1.5 pr-8 text-sm text-guild-muted hover:border-guild-accent/50 focus:border-guild-accent focus:outline-none cursor-pointer'
+						>
+							<option value='' disabled>Jump to version</option>
+							{groups.map((g) => (
+								<option key={g.version} value={g.version}>v{g.version}</option>
+							))}
+						</select>
+						<ChevronDown className='absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-guild-muted pointer-events-none' />
+					</div>
+				)}
 			</div>
 
 			{/* Timeline */}
 			<div className='space-y-10'>
 				{visibleGroups.map((group) => (
-					<div key={group.version} className='relative'>
+					<div
+						key={group.version}
+						ref={(el) => {
+							if (el) versionRefs.current.set(group.version, el);
+						}}
+						className='relative'
+					>
 						{/* Version header */}
 						<div className='flex items-center gap-3 mb-4'>
 							<Badge className='bg-guild-accent/15 text-guild-accent border-guild-accent/30 text-sm px-3 py-1'>
@@ -297,28 +336,28 @@ function CharacterBannerCard({
 			{/* 4-star row */}
 			<CardContent className='px-3 py-2'>
 				<div className='flex items-center gap-2 flex-wrap'>
-					<span className='text-[10px] text-guild-dim font-medium shrink-0'>4&#9733;</span>
+					<span className='text-xs text-guild-dim font-medium shrink-0'>4&#9733;</span>
 					{featured4.length > 0 ? (
 						featured4.map((char) => (
-							<Link key={char.id} href={`/database/${char.id}`} className='flex items-center gap-1 group/fc'>
-								<div className='w-6 h-6 rounded-full overflow-hidden border border-guild-border/50 relative shrink-0'>
+							<Link key={char.id} href={`/database/${char.id}`} className='flex items-center gap-1.5 group/fc'>
+								<div className='w-7 h-7 rounded-full overflow-hidden border border-guild-border/50 relative shrink-0'>
 									<Image
 										src={charIconUrl(char.id)}
 										alt={char.name}
 										fill
 										className='object-cover'
-										sizes='24px'
+										sizes='28px'
 										unoptimized
 									/>
 								</div>
-								<span className='text-[10px] text-guild-muted group-hover/fc:text-white transition-colors'>
+								<span className='text-xs text-guild-muted group-hover/fc:text-white transition-colors'>
 									{char.name}
 								</span>
 							</Link>
 						))
 					) : (
 						banner.featuredRare.map((id) => (
-							<span key={id} className='text-[10px] text-guild-muted'>
+							<span key={id} className='text-xs text-guild-muted'>
 								{id.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
 							</span>
 						))
@@ -409,27 +448,27 @@ function WeaponBannerCard({
 			{/* 4-star weapons */}
 			<CardContent className='px-3 py-2'>
 				<div className='flex items-center gap-2 flex-wrap'>
-					<span className='text-[10px] text-guild-dim font-medium shrink-0'>4&#9733;</span>
+					<span className='text-xs text-guild-dim font-medium shrink-0'>4&#9733;</span>
 					{featured4.length > 0 ? (
 						featured4.map((wpn) => (
-							<Link key={wpn.id} href={`/weapons/${wpn.id}`} className='flex items-center gap-1 group/fw'>
+							<Link key={wpn.id} href={`/weapons/${wpn.id}`} className='flex items-center gap-1.5 group/fw'>
 								<Image
 									src={weaponIconUrl(wpn.id)}
 									alt={wpn.name}
-									width={18}
-									height={18}
+									width={22}
+									height={22}
 									className='object-contain shrink-0'
-									sizes='18px'
+									sizes='22px'
 									unoptimized
 								/>
-								<span className='text-[10px] text-guild-muted group-hover/fw:text-white transition-colors'>
+								<span className='text-xs text-guild-muted group-hover/fw:text-white transition-colors'>
 									{wpn.name}
 								</span>
 							</Link>
 						))
 					) : (
 						banner.featuredRare.map((id) => (
-							<span key={id} className='text-[10px] text-guild-muted'>
+							<span key={id} className='text-xs text-guild-muted'>
 								{id.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
 							</span>
 						))
