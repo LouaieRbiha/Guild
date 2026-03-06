@@ -525,109 +525,178 @@ function RevealCard({
   result: WishResultForAnim;
 }): React.JSX.Element {
   const config = RARITY_CONFIG[result.rarity];
-  const showImage = result.splash && result.rarity >= 4;
+  const hasSplash = result.splash && result.rarity >= 4;
+  const isCharacter = result.itemType === "character";
+  const is5Star = result.rarity === 5;
 
+  // 3-star: compact card (no splash)
+  if (result.rarity === 3) {
+    return (
+      <motion.div
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+      >
+        <div
+          className={cn("rounded-2xl border-2 text-center backdrop-blur-sm p-8", config.bg, config.border)}
+          style={{ boxShadow: `0 0 30px ${config.glowColor}, 0 0 60px ${config.trailColor}` }}
+        >
+          {result.icon && (
+            <div className="flex justify-center mb-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={result.icon} alt={result.name} className="w-16 h-16 object-contain drop-shadow-lg" />
+            </div>
+          )}
+          <div className="flex justify-center mb-2">
+            <RarityStarsInline count={3} rarity={3} />
+          </div>
+          <div className={cn("text-lg font-bold", config.text)}>{result.name}</div>
+          <div className="text-sm text-white/40 mt-1 capitalize">{result.itemType}</div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  // 4-star and 5-star: cinematic splash art reveal
   return (
     <motion.div
-      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10"
-      initial={{ opacity: 0, scale: result.rarity === 5 ? 0.3 : 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{
-        duration: result.rarity === 5 ? 0.8 : 0.4,
-        ease: result.rarity === 5 ? [0.16, 1, 0.3, 1] : "easeOut",
-      }}
+      className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: is5Star ? 0.6 : 0.3 }}
     >
-      <div
-        className={cn(
-          "rounded-2xl border-2 text-center backdrop-blur-sm",
-          config.bg,
-          config.border,
-          result.rarity === 5 ? "p-8 min-w-[280px]" : result.rarity === 4 ? "p-6 min-w-[220px]" : "p-8",
-        )}
-        style={{
-          boxShadow: `0 0 ${result.rarity === 5 ? 60 : 30}px ${config.glowColor}, 0 0 ${result.rarity === 5 ? 120 : 60}px ${config.trailColor}`,
-        }}
-      >
-        {/* Character/weapon image */}
-        {showImage && (
-          <motion.div
-            className="flex justify-center mb-3"
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{
-              delay: result.rarity === 5 ? 0.15 : 0.1,
-              duration: result.rarity === 5 ? 0.6 : 0.3,
-              ease: [0.34, 1.56, 0.64, 1],
-            }}
-          >
+      {/* Splash art — character gacha or weapon icon */}
+      {hasSplash && (
+        <motion.div
+          className={cn(
+            "absolute",
+            isCharacter
+              ? "inset-0 flex items-center justify-center"
+              : "left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
+          )}
+          initial={{
+            opacity: 0,
+            scale: is5Star ? 1.3 : 1.1,
+            ...(isCharacter ? {} : { y: 20 }),
+          }}
+          animate={{
+            opacity: 1,
+            scale: 1,
+            ...(isCharacter ? {} : { y: 0 }),
+          }}
+          transition={{
+            duration: is5Star ? 0.8 : 0.5,
+            ease: [0.16, 1, 0.3, 1],
+          }}
+        >
+          {isCharacter ? (
+            /* Character gacha splash — wide 2:1 image, show full */
             <div
               className={cn(
-                "rounded-xl overflow-hidden",
-                result.rarity === 5 ? "w-32 h-32" : "w-24 h-24",
+                "relative overflow-hidden",
+                is5Star ? "w-[80vw] max-w-[800px]" : "w-[60vw] max-w-[600px]",
               )}
               style={{
-                boxShadow: `0 0 30px ${config.glowColor}`,
+                filter: `drop-shadow(0 0 ${is5Star ? 40 : 20}px ${config.glowColor})`,
               }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={result.splash}
                 alt={result.name}
-                className="w-full h-full object-cover"
+                className="w-full h-auto object-contain"
               />
             </div>
-          </motion.div>
-        )}
-
-        {/* Rarity stars */}
-        <div className="flex justify-center mb-2">
-          <RarityStarsInline count={result.rarity} rarity={result.rarity} />
-        </div>
-
-        {/* Name */}
-        <motion.div
-          className={cn(
-            "font-bold",
-            config.text,
-            result.rarity === 5 ? "text-2xl" : result.rarity === 4 ? "text-xl" : "text-lg",
+          ) : (
+            /* Weapon icon — centered and large */
+            <div
+              className={cn(
+                "relative",
+                is5Star ? "w-48 h-48" : "w-36 h-36",
+              )}
+              style={{
+                filter: `drop-shadow(0 0 ${is5Star ? 40 : 20}px ${config.glowColor})`,
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={result.splash}
+                alt={result.name}
+                className="w-full h-full object-contain"
+              />
+            </div>
           )}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: result.rarity === 5 ? 0.4 : 0.2 }}
-        >
-          {result.name}
         </motion.div>
+      )}
 
-        <motion.div
-          className="text-sm text-white/40 mt-1 capitalize"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: result.rarity === 5 ? 0.6 : 0.3 }}
-        >
-          {result.itemType}
-        </motion.div>
+      {/* Bottom info overlay — name, stars, 50/50 outcome */}
+      <motion.div
+        className="absolute bottom-[15%] left-1/2 -translate-x-1/2 text-center z-20"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          delay: is5Star ? 0.5 : 0.25,
+          duration: 0.5,
+          ease: "easeOut",
+        }}
+      >
+        {/* Backdrop blur bar */}
+        <div className="relative px-8 py-4">
+          <div
+            className="absolute inset-0 rounded-xl backdrop-blur-md"
+            style={{
+              background: `linear-gradient(to right, transparent, rgba(0,0,0,0.6), rgba(0,0,0,0.6), transparent)`,
+            }}
+          />
+          <div className="relative">
+            {/* Rarity stars */}
+            <div className="flex justify-center mb-1.5">
+              <RarityStarsInline count={result.rarity} rarity={result.rarity} />
+            </div>
 
-        {/* 50/50 outcome for 5-star */}
-        {result.rarity === 5 && result.fiftyFiftyOutcome && (
-          <motion.div
-            className={cn(
-              "text-xs font-medium mt-2",
-              result.fiftyFiftyOutcome === "won" ? "text-green-400" :
-              result.fiftyFiftyOutcome === "lost" ? "text-red-400" :
-              result.fiftyFiftyOutcome === "radiance" ? "text-amber-300" :
-              "text-white/50",
+            {/* Name */}
+            <div
+              className={cn(
+                "font-bold whitespace-nowrap",
+                config.text,
+                is5Star ? "text-3xl" : "text-2xl",
+              )}
+              style={{
+                textShadow: `0 0 20px ${config.glowColor}`,
+              }}
+            >
+              {result.name}
+            </div>
+
+            {/* Item type */}
+            <div className="text-sm text-white/50 mt-0.5 capitalize">
+              {result.itemType}
+            </div>
+
+            {/* 50/50 outcome */}
+            {is5Star && result.fiftyFiftyOutcome && (
+              <motion.div
+                className={cn(
+                  "text-sm font-semibold mt-2",
+                  result.fiftyFiftyOutcome === "won" ? "text-green-400" :
+                  result.fiftyFiftyOutcome === "lost" ? "text-red-400" :
+                  result.fiftyFiftyOutcome === "radiance" ? "text-amber-300" :
+                  "text-white/60",
+                )}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1 }}
+              >
+                {result.fiftyFiftyOutcome === "won" ? "Won 50/50!" :
+                 result.fiftyFiftyOutcome === "lost" ? "Lost 50/50" :
+                 result.fiftyFiftyOutcome === "radiance" ? "Capturing Radiance!" :
+                 "Guaranteed"}
+              </motion.div>
             )}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
-          >
-            {result.fiftyFiftyOutcome === "won" ? "Won 50/50!" :
-             result.fiftyFiftyOutcome === "lost" ? "Lost 50/50" :
-             result.fiftyFiftyOutcome === "radiance" ? "Capturing Radiance!" :
-             "Guaranteed"}
-          </motion.div>
-        )}
-      </div>
+          </div>
+        </div>
+      </motion.div>
     </motion.div>
   );
 }
@@ -654,48 +723,80 @@ function SummaryGrid({
       </motion.h2>
 
       <motion.div
-        className="grid grid-cols-5 gap-3 max-w-3xl px-4"
+        className="grid grid-cols-5 gap-3 max-w-4xl px-4"
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.15 }}
       >
         {sorted.map((result, i) => {
           const cfg = RARITY_CONFIG[result.rarity];
+          const hasImage = result.rarity >= 4 && result.splash;
+          const isCharacter = result.itemType === "character";
+
           return (
             <motion.div
               key={i}
               className={cn(
-                "rounded-lg border p-2 text-center min-w-[90px]",
+                "rounded-lg border overflow-hidden text-center",
                 cfg.bg,
                 cfg.border,
+                result.rarity === 5 && "ring-1 ring-amber-500/30",
               )}
               style={{ boxShadow: `0 0 15px ${cfg.glowColor}` }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 + i * 0.05 }}
             >
-              {result.icon && result.rarity >= 4 && (
-                <div className="flex justify-center mb-1">
+              {/* Image area */}
+              {hasImage ? (
+                <div className={cn(
+                  "relative overflow-hidden bg-black/30",
+                  isCharacter ? "h-20" : "h-20 flex items-center justify-center",
+                )}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={result.icon}
+                    src={result.splash}
                     alt={result.name}
-                    className="w-12 h-12 rounded object-cover"
+                    className={cn(
+                      isCharacter
+                        ? "w-full h-full object-cover object-top"
+                        : "h-14 w-14 object-contain drop-shadow-lg",
+                    )}
+                    style={isCharacter ? {
+                      filter: `drop-shadow(0 0 8px ${cfg.glowColor})`,
+                    } : {
+                      filter: `drop-shadow(0 0 8px ${cfg.glowColor})`,
+                    }}
                   />
                 </div>
+              ) : (
+                result.icon && (
+                  <div className="h-14 flex items-center justify-center bg-black/20">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={result.icon}
+                      alt={result.name}
+                      className="h-10 w-10 object-contain"
+                    />
+                  </div>
+                )
               )}
-              <div className="flex justify-center mb-1">
-                <RarityStarsInline
-                  count={result.rarity}
-                  rarity={result.rarity}
-                  size="small"
-                />
-              </div>
-              <div className={cn("text-xs font-medium leading-tight", cfg.text)}>
-                {result.name}
-              </div>
-              <div className="text-[10px] text-white/30 capitalize mt-0.5">
-                {result.itemType}
+
+              {/* Info below image */}
+              <div className="p-1.5">
+                <div className="flex justify-center mb-0.5">
+                  <RarityStarsInline
+                    count={result.rarity}
+                    rarity={result.rarity}
+                    size="small"
+                  />
+                </div>
+                <div className={cn("text-[10px] font-medium leading-tight", cfg.text)}>
+                  {result.name}
+                </div>
+                <div className="text-[9px] text-white/30 capitalize mt-0.5">
+                  {result.itemType}
+                </div>
               </div>
             </motion.div>
           );
