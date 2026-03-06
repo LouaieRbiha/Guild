@@ -9,6 +9,7 @@ import {
 	ExternalLink,
 	Gamepad2,
 	Gift,
+	History,
 	Map,
 	Shield,
 	Swords,
@@ -135,6 +136,12 @@ const NAV_CARDS = [
 		icon: Trophy,
 		title: 'Tier List',
 		description: 'Character rankings and tier list for all roles',
+	},
+	{
+		href: '/banners',
+		icon: History,
+		title: 'Banners',
+		description: 'Browse all past and current wish banner history',
 	},
 	{
 		href: '/streamers',

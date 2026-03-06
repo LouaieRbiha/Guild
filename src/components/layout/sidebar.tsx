@@ -12,7 +12,7 @@ import {
 	WeaponIcon,
 } from '@/components/icons/genshin-icons';
 import { cn } from '@/lib/utils';
-import { Calendar, Gamepad2, Shield, Trophy } from 'lucide-react';
+import { Calendar, Gamepad2, History, Shield, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -32,6 +32,7 @@ const navItems: NavItem[] = [
 	{ href: '/weapons', icon: WeaponIcon, label: 'Weapons' },
 	{ href: '/artifacts', icon: FlowerIcon, label: 'Artifacts' },
 	{ href: '/calendar', icon: Calendar, label: 'Calendar' },
+	{ href: '/banners', icon: History, label: 'Banners' },
 	{ href: '/abyss', icon: Shield, label: 'Abyss' },
 	{ href: '/map', icon: CompassIcon, label: 'Map' },
 	{ href: '/simulator', icon: FateIcon, label: 'Simulator' },

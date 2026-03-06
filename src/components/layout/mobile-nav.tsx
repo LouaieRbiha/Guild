@@ -11,7 +11,7 @@ import {
 	WeaponIcon,
 } from '@/components/icons/genshin-icons';
 import { cn } from '@/lib/utils';
-import { Calendar, Gamepad2, MoreHorizontal, Shield, Trophy, X } from 'lucide-react';
+import { Calendar, Gamepad2, History, MoreHorizontal, Shield, Trophy, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
@@ -37,6 +37,7 @@ const MORE_ITEMS: MobileNavItem[] = [
 	{ href: '/tierlist', icon: Trophy, label: 'Tier List' },
 	{ href: '/artifacts', icon: FlowerIcon, label: 'Artifacts' },
 	{ href: '/calendar', icon: Calendar, label: 'Calendar' },
+	{ href: '/banners', icon: History, label: 'Banners' },
 	{ href: '/abyss', icon: Shield, label: 'Abyss' },
 	{ href: '/map', icon: CompassIcon, label: 'Map' },
 	{ href: '/simulator', icon: FateIcon, label: 'Simulator' },
