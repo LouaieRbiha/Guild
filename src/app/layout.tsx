@@ -4,6 +4,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { TopBar } from "@/components/layout/top-bar";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { Analytics } from "@/components/shared/analytics";
+import { SWRProvider } from "@/components/swr-provider";
 export const metadata: Metadata = {
   title: {
     default: 'Guild — Genshin Impact Companion',
@@ -50,7 +51,9 @@ export default function RootLayout({
           <Sidebar />
           <div className="flex flex-1 flex-col overflow-hidden">
             <TopBar />
-            <main className="flex-1 overflow-y-auto p-6 pb-24 md:pb-6">{children}</main>
+            <main className="flex-1 overflow-y-auto p-6 pb-24 md:pb-6">
+              <SWRProvider>{children}</SWRProvider>
+            </main>
           </div>
           <MobileNav />
           <Analytics />

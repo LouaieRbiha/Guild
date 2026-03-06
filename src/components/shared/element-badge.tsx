@@ -1,3 +1,4 @@
+import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { ELEMENT_COLORS } from "@/lib/constants";
 import { ELEMENT_ICONS } from "@/components/icons/genshin-icons";
@@ -9,7 +10,7 @@ interface ElementBadgeProps {
   className?: string;
 }
 
-export function ElementBadge({ element, showIcon = true, className }: ElementBadgeProps) {
+export const ElementBadge = React.memo(function ElementBadge({ element, showIcon = true, className }: ElementBadgeProps) {
   const colors = ELEMENT_COLORS[element];
   const Icon = ELEMENT_ICONS[element];
   if (!colors) return <Badge variant="outline" className={className}>{element}</Badge>;
@@ -19,4 +20,4 @@ export function ElementBadge({ element, showIcon = true, className }: ElementBad
       {element}
     </Badge>
   );
-}
+});

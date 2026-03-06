@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Star, SkipForward } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 // ── Types ────────────────────────────────────────────────────────────
@@ -544,8 +545,7 @@ function RevealCard({
         >
           {result.icon && (
             <div className="flex justify-center mb-2">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={result.icon} alt={result.name} className="w-16 h-16 object-contain drop-shadow-lg" />
+              <Image src={result.icon} alt={result.name} width={64} height={64} className="object-contain drop-shadow-lg" />
             </div>
           )}
           <div className="flex justify-center mb-2">
@@ -601,11 +601,13 @@ function RevealCard({
                 filter: `drop-shadow(0 0 ${is5Star ? 40 : 20}px ${config.glowColor})`,
               }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={result.splash}
                 alt={result.name}
+                width={800}
+                height={400}
                 className="w-full h-auto object-contain"
+                unoptimized
               />
             </div>
           ) : (
@@ -619,11 +621,13 @@ function RevealCard({
                 filter: `drop-shadow(0 0 ${is5Star ? 40 : 20}px ${config.glowColor})`,
               }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={result.splash}
                 alt={result.name}
+                width={192}
+                height={192}
                 className="w-full h-full object-contain"
+                unoptimized
               />
             </div>
           )}
@@ -753,10 +757,11 @@ function SummaryGrid({
                   "relative overflow-hidden bg-black/30",
                   isCharacter ? "h-20" : "h-20 flex items-center justify-center",
                 )}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src={result.splash}
                     alt={result.name}
+                    width={isCharacter ? 200 : 56}
+                    height={isCharacter ? 80 : 56}
                     className={cn(
                       isCharacter
                         ? "w-full h-full object-cover object-top"
@@ -767,16 +772,19 @@ function SummaryGrid({
                     } : {
                       filter: `drop-shadow(0 0 8px ${cfg.glowColor})`,
                     }}
+                    unoptimized
                   />
                 </div>
               ) : (
                 result.icon && (
                   <div className="h-14 flex items-center justify-center bg-black/20">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       src={result.icon}
                       alt={result.name}
+                      width={40}
+                      height={40}
                       className="h-10 w-10 object-contain"
+                      unoptimized
                     />
                   </div>
                 )

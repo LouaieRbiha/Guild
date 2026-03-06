@@ -1,3 +1,4 @@
+import React from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { MAT_RARITY_BORDER, MAT_RARITY_BG, YATTA_ASSETS } from "@/lib/constants";
@@ -13,7 +14,7 @@ interface MaterialCardProps {
   className?: string;
 }
 
-export function MaterialCard({ item, className }: MaterialCardProps) {
+export const MaterialCard = React.memo(function MaterialCard({ item, className }: MaterialCardProps) {
   return (
     <div className={cn("group relative flex flex-col items-center", className)} title={item.name}>
       <div className={cn(
@@ -42,4 +43,4 @@ export function MaterialCard({ item, className }: MaterialCardProps) {
       </p>
     </div>
   );
-}
+});

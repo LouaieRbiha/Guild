@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { fetchEnkaProfile } from "@/lib/enka/client";
 import { fetchAkashaProfile } from "@/lib/akasha/client";
 import { ProfileClient } from "@/components/profile/profile-client";
@@ -68,5 +69,36 @@ export default async function ProfilePage({ params }: { params: Promise<{ uid: s
 
   const source: "akasha" | "enka" = akashaProfile ? "akasha" : "enka";
 
-  return <ProfileClient profile={enkaProfile} rankings={rankings} source={source} />;
+  return (
+    <Suspense fallback={<ProfileSkeleton />}>
+      <ProfileClient profile={enkaProfile} rankings={rankings} source={source} />
+    </Suspense>
+  );
+}
+
+function ProfileSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      <div className="flex items-center gap-4">
+        <div className="w-16 h-16 rounded-full bg-guild-elevated" />
+        <div className="space-y-2">
+          <div className="h-6 w-40 bg-guild-elevated rounded" />
+          <div className="h-4 w-24 bg-guild-elevated rounded" />
+        </div>
+      </div>
+      <div className="flex gap-2 overflow-x-auto">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i} className="w-16 h-16 rounded-lg bg-guild-elevated shrink-0" />
+        ))}
+      </div>
+      <div className="guild-card p-6 space-y-4">
+        <div className="h-64 bg-guild-elevated rounded-lg" />
+        <div className="grid grid-cols-5 gap-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="h-24 bg-guild-elevated rounded-lg" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }

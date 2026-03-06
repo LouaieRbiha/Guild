@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { fetchCharacterDetail } from "@/lib/yatta/client";
 import { ALL_CHARACTERS } from "@/lib/characters";
@@ -36,5 +37,34 @@ export default async function CharacterDetailPage({ params }: { params: Promise<
     notFound();
   }
 
-  return <CharacterDetailClient detail={detail} entry={entry} />;
+  return (
+    <Suspense fallback={<DetailSkeleton />}>
+      <CharacterDetailClient detail={detail} entry={entry} />
+    </Suspense>
+  );
+}
+
+function DetailSkeleton() {
+  return (
+    <div className="space-y-6 pb-12 animate-pulse">
+      <div className="h-4 w-32 bg-guild-elevated rounded" />
+      <div className="guild-card p-0 overflow-hidden">
+        <div className="flex flex-col md:flex-row">
+          <div className="w-full md:w-80 h-96 bg-guild-elevated shrink-0" />
+          <div className="flex-1 p-6 space-y-4">
+            <div className="h-8 w-48 bg-guild-elevated rounded" />
+            <div className="flex gap-2">
+              <div className="h-6 w-16 bg-guild-elevated rounded-full" />
+              <div className="h-6 w-16 bg-guild-elevated rounded-full" />
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-16 bg-guild-elevated rounded-lg" />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
