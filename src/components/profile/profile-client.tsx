@@ -492,7 +492,7 @@ export function ProfileClient({
 							<h3 className='text-xs font-medium text-guild-muted uppercase tracking-wider mb-2'>
 								Artifacts
 							</h3>
-							<div className='grid grid-cols-1 gap-2'>
+							<div className='grid grid-cols-1 gap-3'>
 								{selected.artifacts.map((a, i) => {
 									const s = artifactScores[i];
 									const SI = SLOT_ICONS[a.slot];
@@ -502,7 +502,7 @@ export function ProfileClient({
 											key={a.slot}
 											className='rounded-lg bg-guild-elevated border border-white/5 overflow-hidden'
 										>
-											<div className='flex items-center gap-3 p-3'>
+											<div className='flex items-start gap-4 p-4'>
 											{a.icon && (
 												<div className='w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-guild-card border border-white/5'>
 													<FallbackImage
@@ -521,11 +521,11 @@ export function ProfileClient({
 															className='text-guild-muted shrink-0'
 														/>
 													)}
-													<span className='text-xs font-medium text-guild-gold truncate'>
+													<span className='text-sm font-medium text-guild-gold truncate'>
 														{a.mainStat}
 													</span>
 												</div>
-												<div className='grid grid-cols-2 gap-x-3 gap-y-1.5 mt-1'>
+												<div className='grid grid-cols-2 gap-x-4 gap-y-2.5 mt-2'>
 													{a.substats.map((sub) => {
 														const rolls = estimateRollCount(
 															sub.name,
@@ -571,7 +571,7 @@ export function ProfileClient({
 													})}
 												</div>
 											</div>
-											<div className='text-right shrink-0 space-y-0.5'>
+											<div className='text-right shrink-0 space-y-1'>
 												<span
 													className={cn(
 														'text-sm font-bold font-mono',
@@ -580,7 +580,7 @@ export function ProfileClient({
 												>
 													{grade(s)}
 												</span>
-												<div className='w-12 h-1.5 bg-white/5 rounded-full overflow-hidden'>
+												<div className='w-14 h-1.5 bg-white/5 rounded-full overflow-hidden'>
 													<div
 														className={cn('h-full rounded-full', barColor(s))}
 														style={{ width: `${s}%` }}
@@ -589,13 +589,14 @@ export function ProfileClient({
 												{(() => {
 													const cv = calculateCV(a.substats);
 													return cv > 0 ? (
-														<div className='text-[9px] text-guild-dim font-mono'>
+														<div className='text-[10px] text-guild-dim font-mono'>
 															{cv.toFixed(1)} CV
 														</div>
 													) : null;
 												})()}
-												<div className='text-[9px] text-guild-dim font-mono'>
-													~{estimateResinForPiece(s).resin}
+												<div className='text-[10px] text-guild-dim font-mono flex items-center gap-0.5 justify-end'>
+													<ResinIcon size={10} className='text-guild-dim' />
+													{estimateResinForPiece(s).resin.toLocaleString()}
 												</div>
 											</div>
 											</div>
@@ -856,11 +857,43 @@ export function ProfileClient({
 					</div>
 
 					{/* Resin Estimate */}
-					<div className='border-t border-white/5 pt-4 space-y-3'>
+					<div className='border-t border-white/5 pt-4 space-y-4'>
 						<h4 className='text-sm font-medium text-guild-muted flex items-center gap-2'>
 							<ResinIcon className='text-guild-muted' size={18} /> Resin Cost
 							Estimate
 						</h4>
+
+						{/* Per-piece breakdown */}
+						<div className='space-y-1.5'>
+							{selected.artifacts.map((a, i) => {
+								const s = artifactScores[i];
+								const pieceResin = estimateResinForPiece(s);
+								return (
+									<div key={a.slot} className='flex items-center justify-between text-xs'>
+										<span className='text-guild-muted truncate'>{a.slot}</span>
+										<div className='flex items-center gap-2'>
+											<span className={cn(
+												'font-mono',
+												scoreColor(s),
+											)}>
+												{grade(s)}
+											</span>
+											<span className='font-mono text-guild-dim w-16 text-right'>
+												{pieceResin.resin.toLocaleString()}
+											</span>
+										</div>
+									</div>
+								);
+							})}
+							<div className='flex items-center justify-between text-xs border-t border-white/5 pt-1.5 mt-1.5'>
+								<span className='text-white font-medium'>Total</span>
+								<span className='font-mono text-white font-bold w-16 text-right'>
+									{selected.artifacts.reduce((sum, _, i) => sum + estimateResinForPiece(artifactScores[i]).resin, 0).toLocaleString()}
+								</span>
+							</div>
+						</div>
+
+						{/* Overall estimates */}
 						<div className='grid grid-cols-3 gap-3'>
 							{(
 								[
@@ -890,7 +923,7 @@ export function ProfileClient({
 										{r.data.resin.toLocaleString()}
 									</div>
 									<div className='text-xs text-guild-muted'>
-										≈{r.data.days} days {r.label.includes('95') ? '💀' : ''}
+										≈{r.data.days} days
 									</div>
 								</div>
 							))}
