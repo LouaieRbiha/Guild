@@ -33,7 +33,7 @@ const navItems: NavItem[] = [
 	{ href: '/artifacts', icon: FlowerIcon, label: 'Artifacts' },
 	{ href: '/calendar', icon: Calendar, label: 'Calendar' },
 	{ href: '/banners', icon: History, label: 'Banners' },
-	{ href: '/abyss', icon: Shield, label: 'Abyss' },
+	{ href: '/abyss', icon: Shield, label: 'Endgame' },
 	{ href: '/map', icon: CompassIcon, label: 'Map' },
 	{ href: '/simulator', icon: FateIcon, label: 'Simulator' },
 	{ href: '/wordle', icon: Gamepad2, label: 'Genshindle' },

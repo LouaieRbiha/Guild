@@ -6,11 +6,12 @@ import { weaponIconUrl } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { RarityStars } from '@/components/shared';
-import { ChevronDown, History, Loader2, Sparkles, Swords } from 'lucide-react';
+import { ChevronDown, History, Loader2, Search, Sparkles, Swords } from 'lucide-react';
 
 // ── Types ───────────────────────────────────────────────────────────
 
@@ -77,11 +78,35 @@ export function BannerHistoryClient({
 	totalWeaponBanners: number;
 }) {
 	const [visibleCount, setVisibleCount] = useState(INITIAL_COUNT);
+	const [search, setSearch] = useState('');
 	const sentinelRef = useRef<HTMLDivElement>(null);
 	const versionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
-	const visibleGroups = groups.slice(0, visibleCount);
-	const hasMore = visibleCount < groups.length;
+	// Filter groups by character/weapon search
+	const filteredGroups = useMemo(() => {
+		const q = search.trim().toLowerCase();
+		if (!q) return groups;
+		return groups
+			.map((group) => {
+				const matchingPhases = group.phases.filter((phase) => {
+					const charNames = [
+						...(phase.characters?.featured5 ?? []),
+						...(phase.characters?.featured4 ?? []),
+					].map((c) => c.name.toLowerCase());
+					const weaponNames = [
+						...(phase.weapons?.featured5 ?? []),
+						...(phase.weapons?.featured4 ?? []),
+					].map((w) => w.name.toLowerCase());
+					return [...charNames, ...weaponNames].some((n) => n.includes(q));
+				});
+				if (matchingPhases.length === 0) return null;
+				return { ...group, phases: matchingPhases };
+			})
+			.filter(Boolean) as ResolvedVersionGroup[];
+	}, [groups, search]);
+
+	const visibleGroups = search ? filteredGroups : filteredGroups.slice(0, visibleCount);
+	const hasMore = !search && visibleCount < filteredGroups.length;
 
 	// Intersection Observer for infinite scroll
 	useEffect(() => {
@@ -91,7 +116,7 @@ export function BannerHistoryClient({
 		const observer = new IntersectionObserver(
 			(entries) => {
 				if (entries[0].isIntersecting) {
-					setVisibleCount((prev) => Math.min(prev + LOAD_MORE_COUNT, groups.length));
+					setVisibleCount((prev) => Math.min(prev + LOAD_MORE_COUNT, filteredGroups.length));
 				}
 			},
 			{ rootMargin: '400px' },
@@ -99,7 +124,7 @@ export function BannerHistoryClient({
 
 		observer.observe(sentinel);
 		return () => observer.disconnect();
-	}, [hasMore, groups.length]);
+	}, [hasMore, filteredGroups.length]);
 
 	const handleVersionSelect = useCallback((version: string) => {
 		if (!version) return;
@@ -143,6 +168,22 @@ export function BannerHistoryClient({
 						</select>
 						<ChevronDown className='absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-guild-muted pointer-events-none' />
 					</div>
+				)}
+			</div>
+
+			{/* Search */}
+			<div className='relative'>
+				<Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-guild-dim' />
+				<Input
+					value={search}
+					onChange={(e) => setSearch(e.target.value)}
+					placeholder='Search character or weapon...'
+					className='pl-9 bg-guild-card border-guild-border/30 text-sm h-9'
+				/>
+				{search && (
+					<span className='absolute right-3 top-1/2 -translate-y-1/2 text-xs text-guild-muted'>
+						{filteredGroups.reduce((sum, g) => sum + g.phases.length, 0)} results
+					</span>
 				)}
 			</div>
 
@@ -258,7 +299,7 @@ function CharacterBannerCard({
 			active ? 'border-guild-accent/40 ring-1 ring-guild-accent/20' : 'border-guild-border/30',
 		)}>
 			{/* Splash art area with crossfade */}
-			<div className='relative h-36 overflow-hidden bg-guild-card'>
+			<div className='relative h-44 overflow-hidden bg-guild-card'>
 				{featured5.length > 0 ? (
 					<>
 						{featured5.map((char, idx) => (
@@ -316,7 +357,7 @@ function CharacterBannerCard({
 								<Link key={char.id} href={`/database/${char.id}`} className='hover:opacity-80'>
 									<span className={cn(
 										'font-bold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] transition-all duration-500',
-										idx === activeIdx ? 'text-lg' : 'text-sm opacity-60',
+										idx === activeIdx ? 'text-xl' : 'text-base opacity-60',
 									)}>
 										{char.name}
 									</span>
@@ -324,7 +365,7 @@ function CharacterBannerCard({
 							))
 						) : (
 							banner.featured.map((id) => (
-								<span key={id} className='text-lg font-bold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]'>
+								<span key={id} className='text-xl font-bold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]'>
 									{id.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
 								</span>
 							))
@@ -334,7 +375,7 @@ function CharacterBannerCard({
 			</div>
 
 			{/* 4-star row */}
-			<CardContent className='px-3 py-2'>
+			<CardContent className='px-3 py-2.5'>
 				<div className='flex items-center gap-2 flex-wrap'>
 					<span className='text-xs text-guild-dim font-medium shrink-0'>4&#9733;</span>
 					{featured4.length > 0 ? (
@@ -388,7 +429,7 @@ function WeaponBannerCard({
 			'overflow-hidden p-0 gap-0',
 			active ? 'border-purple-400/40 ring-1 ring-purple-400/20' : 'border-guild-border/30',
 		)}>
-			<div className='relative h-36 overflow-hidden bg-guild-card'>
+			<div className='relative h-44 overflow-hidden bg-guild-card'>
 				<div className='absolute inset-0 bg-gradient-to-br from-purple-500/5 via-guild-card to-guild-accent-2/5' />
 
 				{/* Weapon icons */}
@@ -399,10 +440,10 @@ function WeaponBannerCard({
 								<Image
 									src={weaponIconUrl(wpn.id)}
 									alt={wpn.name}
-									width={80}
-									height={80}
+									width={96}
+									height={96}
 									className='object-contain drop-shadow-[0_4px_16px_rgba(0,0,0,0.5)]'
-									sizes='80px'
+									sizes='96px'
 									unoptimized
 								/>
 							</Link>
@@ -427,7 +468,7 @@ function WeaponBannerCard({
 							featured5.map((wpn) => (
 								<Link key={wpn.id} href={`/weapons/${wpn.id}`} className='hover:opacity-80'>
 									<div className='flex items-center gap-1.5'>
-										<span className='text-sm font-bold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]'>
+										<span className='text-base font-bold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]'>
 											{wpn.name}
 										</span>
 										<RarityStars rarity={wpn.rarity} size='xs' />
@@ -436,7 +477,7 @@ function WeaponBannerCard({
 							))
 						) : (
 							banner.featured.map((id) => (
-								<span key={id} className='text-sm font-bold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]'>
+								<span key={id} className='text-base font-bold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]'>
 									{id.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
 								</span>
 							))
@@ -446,7 +487,7 @@ function WeaponBannerCard({
 			</div>
 
 			{/* 4-star weapons */}
-			<CardContent className='px-3 py-2'>
+			<CardContent className='px-3 py-2.5'>
 				<div className='flex items-center gap-2 flex-wrap'>
 					<span className='text-xs text-guild-dim font-medium shrink-0'>4&#9733;</span>
 					{featured4.length > 0 ? (

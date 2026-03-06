@@ -110,8 +110,8 @@ const NAV_CARDS = [
 	{
 		href: '/abyss',
 		icon: Shield,
-		title: 'Abyss Guide',
-		description: 'Spiral Abyss team comps and floor strategies',
+		title: 'Endgame',
+		description: 'Spiral Abyss and Stygian Onslaught guides and usage rates',
 	},
 	{
 		href: '/calendar',
