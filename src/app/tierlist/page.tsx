@@ -288,6 +288,51 @@ export default function TierListPage() {
 
   // ── Drag handlers ───────────────────────────────────────────────────
 
+  // Auto-scroll state for dragging near viewport edges
+  const scrollSpeedRef = useRef(0);
+  const scrollRafRef = useRef(0);
+
+  const autoScroll = useCallback(() => {
+    if (scrollSpeedRef.current !== 0) {
+      window.scrollBy(0, scrollSpeedRef.current);
+      scrollRafRef.current = requestAnimationFrame(autoScroll);
+    } else {
+      scrollRafRef.current = 0;
+    }
+  }, []);
+
+  // Global dragover listener for auto-scrolling near viewport edges
+  useEffect(() => {
+    if (!draggedCharId) return;
+
+    const EDGE_SIZE = 80;
+    const MAX_SPEED = 16;
+
+    const onDragOver = (e: DragEvent) => {
+      if (e.clientY === 0) return; // browser sends 0 at drag end
+      if (e.clientY < EDGE_SIZE) {
+        scrollSpeedRef.current = -Math.round(MAX_SPEED * (1 - e.clientY / EDGE_SIZE));
+        if (!scrollRafRef.current) scrollRafRef.current = requestAnimationFrame(autoScroll);
+      } else if (e.clientY > window.innerHeight - EDGE_SIZE) {
+        const dist = window.innerHeight - e.clientY;
+        scrollSpeedRef.current = Math.round(MAX_SPEED * (1 - dist / EDGE_SIZE));
+        if (!scrollRafRef.current) scrollRafRef.current = requestAnimationFrame(autoScroll);
+      } else {
+        scrollSpeedRef.current = 0;
+      }
+    };
+
+    document.addEventListener("dragover", onDragOver);
+    return () => {
+      document.removeEventListener("dragover", onDragOver);
+      scrollSpeedRef.current = 0;
+      if (scrollRafRef.current) {
+        cancelAnimationFrame(scrollRafRef.current);
+        scrollRafRef.current = 0;
+      }
+    };
+  }, [draggedCharId, autoScroll]);
+
   const handleDragStart = useCallback((e: React.DragEvent, charId: string) => {
     e.dataTransfer.setData("text/plain", charId);
     e.dataTransfer.effectAllowed = "move";
@@ -303,6 +348,7 @@ export default function TierListPage() {
     setDraggedCharId(null);
     setDragOverTier(null);
     setDropIndex(-1);
+    scrollSpeedRef.current = 0;
   }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent, tier: Tier) => {
@@ -310,7 +356,7 @@ export default function TierListPage() {
     e.dataTransfer.dropEffect = "move";
     setDragOverTier(tier);
 
-    // Calculate insertion index based on cursor position relative to cards
+    // Calculate insertion index for flex-wrap layout (multiple rows)
     const container = e.currentTarget as HTMLElement;
     const cards = Array.from(container.querySelectorAll("[data-char-card]"));
     let insertIdx = cards.length;
@@ -318,7 +364,15 @@ export default function TierListPage() {
     for (let i = 0; i < cards.length; i++) {
       const rect = cards[i].getBoundingClientRect();
       const midX = rect.left + rect.width / 2;
-      if (e.clientX < midX) {
+
+      // Cursor is entirely above this card → insert before it
+      if (e.clientY < rect.top) {
+        insertIdx = i;
+        break;
+      }
+
+      // Cursor is on the same row as this card → check horizontal position
+      if (e.clientY < rect.bottom && e.clientX < midX) {
         insertIdx = i;
         break;
       }
