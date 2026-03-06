@@ -233,21 +233,21 @@ export function BannerSection({
 
 								{/* Large weapon splash art -- crossfade between featured weapons */}
 								{featured5StarWeapons.length > 0 && (
-									<div className='absolute inset-0 flex items-center justify-end pr-4'>
+									<div className='absolute inset-0 flex items-center justify-end pr-4 overflow-hidden'>
 										{featured5StarWeapons.map((weapon, idx) => (
 											<Image
 												key={weapon.id}
 												src={weaponIconUrl(weapon.id)}
 												alt={weapon.name}
-												width={280}
-												height={280}
+												width={180}
+												height={360}
 												className={cn(
-													'absolute object-contain transition-opacity duration-700 drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)]',
+													'absolute object-contain max-h-[85%] transition-opacity duration-700 drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)]',
 													idx === activeWeaponIdx
 														? 'opacity-80'
 														: 'opacity-0',
 												)}
-												sizes='280px'
+												sizes='180px'
 												priority={idx === 0}
 											/>
 										))}
@@ -468,21 +468,21 @@ export function BannerSection({
 								<Card className='overflow-hidden relative min-h-96 border-guild-border/50 p-0 gap-0'>
 									<div className='absolute inset-0 bg-linear-to-br from-guild-accent/10 via-card to-guild-accent-2/10' />
 									{featured5StarWeapons.length > 0 && (
-										<div className='absolute inset-0 flex items-center justify-end pr-2'>
+										<div className='absolute inset-0 flex items-center justify-end pr-2 overflow-hidden'>
 											{featured5StarWeapons.map((weapon, idx) => (
 												<Image
 													key={weapon.id}
 													src={weaponIconUrl(weapon.id)}
 													alt={weapon.name}
-													width={200}
-													height={200}
+													width={140}
+													height={280}
 													className={cn(
-														'absolute object-contain transition-opacity duration-700 drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)]',
+														'absolute object-contain max-h-[85%] transition-opacity duration-700 drop-shadow-[0_4px_24px_rgba(0,0,0,0.6)]',
 														idx === activeWeaponIdx
 															? 'opacity-80'
 															: 'opacity-0',
 													)}
-													sizes='200px'
+													sizes='140px'
 												/>
 											))}
 										</div>

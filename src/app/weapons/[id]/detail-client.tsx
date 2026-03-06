@@ -106,16 +106,16 @@ export function WeaponDetailClient({ detail, entry }: Props) {
 
         <div className="relative flex flex-col lg:flex-row items-center gap-6 p-6 lg:p-8">
           {/* Weapon art - large and prominent */}
-          <div className="relative shrink-0 w-64 h-64 lg:w-80 lg:h-80">
+          <div className="relative shrink-0 w-48 h-64 lg:w-56 lg:h-80">
             <div className={cn("absolute inset-0 flex items-center justify-center", RARITY_GLOW[detail.rarity])}>
               <Image
                 src={weaponIconUrl(detail.id)}
                 alt={detail.name}
-                width={320}
-                height={320}
+                width={224}
+                height={448}
                 quality={95}
-                className="object-contain"
-                sizes="320px"
+                className="object-contain max-h-full"
+                sizes="224px"
                 priority
               />
             </div>
