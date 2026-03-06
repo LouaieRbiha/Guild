@@ -10,6 +10,7 @@ import {
 } from '@/components/icons/genshin-icons';
 import { FallbackImage } from '@/components/shared';
 import type { AkashaCalculation } from '@/lib/akasha/types';
+import { charGachaUrl } from '@/lib/characters';
 import { ENKA_UI } from '@/lib/constants';
 import type { EnkaProfile } from '@/lib/enka/client';
 import {
@@ -22,7 +23,6 @@ import {
 	getTier,
 	getTierLabel,
 	grade,
-	pieceLabel,
 	scoreArtifact,
 	scoreCharacterBuild,
 	scoreColor,
@@ -166,64 +166,99 @@ export function ProfileClient({
 
 			{/* Character Selector */}
 			<div className='flex gap-3 overflow-x-auto pb-2'>
-				{profile.characters.map((c, i) => (
-					<button
-						key={c.id}
-						onClick={() => setSelectedIdx(i)}
-						className={cn(
-							'flex flex-col items-center p-3 rounded-lg border transition-all min-w-20 cursor-pointer',
-							selectedIdx === i
-								? 'bg-guild-accent/20 border-guild-accent/50 guild-glow'
-								: 'bg-guild-card border-white/5 hover:border-white/10',
-						)}
-					>
-						<div className='relative'>
-							<div
-								className={cn(
-									'w-14 h-14 rounded-full overflow-hidden',
-									c.rarity === 5
-										? 'ring-2 ring-guild-gold/50'
-										: 'ring-2 ring-guild-accent-2/50',
-								)}
-							>
-								<FallbackImage
-									src={`${ENKA_UI}/${c.sideIcon}.png`}
-									alt={c.name}
-									width={56}
-									height={56}
-								/>
+				{profile.characters.map((c, i) => {
+					const charRanking = rankings[c.name];
+					const topPct = charRanking && charRanking.outOf > 0
+						? (charRanking.ranking / charRanking.outOf) * 100
+						: null;
+					const elBgSolid: Record<string, string> = {
+						Hydro: 'bg-blue-500/40',
+						Pyro: 'bg-red-500/40',
+						Cryo: 'bg-cyan-500/40',
+						Electro: 'bg-purple-500/40',
+						Dendro: 'bg-green-500/40',
+						Anemo: 'bg-teal-500/40',
+						Geo: 'bg-yellow-500/40',
+					};
+					const elBgSubtle: Record<string, string> = {
+						Hydro: 'from-blue-500/10',
+						Pyro: 'from-red-500/10',
+						Cryo: 'from-cyan-500/10',
+						Electro: 'from-purple-500/10',
+						Dendro: 'from-green-500/10',
+						Anemo: 'from-teal-500/10',
+						Geo: 'from-yellow-500/10',
+					};
+					return (
+						<button
+							key={c.id}
+							onClick={() => setSelectedIdx(i)}
+							className={cn(
+								'flex flex-col items-center p-3 rounded-lg border transition-all min-w-20 cursor-pointer relative overflow-hidden',
+								selectedIdx === i
+									? 'bg-guild-accent/20 border-guild-accent/50 guild-glow'
+									: 'bg-guild-card border-white/5 hover:border-white/10',
+							)}
+						>
+							{/* Element background tint */}
+							{selectedIdx === i && (
+								<div className={cn(
+									'absolute inset-0 bg-gradient-to-b to-transparent opacity-60',
+									elBgSubtle[c.element] || 'from-gray-500/10',
+								)} />
+							)}
+							<div className='relative z-10'>
+								<div
+									className={cn(
+										'w-14 h-14 rounded-full overflow-hidden',
+										c.rarity === 5
+											? 'ring-2 ring-guild-gold/50'
+											: 'ring-2 ring-guild-accent-2/50',
+									)}
+								>
+									<FallbackImage
+										src={`${ENKA_UI}/${c.sideIcon}.png`}
+										alt={c.name}
+										width={56}
+										height={56}
+									/>
+								</div>
+								{(() => {
+									const EI = ELEMENT_ICONS[c.element];
+									return EI ? (
+										<div
+											className={cn(
+												'absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full flex items-center justify-center border border-white/10',
+												elBgSolid[c.element] || 'bg-gray-500/40',
+											)}
+										>
+											<EI size={12} />
+										</div>
+									) : null;
+								})()}
 							</div>
-							{(() => {
-								const EI = ELEMENT_ICONS[c.element];
-								const elBgSolid: Record<string, string> = {
-									Hydro: 'bg-blue-500/40',
-									Pyro: 'bg-red-500/40',
-									Cryo: 'bg-cyan-500/40',
-									Electro: 'bg-purple-500/40',
-									Dendro: 'bg-green-500/40',
-									Anemo: 'bg-teal-500/40',
-									Geo: 'bg-yellow-500/40',
-								};
-								return EI ? (
-									<div
-										className={cn(
-											'absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full flex items-center justify-center border border-white/10',
-											elBgSolid[c.element] || 'bg-gray-500/40',
-										)}
-									>
-										<EI size={12} />
-									</div>
-								) : null;
-							})()}
-						</div>
-						<span className='text-xs mt-1.5 font-medium truncate w-full text-center'>
-							{c.name}
-						</span>
-						<span className='text-[10px] text-guild-muted flex items-center gap-0.5'>
-							<ConstellationIcon size={10} /> {c.constellation}
-						</span>
-					</button>
-				))}
+							<span className='text-xs mt-1.5 font-medium truncate w-full text-center relative z-10'>
+								{c.name}
+							</span>
+							<span className='text-[10px] text-guild-muted flex items-center gap-0.5 relative z-10'>
+								<ConstellationIcon size={10} /> {c.constellation}
+							</span>
+							{/* Top% badge */}
+							{topPct !== null && (
+								<span className={cn(
+									'text-[9px] font-bold px-1.5 py-0.5 rounded mt-1 relative z-10',
+									topPct <= 1
+										? 'bg-guild-gold/20 text-guild-gold'
+										: topPct <= 10
+											? 'bg-green-500/20 text-green-400'
+											: 'bg-guild-accent/15 text-guild-accent',
+								)}>
+									Top {topPct.toFixed(1)}%
+								</span>
+							)}
+						</button>
+					);
+				})}
 			</div>
 
 			{/* Character Detail Card */}
@@ -232,19 +267,24 @@ export function ProfileClient({
 					{/* Left: Character splash art */}
 					<div
 						className={cn(
-							'relative lg:w-2/5 min-h-64 lg:min-h-96 bg-linear-to-br to-transparent',
+							'relative lg:w-2/5 min-h-64 lg:min-h-[28rem] overflow-hidden',
+							'bg-linear-to-br to-transparent',
 							elBg[selected.element] || elBg.Unknown,
 						)}
 					>
-						<div className='absolute inset-0 flex items-center justify-center p-4'>
-							<FallbackImage
-								src={`${ENKA_UI}/${selected.icon}.png`}
-								alt={selected.name}
-								width={200}
-								height={200}
-								className='rounded-xl'
-							/>
-						</div>
+						<Image
+							src={charGachaUrl(selected.id)}
+							alt={selected.name}
+							fill
+							className='object-cover object-[50%_15%]'
+							sizes='(max-width: 1024px) 100vw, 40vw'
+							unoptimized
+						/>
+						{/* Element-tinted overlay */}
+						<div className={cn(
+							'absolute inset-0 bg-linear-to-br opacity-40',
+							elBg[selected.element] || elBg.Unknown,
+						)} />
 						<div className='absolute bottom-0 inset-x-0 p-5 bg-linear-to-t from-guild-card via-guild-card/60 to-transparent'>
 							<div className='flex items-center gap-2'>
 								<h2
@@ -419,15 +459,15 @@ export function ProfileClient({
 									return (
 										<div
 											key={a.slot}
-											className='flex items-center gap-3 p-2.5 rounded-lg bg-guild-elevated border border-white/5'
+											className='flex items-center gap-3 p-3 rounded-lg bg-guild-elevated border border-white/5'
 										>
 											{a.icon && (
-												<div className='w-9 h-9 rounded overflow-hidden shrink-0 bg-guild-card'>
+												<div className='w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-guild-card border border-white/5'>
 													<FallbackImage
 														src={`${ENKA_UI}/${a.icon}.png`}
 														alt={a.slot}
-														width={36}
-														height={36}
+														width={48}
+														height={48}
 													/>
 												</div>
 											)}
@@ -443,7 +483,7 @@ export function ProfileClient({
 														{a.mainStat}
 													</span>
 												</div>
-												<div className='flex flex-wrap gap-x-2.5 gap-y-0.5 mt-0.5'>
+												<div className='flex flex-wrap gap-x-3 gap-y-1 mt-1'>
 													{a.substats.map((sub) => {
 														const rolls = estimateRollCount(
 															sub.name,
@@ -455,7 +495,7 @@ export function ProfileClient({
 															<span
 																key={sub.name}
 																className={cn(
-																	'text-[10px]',
+																	'text-xs flex items-center gap-1',
 																	isCrit
 																		? 'text-white font-medium'
 																		: ROLL_QUALITY_COLORS[quality],
@@ -463,18 +503,22 @@ export function ProfileClient({
 															>
 																{sub.name}{' '}
 																<span className='font-mono'>{sub.value}</span>
-																{rolls > 1 && (
-																	<span
-																		className={cn(
-																			'ml-0.5 text-[9px]',
-																			quality === 'high'
-																				? 'text-emerald-400'
-																				: 'text-guild-dim',
-																		)}
-																	>
-																		×{rolls}
-																	</span>
-																)}
+																{/* Roll dots */}
+																<span className='flex items-center gap-px ml-0.5'>
+																	{Array.from({ length: Math.min(rolls, 5) }).map((_, dotIdx) => (
+																		<span
+																			key={dotIdx}
+																			className={cn(
+																				'w-1 h-1 rounded-full',
+																				quality === 'high'
+																					? 'bg-emerald-400'
+																					: quality === 'mid'
+																						? 'bg-yellow-400'
+																						: 'bg-guild-dim',
+																			)}
+																		/>
+																	))}
+																</span>
 															</span>
 														);
 													})}
@@ -555,41 +599,6 @@ export function ProfileClient({
 								{i === roast.split('\n').length - 1 ? '"' : ''}
 							</p>
 						))}
-					</div>
-
-					{/* Per-piece bars */}
-					<div className='space-y-2'>
-						<h4 className='text-sm font-medium text-guild-muted'>
-							Roll Quality
-						</h4>
-						{selected.artifacts.map((a, i) => {
-							const s = artifactScores[i];
-							const SI = SLOT_ICONS[a.slot];
-							return (
-								<div key={a.slot} className='flex items-center gap-3'>
-									<span className='text-sm w-20 text-guild-muted flex items-center gap-1.5'>
-										{SI && <SI size={14} />} {a.slot}
-									</span>
-									<div className='flex-1 h-2 bg-white/5 rounded-full overflow-hidden'>
-										<div
-											className={cn('h-full rounded-full', barColor(s))}
-											style={{ width: `${s}%` }}
-										/>
-									</div>
-									<span
-										className={cn(
-											'text-sm font-mono w-10 text-right',
-											scoreColor(s),
-										)}
-									>
-										{s}%
-									</span>
-									<span className='text-xs text-guild-muted w-16'>
-										{pieceLabel(s)}
-									</span>
-								</div>
-							);
-						})}
 					</div>
 
 					{/* Resin Estimate */}
