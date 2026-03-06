@@ -17,7 +17,7 @@
   --color-guild-danger: #EF4444;
   --color-guild-border: #363b5e;
   --color-guild-muted: #94A3B8;
-  --color-guild-dim: #64748B;
+  --color-guild-dim: #8b9bb0;
   --font-sans: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   --color-sidebar-ring: var(--sidebar-ring);
@@ -130,7 +130,7 @@ html.light {
   --color-guild-danger: #dc2626;
   --color-guild-border: #cbd5e8;
   --color-guild-muted: #64748b;
-  --color-guild-dim: #94a3b8;
+  --color-guild-dim: #637085;
 
   /* shadcn variables */
   --background: 227 33% 97%;
@@ -329,4 +329,20 @@ html.light .guild-glow {
 
 html.light .gold-glow {
   box-shadow: 0 0 20px rgba(217, 119, 6, 0.2);
+}
+
+/* ── Focus-visible outlines for keyboard navigation ──────────────────── */
+:focus-visible {
+  outline: 2px solid var(--color-guild-accent);
+  outline-offset: 2px;
+}
+
+/* Ensure focus outline is visible on dark and light backgrounds */
+html.light :focus-visible {
+  outline-color: var(--color-guild-accent);
+}
+
+/* Remove default browser focus styles for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
 }

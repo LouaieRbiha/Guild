@@ -32,7 +32,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // ── Nav Items ─────────────────────────────────────────────────────────────
 
@@ -106,11 +106,54 @@ const ALL_MORE_ITEMS = MORE_SECTIONS.flatMap((s) => s.items);
 export function MobileNav() {
 	const pathname = usePathname();
 	const [moreOpen, setMoreOpen] = useState(false);
+	const moreMenuRef = useRef<HTMLDivElement>(null);
+	const moreButtonRef = useRef<HTMLButtonElement>(null);
 
 	const isActive = (href: string) =>
 		pathname === href || (href !== '/' && pathname.startsWith(href));
 
 	const moreActive = ALL_MORE_ITEMS.some((item) => isActive(item.href));
+
+	// Focus trap: when More menu is open, trap focus within it
+	useEffect(() => {
+		if (!moreOpen || !moreMenuRef.current) return;
+		const menu = moreMenuRef.current;
+		const focusableSelector =
+			'a[href], button, input, textarea, select, [tabindex]:not([tabindex="-1"])';
+
+		function handleKeyDown(e: KeyboardEvent) {
+			if (e.key === 'Escape') {
+				setMoreOpen(false);
+				moreButtonRef.current?.focus();
+				return;
+			}
+			if (e.key !== 'Tab') return;
+			const focusable = Array.from(
+				menu.querySelectorAll<HTMLElement>(focusableSelector),
+			);
+			if (focusable.length === 0) return;
+			const first = focusable[0];
+			const last = focusable[focusable.length - 1];
+			if (e.shiftKey) {
+				if (document.activeElement === first) {
+					e.preventDefault();
+					last.focus();
+				}
+			} else {
+				if (document.activeElement === last) {
+					e.preventDefault();
+					first.focus();
+				}
+			}
+		}
+
+		document.addEventListener('keydown', handleKeyDown);
+		// Focus the close button when the menu opens
+		const firstFocusable = menu.querySelector<HTMLElement>(focusableSelector);
+		firstFocusable?.focus();
+
+		return () => document.removeEventListener('keydown', handleKeyDown);
+	}, [moreOpen]);
 
 	return (
 		<>
@@ -119,12 +162,13 @@ export function MobileNav() {
 				<div
 					className='fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden'
 					onClick={() => setMoreOpen(false)}
+					aria-hidden='true'
 				/>
 			)}
 
 			{/* More menu popup */}
 			{moreOpen && (
-				<div className='fixed bottom-16 left-0 right-0 z-50 md:hidden px-3 pb-2'>
+				<div className='fixed bottom-16 left-0 right-0 z-50 md:hidden px-3 pb-2' ref={moreMenuRef} role='dialog' aria-label='More navigation options'>
 					<div className='bg-guild-card border border-guild-border rounded-2xl p-3 shadow-2xl shadow-black/50 max-h-[70vh] overflow-y-auto'>
 						<div className='flex items-center justify-between mb-2 px-1'>
 							<span className='text-sm font-semibold text-guild-muted'>
@@ -133,6 +177,7 @@ export function MobileNav() {
 							<button
 								onClick={() => setMoreOpen(false)}
 								className='p-1 rounded-lg hover:bg-guild-elevated/50 cursor-pointer'
+								aria-label='Close more menu'
 							>
 								<X size={16} className='text-guild-dim' />
 							</button>
@@ -185,7 +230,7 @@ export function MobileNav() {
 			)}
 
 			{/* Bottom tab bar */}
-			<nav className='fixed bottom-0 left-0 right-0 z-40 md:hidden bg-guild-card/95 backdrop-blur-lg border-t border-guild-border/30'>
+			<nav className='fixed bottom-0 left-0 right-0 z-40 md:hidden bg-guild-card/95 backdrop-blur-lg border-t border-guild-border/30' aria-label='Mobile navigation'>
 				<div className='flex items-center justify-around h-16 px-2'>
 					{PRIMARY_TABS.map((item) => {
 						const active = isActive(item.href);
@@ -193,6 +238,8 @@ export function MobileNav() {
 							<Link
 								key={item.href}
 								href={item.href}
+								aria-label={item.label}
+								aria-current={active ? 'page' : undefined}
 								className={cn(
 									'flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors min-w-0 min-h-[44px]',
 									active ? 'text-guild-accent' : 'text-guild-dim',
@@ -218,7 +265,10 @@ export function MobileNav() {
 
 					{/* More button */}
 					<button
+						ref={moreButtonRef}
 						onClick={() => setMoreOpen((prev) => !prev)}
+						aria-label={moreOpen ? 'Close more menu' : 'Open more menu'}
+						aria-expanded={moreOpen}
 						className={cn(
 							'flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors min-w-0 min-h-[44px] cursor-pointer',
 							moreOpen || moreActive ? 'text-guild-accent' : 'text-guild-dim',

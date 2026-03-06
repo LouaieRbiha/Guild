@@ -226,7 +226,7 @@ export function Sidebar() {
 	}
 
 	return (
-		<aside className='hidden md:flex w-16 hover:w-48 transition-all duration-300 flex-col bg-guild-card/50 border-r border-guild-border/30 group overflow-hidden'>
+		<aside className='hidden md:flex w-16 hover:w-48 transition-all duration-300 flex-col bg-guild-card/50 border-r border-guild-border/30 group overflow-hidden' aria-label='Main navigation'>
 			{/* Logo */}
 			<div className='flex items-center h-14 px-4 border-b border-guild-border/30'>
 				<PrimogemIcon className='text-guild-accent shrink-0' size={22} />
@@ -236,7 +236,7 @@ export function Sidebar() {
 			</div>
 
 			{/* Nav */}
-			<nav className='flex-1 py-2 overflow-y-auto overflow-x-hidden sidebar-scroll'>
+			<nav className='flex-1 py-2 overflow-y-auto overflow-x-hidden sidebar-scroll' role='navigation' aria-label='Site navigation'>
 				{NAV_SECTIONS.map((section) => {
 					const visibleItems = section.items.filter(isItemVisible);
 					if (visibleItems.length === 0) return null;
@@ -249,6 +249,8 @@ export function Sidebar() {
 							{section.collapsible && (
 								<button
 									onClick={() => toggleSection(section.id)}
+									aria-expanded={open}
+									aria-label={`${open ? 'Collapse' : 'Expand'} ${section.title} section`}
 									className={cn(
 										'w-full flex items-center h-7 px-4 mx-0 transition-colors cursor-pointer',
 										'opacity-0 group-hover:opacity-100 transition-opacity duration-300',
@@ -298,6 +300,8 @@ export function Sidebar() {
 										<Link
 											key={item.href}
 											href={item.href}
+											aria-label={item.label}
+											aria-current={active ? 'page' : undefined}
 											className={cn(
 												'flex items-center h-8 px-4 mx-2 rounded-md transition-colors',
 												active

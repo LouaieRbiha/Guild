@@ -153,10 +153,11 @@ export function TopBar() {
 			<header className='h-16 flex items-center justify-between px-6 border-b border-guild-border/30 bg-guild-card/30 backdrop-blur-sm'>
 				<div className='hidden md:flex items-center gap-4 flex-1 max-w-xl'>
 					<div className='relative flex-1'>
-						<Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-guild-muted' />
+						<Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-guild-muted' aria-hidden='true' />
 						<input
 							type='text'
 							placeholder='Search characters, weapons, artifacts...'
+							aria-label='Search characters, weapons, and artifacts'
 							value={search}
 							onChange={(e) => setSearch(e.target.value)}
 							onFocus={() => setSearchFocused(true)}
@@ -210,6 +211,7 @@ export function TopBar() {
 						<input
 							type='text'
 							placeholder='Enter UID'
+							aria-label='Enter player UID for lookup'
 							value={uid}
 							onChange={(e) => setUid(e.target.value)}
 							onKeyDown={(e) => e.key === 'Enter' && handleLookup()}
@@ -225,6 +227,7 @@ export function TopBar() {
 					<button
 						onClick={toggleTheme}
 						className='h-9 w-9 flex items-center justify-center rounded-md hover:bg-guild-elevated/50 text-guild-muted hover:text-foreground transition-colors cursor-pointer'
+						aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
 						title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
 					>
 						{theme === 'dark' ? (
@@ -235,6 +238,8 @@ export function TopBar() {
 					</button>
 					<button
 						onClick={() => setShowSettings(!showSettings)}
+						aria-label={showSettings ? 'Close settings' : 'Open settings'}
+						aria-expanded={showSettings}
 						className={cn(
 							'h-9 w-9 flex items-center justify-center rounded-md transition-colors cursor-pointer',
 							showSettings
@@ -249,7 +254,7 @@ export function TopBar() {
 
 			{/* Settings Panel Overlay */}
 			{showSettings && (
-				<div className='fixed inset-0 z-50 bg-black/40 backdrop-blur-sm'>
+				<div className='fixed inset-0 z-50 bg-black/40 backdrop-blur-sm' role='dialog' aria-label='Settings panel'>
 					<div
 						ref={panelRef}
 						className='absolute right-0 top-0 h-full w-80 bg-guild-card border-l border-guild-border shadow-2xl shadow-black/50 overflow-y-auto animate-in slide-in-from-right duration-200'
@@ -257,11 +262,12 @@ export function TopBar() {
 						{/* Panel header */}
 						<div className='flex items-center justify-between p-5 border-b border-guild-border/30'>
 							<div className='flex items-center gap-2'>
-								<Settings className='h-5 w-5 text-guild-accent' />
+								<Settings className='h-5 w-5 text-guild-accent' aria-hidden='true' />
 								<h2 className='text-lg font-semibold'>Settings</h2>
 							</div>
 							<button
 								onClick={() => setShowSettings(false)}
+								aria-label='Close settings'
 								className='h-8 w-8 flex items-center justify-center rounded-md hover:bg-guild-elevated/50 text-guild-muted hover:text-foreground transition-colors'
 							>
 								<X className='h-4 w-4' />
@@ -355,9 +361,12 @@ function SettingsToggle({
 	return (
 		<button
 			onClick={() => onChange(!checked)}
+			role='switch'
+			aria-checked={checked}
 			className='w-full flex items-start gap-3 p-3 rounded-lg hover:bg-guild-elevated/50 transition-colors text-left'
 		>
 			<div
+				aria-hidden='true'
 				className={cn(
 					'mt-0.5',
 					checked ? 'text-guild-accent' : 'text-guild-muted',
