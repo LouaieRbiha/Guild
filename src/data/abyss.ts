@@ -117,7 +117,7 @@ export const ABYSS_FLOORS: AbyssFloor[] = [
           { name: "Oprichniki Fireblade Shock Trooper x1" },
         ],
         secondHalf: [
-          { name: "Foliar-Swift Wayob Manifestation", hp: "500,000", element: "Dendro", icon: "UI_MonsterIcon_Fungus_Raptor_05" },
+          { name: "Foliar-Swift Wayob Manifestation", hp: "500,000", element: "Dendro", icon: "UI_MonsterIcon_Fungus_Raptor" },
         ],
       },
       {
@@ -223,7 +223,7 @@ export const ABYSS_FLOORS: AbyssFloor[] = [
         name: "Lord of the Hidden Depths — Whisperer of Nightmares",
         hp: "1,800,000",
         icon: "UI_MonsterIcon_Lloigor_Primo",
-        image: "https://gi.yatta.moe/assets/UI/monster/UI_MonsterIcon_Lloigor_Primo.png",
+        image: "/api/images/monsters/UI_MonsterIcon_Lloigor_Primo.png",
         description: "A dangerous Hydro entity that conjures nightmare illusions. Use Electro to trigger Lunar-Charged reactions for bonus damage. Stay mobile during its sweeping attacks.",
         resistances: [
           { element: "Pyro", value: 10 },
@@ -246,7 +246,7 @@ export const ABYSS_FLOORS: AbyssFloor[] = [
         name: "Legatus Golem",
         hp: "1,500,000",
         icon: "UI_MonsterIcon_Golem_Centaur",
-        image: "https://gi.yatta.moe/assets/UI/monster/UI_MonsterIcon_Golem_Centaur.png",
+        image: "/api/images/monsters/UI_MonsterIcon_Golem_Centaur.png",
         description: "A massive Geo construct that generates crystallize shields. Use Hydro to trigger Lunar-Crystallize for devastating reactions. Break its core during the stagger window.",
         resistances: [
           { element: "Pyro", value: 10 },
@@ -294,8 +294,8 @@ export const STYGIAN_STAGES: StygianStage[] = [
     stage: 1,
     name: "Hexadecatonic Mandragora",
     enemies: [
-      { name: "Hexadecatonic Mandragora", hp: "800,000", element: "Dendro", icon: "UI_MonsterIcon_Fungus_Raptor_05" },
-      { name: "Mandragora Spore x4", hp: "100,000", element: "Dendro", icon: "UI_MonsterIcon_Fungus_Raptor_05" },
+      { name: "Hexadecatonic Mandragora", hp: "800,000", element: "Dendro", icon: "UI_MonsterIcon_Fungus_Raptor" },
+      { name: "Mandragora Spore x4", hp: "100,000", element: "Dendro", icon: "UI_MonsterIcon_Fungus_Raptor" },
     ],
     modifiers: [
       { name: "Spore Bloom", description: "The Mandragora splits into 4 spores periodically. Use Anemo to group them and AoE to eliminate quickly.", type: "mechanic" },
@@ -305,7 +305,7 @@ export const STYGIAN_STAGES: StygianStage[] = [
     boss: {
       name: "Hexadecatonic Mandragora",
       hp: "800,000",
-      image: "https://gi.yatta.moe/assets/UI/monster/UI_MonsterIcon_Fungus_Raptor_05.png",
+      image: "/api/images/monsters/UI_MonsterIcon_Fungus_Raptor.png",
       description: "A monstrous Dendro plant that periodically splits into small spores. Group the spores with Anemo and use Pyro for the elemental surge bonus. Burning and Overloaded reactions are especially effective.",
       resistances: [
         { element: "Pyro", value: -20 },
@@ -355,7 +355,7 @@ export const STYGIAN_STAGES: StygianStage[] = [
     boss: {
       name: "Secret Source Automaton: Overseer Device",
       hp: "1,200,000",
-      image: "https://gi.yatta.moe/assets/UI/monster/UI_MonsterIcon_DragonCollar.png",
+      image: "/api/images/monsters/UI_MonsterIcon_DragonCollar.png",
       description: "A heavily armored automaton that deploys repair drones. Apply Cryo to freeze its joints and create vulnerability windows. Prioritize destroying repair drones, then burst during the frozen window.",
       resistances: [
         { element: "Pyro", value: 10 },

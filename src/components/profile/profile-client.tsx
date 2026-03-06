@@ -32,9 +32,10 @@ import {
 } from '@/lib/scoring';
 import { CHARACTER_BUILDS } from '@/data/character-builds';
 import { cn } from '@/lib/utils';
-import { Download, Share2, Trophy } from 'lucide-react';
+import { Download, RefreshCw, Share2, Trophy } from 'lucide-react';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
 
 // Roll tiers for 5★ substats (approximately)
 const ROLL_VALUES: Record<string, number[]> = {
@@ -99,8 +100,31 @@ export function ProfileClient({
 	rankings = {},
 	source = 'enka',
 }: ProfileClientProps) {
+	const router = useRouter();
 	const [selectedIdx, setSelectedIdx] = useState(0);
 	const selected = profile.characters[selectedIdx];
+
+	// Refresh cooldown (60 seconds to match Enka cache)
+	const REFRESH_COOLDOWN = 60;
+	const [refreshCooldown, setRefreshCooldown] = useState(0);
+	const [refreshing, setRefreshing] = useState(false);
+
+	useEffect(() => {
+		if (refreshCooldown <= 0) return;
+		const timer = setInterval(() => {
+			setRefreshCooldown((prev) => Math.max(0, prev - 1));
+		}, 1000);
+		return () => clearInterval(timer);
+	}, [refreshCooldown]);
+
+	const handleRefresh = useCallback(() => {
+		if (refreshCooldown > 0 || refreshing) return;
+		setRefreshing(true);
+		setRefreshCooldown(REFRESH_COOLDOWN);
+		router.refresh();
+		// Give the server time to re-fetch, then mark done
+		setTimeout(() => setRefreshing(false), 3000);
+	}, [refreshCooldown, refreshing, router]);
 
 	// Score artifacts
 	const artifactScores = selected.artifacts.map(scoreArtifact);
@@ -173,6 +197,23 @@ export function ProfileClient({
 						)}
 					</div>
 					<div className='flex gap-2'>
+						<button
+							onClick={handleRefresh}
+							disabled={refreshCooldown > 0 || refreshing}
+							className={cn(
+								'h-9 px-4 rounded-md text-sm flex items-center gap-2 transition-colors cursor-pointer',
+								refreshCooldown > 0 || refreshing
+									? 'bg-white/5 text-guild-dim cursor-not-allowed'
+									: 'bg-guild-elevated hover:bg-white/10',
+							)}
+						>
+							<RefreshCw className={cn('h-4 w-4', refreshing && 'animate-spin')} />
+							{refreshing
+								? 'Refreshing...'
+								: refreshCooldown > 0
+									? `${refreshCooldown}s`
+									: 'Refresh'}
+						</button>
 						<button className='h-9 px-4 rounded-md bg-guild-elevated hover:bg-white/10 text-sm flex items-center gap-2 transition-colors cursor-pointer'>
 							<Share2 className='h-4 w-4' /> Share
 						</button>
@@ -492,6 +533,33 @@ export function ProfileClient({
 							<h3 className='text-xs font-medium text-guild-muted uppercase tracking-wider mb-2'>
 								Artifacts
 							</h3>
+
+							{/* Scoring basis: show what stats matter for this character */}
+							{CHARACTER_BUILDS[selected.name] && (
+								<div className='mb-3 p-2.5 rounded-lg bg-guild-card border border-white/5'>
+									<div className='text-[10px] text-guild-muted uppercase tracking-wider mb-1.5'>
+										Scoring based on
+									</div>
+									<div className='flex items-center gap-1.5 flex-wrap'>
+										{CHARACTER_BUILDS[selected.name].substats.map((sub, i) => (
+											<span
+												key={sub}
+												className={cn(
+													'text-[11px] px-2 py-0.5 rounded',
+													i === 0
+														? 'bg-guild-accent/20 text-guild-accent font-medium border border-guild-accent/20'
+														: i === 1
+															? 'bg-white/10 text-white/80 font-medium'
+															: 'bg-white/5 text-guild-dim',
+												)}
+											>
+												{sub}
+											</span>
+										))}
+										<span className='text-[10px] text-guild-dim ml-1'>+ Crit Value</span>
+									</div>
+								</div>
+							)}
 							<div className='grid grid-cols-1 gap-3'>
 								{selected.artifacts.map((a, i) => {
 									const s = artifactScores[i];
@@ -660,27 +728,6 @@ export function ProfileClient({
 								</div>
 							)}
 
-							{/* Recommended Substats */}
-							{CHARACTER_BUILDS[selected.name] && (
-								<div className='mt-2 flex items-center gap-2 flex-wrap'>
-									<span className='text-[10px] font-medium text-guild-muted uppercase tracking-wider'>
-										Priority:
-									</span>
-									{CHARACTER_BUILDS[selected.name].substats.map((sub, i) => (
-										<span
-											key={sub}
-											className={cn(
-												'text-[10px] px-1.5 py-0.5 rounded',
-												i === 0
-													? 'bg-guild-accent/20 text-guild-accent font-medium'
-													: 'bg-white/5 text-guild-dim',
-											)}
-										>
-											{sub}
-										</span>
-									))}
-								</div>
-							)}
 						</div>
 					</div>
 				</div>
@@ -704,7 +751,7 @@ export function ProfileClient({
 				const weakestArt = selected.artifacts[weakestIdx];
 
 				// Check main stats for sands/goblet/circlet
-				const mainStatIssues: { slot: string; current: string; recommended: string }[] = [];
+				const mainStatIssues: { slot: string; current: string; recommended: string; icon?: string }[] = [];
 				for (const a of selected.artifacts) {
 					const slot = a.slot.toLowerCase();
 					let rec: string | undefined;
@@ -716,7 +763,7 @@ export function ProfileClient({
 						const currentMain = a.mainStat.replace(/[0-9.%+]+/g, '').trim();
 						const matches = recOptions.some(r => currentMain.toLowerCase().includes(r.toLowerCase()) || r.toLowerCase().includes(currentMain.toLowerCase()));
 						if (!matches) {
-							mainStatIssues.push({ slot: a.slot, current: a.mainStat, recommended: rec });
+							mainStatIssues.push({ slot: a.slot, current: a.mainStat, recommended: rec, icon: a.icon });
 						}
 					}
 				}
@@ -758,6 +805,16 @@ export function ProfileClient({
 									You have a 2pc {matchedSets[0]} but this character benefits from a full 4pc. Farm more pieces to complete the set.
 								</p>
 							)}
+							{has4pc && matchedSets.length === 0 && (
+								<p className='text-xs text-orange-400'>
+									You have a 4pc set but it&apos;s not recommended for this character.
+								</p>
+							)}
+							{recSets.length >= 2 && matchedSets.length === 1 && (
+								<p className='text-xs text-yellow-400'>
+									You have 2pc {matchedSets[0]} — pair it with 2pc {recSets.find(s => s !== matchedSets[0]) ?? recSets[1]} for the best combo.
+								</p>
+							)}
 						</div>
 
 						{/* Recommended Sets */}
@@ -772,6 +829,11 @@ export function ProfileClient({
 										{recSets.length === 1 ? '4pc' : '2pc'} {set}
 									</span>
 								))}
+								{recSets.length >= 2 && (
+									<span className='text-[10px] text-guild-dim self-center'>
+										(mix any two)
+									</span>
+								)}
 							</div>
 						</div>
 
@@ -781,6 +843,16 @@ export function ProfileClient({
 								<div className='text-xs text-orange-400 font-medium'>Main Stat Mismatches</div>
 								{mainStatIssues.map((issue) => (
 									<div key={issue.slot} className='text-xs flex items-center gap-2'>
+										{issue.icon && (
+											<div className='w-5 h-5 rounded overflow-hidden shrink-0 bg-guild-card'>
+												<FallbackImage
+													src={`${ENKA_UI}/${issue.icon}.png`}
+													alt={issue.slot}
+													width={20}
+													height={20}
+												/>
+											</div>
+										)}
 										<span className='text-guild-muted'>{issue.slot}:</span>
 										<span className='text-red-400 line-through'>{issue.current}</span>
 										<span className='text-guild-dim'>→</span>
@@ -794,10 +866,22 @@ export function ProfileClient({
 						{weakestArt && (
 							<div className='p-3 rounded-lg bg-red-500/5 border border-red-500/10'>
 								<div className='text-xs text-red-400 font-medium mb-1'>Weakest Piece</div>
-								<div className='text-xs text-guild-muted'>
-									<span className='text-white'>{weakestArt.slot}</span>
-									{' '}— scored {artifactScores[weakestIdx]}/100 ({grade(artifactScores[weakestIdx])}).
-									Replacing this piece would improve your build the most.
+								<div className='text-xs text-guild-muted flex items-center gap-2'>
+									{weakestArt.icon && (
+										<div className='w-8 h-8 rounded-lg overflow-hidden shrink-0 bg-guild-card border border-white/5'>
+											<FallbackImage
+												src={`${ENKA_UI}/${weakestArt.icon}.png`}
+												alt={weakestArt.slot}
+												width={32}
+												height={32}
+											/>
+										</div>
+									)}
+									<div>
+										<span className='text-white'>{weakestArt.slot}</span>
+										{' '}— scored {artifactScores[weakestIdx]}/100 ({grade(artifactScores[weakestIdx])}).
+										Replacing this piece would improve your build the most.
+									</div>
 								</div>
 							</div>
 						)}
@@ -870,7 +954,19 @@ export function ProfileClient({
 								const pieceResin = estimateResinForPiece(s);
 								return (
 									<div key={a.slot} className='flex items-center justify-between text-xs'>
-										<span className='text-guild-muted truncate'>{a.slot}</span>
+										<div className='flex items-center gap-2 min-w-0'>
+											{a.icon && (
+												<div className='w-5 h-5 rounded overflow-hidden shrink-0 bg-guild-card'>
+													<FallbackImage
+														src={`${ENKA_UI}/${a.icon}.png`}
+														alt={a.slot}
+														width={20}
+														height={20}
+													/>
+												</div>
+											)}
+											<span className='text-guild-muted truncate'>{a.slot}</span>
+										</div>
 										<div className='flex items-center gap-2'>
 											<span className={cn(
 												'font-mono',

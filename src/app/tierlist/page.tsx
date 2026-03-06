@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
+import useSWR from "swr";
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -156,25 +157,22 @@ function buildRankedList(
 export default function TierListPage() {
   const [roleFilter, setRoleFilter] = useState<"All" | Role>("All");
   const [source, setSource] = useState<DataSource>("combined");
-  const [abyssData, setAbyssData] = useState<AbyssRatesData | null>(null);
-  const [stygianData, setStygianData] = useState<StygianRatesData | null>(null);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    Promise.all([
-      fetch("/api/abyss")
-        .then((r) => r.json())
-        .then((d) => { if (!d.error) setAbyssData(d); })
-        .catch(() => {}),
-      fetch("/api/abyss/stygian")
-        .then((r) => r.json())
-        .then((d) => { if (!d.error) setStygianData(d); })
-        .catch(() => {}),
-    ]).finally(() => setLoading(false));
-  }, []);
+  const swrFetcher = (url: string) => fetch(url).then((r) => r.json()).then((d) => {
+    if (d.error) throw new Error(d.error);
+    return d;
+  });
+
+  const { data: abyssData, isLoading: abyssLoading } = useSWR<AbyssRatesData>(
+    "/api/abyss", swrFetcher, { refreshInterval: 5 * 60 * 1000 }
+  );
+  const { data: stygianData, isLoading: stygianLoading } = useSWR<StygianRatesData>(
+    "/api/abyss/stygian", swrFetcher, { refreshInterval: 5 * 60 * 1000 }
+  );
+  const loading = abyssLoading || stygianLoading;
 
   const ranked = useMemo(
-    () => buildRankedList(abyssData, stygianData, source),
+    () => buildRankedList(abyssData ?? null, stygianData ?? null, source),
     [abyssData, stygianData, source],
   );
 
@@ -339,6 +337,7 @@ export default function TierListPage() {
                             fill
                             sizes="56px"
                             className="object-cover"
+                            quality={100}
                           />
                           {EI && (
                             <div className="absolute bottom-0 right-0 bg-black/70 rounded-full p-0.5">

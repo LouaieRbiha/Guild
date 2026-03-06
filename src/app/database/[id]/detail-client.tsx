@@ -1261,6 +1261,7 @@ function GuidesTab({ detail, colors }: { detail: CharacterDetail; colors: Elemen
 								<div className="relative">
 									{w.weaponId > 0 && (
 										<Image src={weaponIconUrl(w.weaponId)} alt={w.name} width={56} height={56}
+											quality={100}
 											className="rounded-lg bg-guild-elevated border border-guild-border" />
 									)}
 									{!w.weaponId && (
@@ -1374,7 +1375,7 @@ function GuidesTab({ detail, colors }: { detail: CharacterDetail; colors: Elemen
 									return entry ? (
 										<Link key={j} href={`/database/${entry.id}`}>
 											<div className="w-10 h-10 rounded-lg overflow-hidden border border-guild-border bg-guild-elevated hover:border-guild-accent/50 transition-colors">
-												<Image src={charIconUrl(entry.id)} alt={member} width={40} height={40} className="object-cover" sizes="40px" />
+												<Image src={charIconUrl(entry.id)} alt={member} width={40} height={40} className="object-cover" sizes="40px" quality={100} />
 											</div>
 										</Link>
 									) : (
@@ -1478,6 +1479,7 @@ function RecommendedBuildSection({
 												height={48}
 												className='rounded-lg bg-guild-elevated border border-guild-border group-hover:border-guild-accent/50 transition-colors'
 												sizes='48px'
+												quality={100}
 											/>
 											{i === 0 && (
 												<div className='absolute -top-1 -left-1 w-4 h-4 rounded-full bg-guild-gold flex items-center justify-center text-[8px] font-bold text-black'>

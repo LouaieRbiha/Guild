@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import useSWR from "swr";
 import Image from "next/image";
 import Link from "next/link";
 import { Shield, AlertTriangle, Swords, Trophy, Info, ChevronRight, Flame, Zap, BarChart3, Users } from "lucide-react";
@@ -12,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ElementBadge } from "@/components/shared";
 import { ALL_CHARACTERS, charIconUrl } from "@/lib/characters";
-import { ELEMENT_COLORS, YATTA_MONSTER } from "@/lib/constants";
+import { ELEMENT_COLORS, monsterIconUrl } from "@/lib/constants";
 import {
   ABYSS_FLOORS,
   ABYSS_VERSION,
@@ -29,6 +30,11 @@ import {
 } from "@/data/abyss";
 
 // ── Helpers ──────────────────────────────────────────────────────────────
+
+const swrFetcher = (url: string) => fetch(url).then((r) => r.json()).then((d) => {
+  if (d.error) throw new Error(d.error);
+  return d;
+});
 
 const ID_TO_NAME_LOOKUP: Record<string, string> = {};
 const NAME_TO_ENTRY: Record<string, typeof ALL_CHARACTERS[number]> = {};
@@ -57,13 +63,12 @@ function EnemyRow({ enemy }: { enemy: AbyssEnemy }) {
         {enemy.icon && !imgError ? (
           <div className="w-6 h-6 rounded overflow-hidden bg-white/5 shrink-0">
             <Image
-              src={`${YATTA_MONSTER}/${enemy.icon}.png`}
+              src={monsterIconUrl(enemy.icon)}
               alt={enemy.name}
               width={24}
               height={24}
               className="object-cover"
               onError={() => setImgError(true)}
-              unoptimized
             />
           </div>
         ) : (
@@ -467,6 +472,7 @@ function UsageRatesSection({ data }: { data: AbyssRatesData }) {
                     width={32}
                     height={32}
                     className="object-cover"
+                    quality={100}
                     onError={() => setImgErrors((prev) => ({ ...prev, [char.id]: true }))}
                   />
                 ) : (
@@ -560,6 +566,7 @@ function LiveTopTeams({ data }: { data: AbyssRatesData }) {
                             fill
                             sizes="48px"
                             className="object-cover"
+                            quality={100}
                             onError={() => setImgErrors((prev) => ({ ...prev, [id]: true }))}
                           />
                         ) : (
@@ -595,24 +602,14 @@ function LiveTopTeams({ data }: { data: AbyssRatesData }) {
 // ── Stygian Usage Rates (Live from AZA.GG) ──────────────────────────────
 
 function StygianUsageRatesSection() {
-  const [data, setData] = useState<StygianRatesData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const { data, error: swrError, isLoading: loading } = useSWR<StygianRatesData>(
+    "/api/abyss/stygian", swrFetcher, { refreshInterval: 5 * 60 * 1000 }
+  );
+  const error = !!swrError;
   const [rateType, setRateType] = useState<"pickRate" | "ownRate" | "useByOwnRate">("pickRate");
   const [roomFilter, setRoomFilter] = useState<"overall" | number>("overall");
   const [difficultyId, setDifficultyId] = useState<string | null>(null);
   const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    fetch("/api/abyss/stygian")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.error) throw new Error(d.error);
-        setData(d);
-      })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
-  }, []);
 
   if (loading) {
     return (
@@ -763,6 +760,7 @@ function StygianUsageRatesSection() {
                     width={32}
                     height={32}
                     className="object-cover"
+                    quality={100}
                     onError={() => setImgErrors((prev) => ({ ...prev, [char.id]: true }))}
                   />
                 ) : (
@@ -850,6 +848,7 @@ function RecommendedTeamsSection() {
                             height={44}
                             className="object-cover"
                             sizes="44px"
+                            quality={100}
                             onError={() => setImgErrors((prev) => ({ ...prev, [entry.id]: true }))}
                           />
                         ) : (
@@ -899,20 +898,10 @@ function RecommendedTeamsSection() {
 // ── Abyss Data Section (single fetch for usage rates + top teams) ────
 
 function AbyssDataSection() {
-  const [data, setData] = useState<AbyssRatesData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    fetch("/api/abyss")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.error) throw new Error(d.error);
-        setData(d);
-      })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
-  }, []);
+  const { data, error: swrError, isLoading: loading } = useSWR<AbyssRatesData>(
+    "/api/abyss", swrFetcher, { refreshInterval: 5 * 60 * 1000 }
+  );
+  const error = !!swrError;
 
   if (loading) {
     return (

@@ -185,6 +185,7 @@ export default function WeaponsPage() {
                     height={32}
                     className="rounded"
                     sizes="32px"
+                    quality={100}
                   />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-white truncate">{w.name}</p>

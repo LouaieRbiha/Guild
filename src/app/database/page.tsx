@@ -204,6 +204,7 @@ export default function DatabasePage() {
                       height={32}
                       className="rounded-full"
                       sizes="32px"
+                      quality={100}
                     />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-white truncate">{c.name}</p>
@@ -431,6 +432,7 @@ const CharacterCard = React.memo(function CharacterCard({ char }: { char: Charac
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, (max-width: 1280px) 20vw, 16vw"
             className="object-cover object-top transition-transform duration-300 group-hover:scale-110"
+            quality={100}
             onError={() => { if (!useFallback) setUseFallback(true); }}
           />
 

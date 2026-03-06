@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import useSWR from "swr";
 import {
   Radio,
   ExternalLink,
@@ -217,16 +218,11 @@ type FilterValue = "all" | "youtube" | "twitch";
 export default function StreamersPage() {
   const [platformFilter, setPlatformFilter] = useState<FilterValue>("all");
   const [resourcesOpen, setResourcesOpen] = useState(false);
-  const [liveStreamers, setLiveStreamers] = useState<LiveStreamer[]>([]);
-  const [liveLoading, setLiveLoading] = useState(true);
-
-  useEffect(() => {
-    fetch("/api/streamers")
-      .then((res) => res.json())
-      .then((data: LiveStreamer[]) => setLiveStreamers(data))
-      .catch(() => setLiveStreamers([]))
-      .finally(() => setLiveLoading(false));
-  }, []);
+  const { data: liveStreamers = [], isLoading: liveLoading } = useSWR<LiveStreamer[]>(
+    "/api/streamers",
+    (url: string) => fetch(url).then((r) => r.json()),
+    { refreshInterval: 2 * 60 * 1000 }
+  );
 
   const filteredCreators =
     platformFilter === "all"
